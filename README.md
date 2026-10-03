@@ -1,2 +1,7 @@
 # voc4500
-aiming at improving eng skills
+
+4500 單字多義複習：一字多義、詞性轉換的生疏字義整理，附文意選填與四選一練習。
+
+網址：https://giansse.github.io/voc4500/
+
+手機用瀏覽器打開後選「加入主畫面」即可安裝；離線可用，連上網路會自動更新。

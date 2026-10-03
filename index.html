@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f4569">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="4500多義">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+.pwa-toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink,#1c2430);color:var(--surface,#fff);font:600 13px/1.4 "Noto Sans TC",system-ui,sans-serif;padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:100;max-width:calc(100% - 32px);text-align:center}
+.pwa-status{display:block;margin-top:4px}</style>
+</head>
+<body>
+<title>4500 單字多義複習</title>
+<style>
+/* Layout: sticky sidebar (search, 練習, categories) + main column of per-category tables; mirrors 學測作文單字庫 */
+:root {
+  --bg: #eef1f3;
+  --surface: #ffffff;
+  --surface-2: #f5f7f8;
+  --ink: #1c2430;
+  --ink-soft: #56606d;
+  --ink-faint: #8993a1;
+  --accent: #2f5d8a;
+  --accent-strong: #1f4569;
+  --accent-soft: #dce8f2;
+  --gold: #a8781f;
+  --gold-soft: #f3e6cd;
+  --border: #dde2e6;
+  --good: #2f7a47; --good-bg: #dcefe0;
+  --bad: #b3413a;  --bad-bg: #f6dedb;
+  --shadow: 0 1px 2px rgba(28,36,48,0.06), 0 8px 24px -12px rgba(28,36,48,0.12);
+  --pos-v: #2f5d8a;      --pos-v-bg: #dce8f2;
+  --pos-adj: #3f7a4e;    --pos-adj-bg: #dcefe0;
+  --pos-n: #a8781f;      --pos-n-bg: #f3e6cd;
+  --pos-phrase: #1f7a72; --pos-phrase-bg: #dbefec;
+  --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-serif: "Noto Serif TC", "Source Serif 4", "PMingLiU", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161b; --surface: #1a1f26; --surface-2: #20262e;
+    --ink: #e7eaee; --ink-soft: #a3adb8; --ink-faint: #6d7885;
+    --accent: #7db1e0; --accent-strong: #9cc6ec; --accent-soft: #223447;
+    --gold: #e0b768; --gold-soft: #3a3018; --border: #2b323b;
+    --good: #8fca9d; --good-bg: #1e3324; --bad: #ec9a92; --bad-bg: #3c1f1c;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    --pos-v: #7db1e0; --pos-v-bg: #1f3348;
+    --pos-adj: #8fca9d; --pos-adj-bg: #1e3324;
+    --pos-n: #e0b768; --pos-n-bg: #3a3018;
+    --pos-phrase: #7fd0c6; --pos-phrase-bg: #1a3532;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161b; --surface: #1a1f26; --surface-2: #20262e;
+  --ink: #e7eaee; --ink-soft: #a3adb8; --ink-faint: #6d7885;
+  --accent: #7db1e0; --accent-strong: #9cc6ec; --accent-soft: #223447;
+  --gold: #e0b768; --gold-soft: #3a3018; --border: #2b323b;
+  --good: #8fca9d; --good-bg: #1e3324; --bad: #ec9a92; --bad-bg: #3c1f1c;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  --pos-v: #7db1e0; --pos-v-bg: #1f3348;
+  --pos-adj: #8fca9d; --pos-adj-bg: #1e3324;
+  --pos-n: #e0b768; --pos-n-bg: #3a3018;
+  --pos-phrase: #7fd0c6; --pos-phrase-bg: #1a3532;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--font-serif); text-wrap: balance; }
+button { font-family: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 272px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border);
+  position: sticky; top: env(safe-area-inset-top, 0px); height: 100vh;
+  display: flex; flex-direction: column; gap: 14px; padding: 20px 16px;
+}
+.sidebar-title { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 700; margin: 0; padding: 0 4px; }
+.sidebar-sub { font-size: 0.75rem; color: var(--ink-faint); padding: 0 4px; margin-top: -10px; }
+.search-box { position: relative; }
+.search-box input {
+  width: 100%; padding: 10px 12px 10px 34px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--ink); font-size: 0.9rem; font-family: inherit;
+}
+.search-box svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--ink-faint); pointer-events: none; }
+.result-count { margin: -6px 4px 0; font-size: 0.72rem; color: var(--accent); min-height: 1em; }
+.study-toggle-btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%;
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--accent);
+  background: var(--accent-soft); color: var(--accent-strong); font-size: 0.86rem; font-weight: 700; cursor: pointer;
+}
+.study-toggle-btn:hover { background: var(--accent); color: var(--surface); }
+.study-toggle-btn.active { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+.study-toggle-btn svg { width: 16px; height: 16px; }
+.nav-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.nav-list a {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; text-decoration: none;
+  color: var(--ink-soft); padding: 8px 10px; border-radius: 8px; font-size: 0.85rem;
+}
+.nav-list a:hover { background: var(--surface-2); color: var(--ink); }
+.nav-count { font-size: 0.72rem; color: var(--ink-faint); background: var(--surface-2); border-radius: 999px; padding: 1px 7px; font-variant-numeric: tabular-nums; }
+.sidebar-footer { font-size: 0.72rem; color: var(--ink-faint); padding: 8px 4px 0; border-top: 1px solid var(--border); }
+
+.main { flex: 1; min-width: 0; padding: 40px clamp(16px, 4vw, 56px) 80px; max-width: 1120px; }
+.hero { margin-bottom: 34px; }
+.hero-eyebrow {
+  display: inline-block; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--gold); background: var(--gold-soft);
+  padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; font-weight: 600;
+}
+.hero h1 { font-size: clamp(1.5rem, 3vw, 2.1rem); margin: 0 0 10px; }
+.hero-meta { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 0.85rem; color: var(--ink-soft); }
+.hero-meta strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.hero-note { font-size: 0.82rem; color: var(--ink-faint); border-left: 3px solid var(--border); padding-left: 12px; margin-top: 14px; max-width: 62ch; }
+
+.category { margin-bottom: 42px; scroll-margin-top: 20px; }
+.category-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+.category h2 { font-size: 1.15rem; margin: 0; }
+.category-count { font-size: 0.72rem; color: var(--ink-faint); background: var(--surface-2); border-radius: 999px; padding: 2px 9px; font-variant-numeric: tabular-nums; }
+.category-desc { font-size: 0.82rem; color: var(--ink-faint); margin: 0 0 12px; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 820px; }
+thead th {
+  text-align: left; font-size: 0.72rem; letter-spacing: 0.04em; color: var(--ink-faint); font-weight: 600;
+  padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface-2); white-space: nowrap;
+}
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--ink-soft); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--surface-2); }
+td.word { color: var(--ink); font-weight: 700; white-space: nowrap; }
+.flag { display: inline-block; margin-left: 6px; font-size: 0.66rem; font-weight: 600; color: var(--gold); background: var(--gold-soft); border-radius: 4px; padding: 0 5px; vertical-align: 2px; }
+td.zh { color: var(--ink); min-width: 150px; }
+td.kk { color: var(--accent); white-space: nowrap; font-size: 0.85rem; }
+td.example { min-width: 260px; }
+.ex-en { font-style: italic; color: var(--ink); }
+.ex-en b { font-style: normal; color: var(--accent-strong); background: var(--accent-soft); border-radius: 3px; padding: 0 3px; }
+.ex-zh { font-size: 0.8rem; color: var(--ink-faint); margin-top: 2px; }
+td.colloc { color: var(--ink-soft); font-size: 0.82rem; min-width: 200px; }
+.pos-tag { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.pos-v { color: var(--pos-v); background: var(--pos-v-bg); }
+.pos-n { color: var(--pos-n); background: var(--pos-n-bg); }
+.pos-adj { color: var(--pos-adj); background: var(--pos-adj-bg); }
+.pos-phr { color: var(--pos-phrase); background: var(--pos-phrase-bg); }
+.empty-state { text-align: center; color: var(--ink-faint); padding: 60px 20px; font-size: 0.9rem; }
+
+/* ---- Study ---- */
+#studyView { max-width: 760px; }
+.study-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 22px clamp(16px, 3vw, 28px); margin-bottom: 20px; }
+.study-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.study-head h2 { font-size: 1.3rem; margin: 0; }
+.ghost-btn { font-size: 0.8rem; color: var(--ink-soft); background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.ghost-btn:hover { color: var(--accent-strong); border-color: var(--accent); }
+.study-section { margin-bottom: 20px; }
+.study-section-title { font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); margin: 0 0 10px; display: flex; justify-content: space-between; align-items: center; }
+.mini-btn { font-size: 0.72rem; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; }
+.chip-group, .radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-soft); cursor: pointer; }
+.chip.checked { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); font-weight: 600; }
+.chip-count { font-size: 0.7rem; color: var(--ink-faint); background: var(--surface); border-radius: 999px; padding: 0 6px; }
+.radio-pill { flex: 1; min-width: 150px; text-align: center; font-size: 0.85rem; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-soft); cursor: pointer; }
+.radio-pill.checked { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); font-weight: 700; }
+.pill-desc { display: block; font-size: 0.72rem; font-weight: 400; color: var(--ink-faint); margin-top: 2px; }
+.radio-pill.checked .pill-desc { color: var(--accent-strong); }
+.count-row { display: flex; align-items: center; gap: 8px; }
+.count-row input { width: 90px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); font-size: 0.9rem; font-family: inherit; }
+.pool-hint { font-size: 0.8rem; color: var(--ink-faint); margin: 8px 0 0; }
+.pool-hint strong { color: var(--accent-strong); }
+.primary-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: var(--accent-strong); color: var(--surface); font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+.primary-btn:hover { background: var(--accent); }
+.primary-btn:disabled { background: var(--border); color: var(--ink-faint); cursor: not-allowed; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.btn-row .primary-btn { flex: 1; width: auto; min-width: 140px; }
+
+/* 文意選填 */
+.cloze-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.cloze-item { font-size: 0.98rem; line-height: 1.9; color: var(--ink); }
+.cloze-item .qn { color: var(--ink-faint); font-variant-numeric: tabular-nums; margin-right: 6px; font-size: 0.85rem; }
+.blank {
+  display: inline-flex; align-items: center; gap: 4px; min-width: 96px; justify-content: center;
+  border: none; border-bottom: 2px solid var(--ink-faint); background: var(--surface-2); color: var(--ink);
+  padding: 0 8px; margin: 0 2px; border-radius: 4px 4px 0 0; font-size: 0.92rem; cursor: pointer; line-height: 1.7;
+}
+.blank.active { border-bottom-color: var(--accent); background: var(--accent-soft); }
+.blank.right { border-bottom-color: var(--good); background: var(--good-bg); cursor: default; }
+.blank.wrong { border-bottom-color: var(--bad); background: var(--bad-bg); cursor: default; }
+.blank .lt { font-weight: 700; color: var(--accent-strong); }
+.reveal { font-size: 0.8rem; color: var(--ink-soft); margin-top: 2px; line-height: 1.6; }
+.reveal .fix { color: var(--good); font-weight: 700; }
+.bank { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--border); }
+.opt {
+  display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--ink); font-size: 0.92rem; cursor: pointer; text-align: left;
+}
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt .lt { font-size: 0.75rem; font-weight: 700; color: var(--ink-faint); }
+.opt.used { opacity: 0.45; }
+.opt:disabled { cursor: default; }
+.score { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.score small { font-size: 0.9rem; color: var(--ink-faint); font-weight: 400; }
+
+/* 單題 */
+.progress-text { font-size: 0.82rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.progress-bar { height: 4px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin: 8px 0 20px; }
+.progress-bar span { display: block; height: 100%; background: var(--accent); transition: width 0.2s ease; }
+.q-sentence { font-family: var(--font-serif); font-size: 1.12rem; line-height: 1.75; color: var(--ink); margin: 0 0 18px; }
+.q-sentence .gap { display: inline-block; min-width: 90px; border-bottom: 2px solid var(--ink-faint); text-align: center; color: var(--accent-strong); font-weight: 700; font-family: var(--font-sans); }
+.q-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.q-opts .opt { justify-content: flex-start; padding: 12px 14px; }
+.opt.right { border-color: var(--good); background: var(--good-bg); color: var(--good); font-weight: 700; opacity: 1; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-bg); color: var(--bad); opacity: 1; }
+.feedback { margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: var(--surface-2); font-size: 0.86rem; color: var(--ink-soft); }
+.feedback .fb-word { color: var(--ink); font-weight: 700; }
+.wrong-list { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.wrong-list li { font-size: 0.86rem; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); color: var(--ink-soft); }
+.wrong-list b { color: var(--ink); }
+
+@media (max-width: 860px) {
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: 1px solid var(--border); }
+  .nav-list { max-height: 180px; }
+  .main { padding: 28px 16px 60px; }
+}
+@media (max-width: 480px) { .q-opts { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="layout">
+  <aside class="sidebar">
+    <p class="sidebar-title">4500 單字多義複習</p>
+    <div class="sidebar-sub">學測 · 文意選填加強</div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="search" type="search" placeholder="搜尋單字、中文、例句" autocomplete="off">
+    </div>
+    <div class="result-count" id="resultCount"></div>
+    <button class="study-toggle-btn" id="studyToggle" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h12v14H6a2 2 0 0 0-2 2Zm0 0a2 2 0 0 0 2 2h12"/><path d="M9 8h6M9 11h4"/></svg>
+      <span id="studyToggleText">進入練習</span>
+    </button>
+    <ul class="nav-list" id="nav"></ul>
+    <div class="sidebar-footer" id="footer"></div>
+  </aside>
+
+  <main class="main">
+    <section id="listView">
+      <header class="hero">
+        <span class="hero-eyebrow">一字多義 · 詞性轉換</span>
+        <h1>4500 單字多義複習</h1>
+        <div class="hero-meta" id="heroMeta"></div>
+        <p class="hero-note">每列只放一個「容易漏掉」的字義。例句中標色的字，就是文意選填要填進空格的形式，要注意時態、單複數跟詞性。</p>
+      </header>
+      <div id="categories"></div>
+      <div class="empty-state" id="empty" hidden>找不到符合的單字</div>
+    </section>
+
+    <section id="studyView" hidden></section>
+  </main>
+</div>
+
+<script>
+const CATS = [
+  { id: "n2v",  name: "名詞也能當動詞", desc: "平常只認得名詞用法，放進句子裡當動詞就認不出來。" },
+  { id: "shift", name: "詞性轉換與重音", desc: "同一個字換詞性，意思跟重音都會變。" },
+  { id: "noun", name: "同字異義名詞", desc: "同一個名詞有兩三個完全不同的意思。" },
+  { id: "adj",  name: "形容詞多義", desc: "形容詞的第二個意思，文意選填很常考。" },
+  { id: "verb", name: "動詞與三態", desc: "注意三態變化和後面接的介系詞。" },
+  { id: "life", name: "生活單字", desc: "沒有多義，單純是不熟的生活用字。" },
+  { id: "phr",  name: "片語", desc: "整組記，不要拆開理解。" }
+];
+
+// s: 例句（___ 為空格）  a: 填入空格的形式  t: 中譯  n: 搭配與提示  f: 小標籤
+const D = [
+  // 名詞也能當動詞
+  { c:"n2v", w:"jet", p:"v", zh:"搭噴射機旅行（常接 off）", kk:"/dʒɛt/", s:"She ___ off to Paris for the weekend.", a:"jetted", t:"她週末搭飛機飛去巴黎。", n:"jet off to + 地點；過去式雙寫 t：jetted" },
+  { c:"n2v", w:"clothe", p:"v", zh:"給…穿衣；供給衣物", kk:"/kloð/", s:"He works two jobs to feed and ___ his family.", a:"clothe", t:"他兼兩份工作讓家人有飯吃、有衣服穿。", n:"動詞是 clothe（有 e，th 讀 /ð/），cloth 只當名詞「布」；feed and clothe；be clothed in 穿著", f:"拼字" },
+  { c:"n2v", w:"nest", p:"v", zh:"築巢；（物品）層層套疊", kk:"/nɛst/", s:"Swallows ___ under our roof every spring.", a:"nest", t:"燕子每年春天在我們屋簷下築巢。", n:"nesting tables 套几；nest egg 儲蓄金" },
+  { c:"n2v", w:"cart", p:"v", zh:"（費力地）運送、搬走", kk:"/kɑrt/", s:"The workers ___ the old furniture away.", a:"carted", t:"工人把舊家具搬走了。", n:"cart sth away / off；名詞 shopping cart 購物推車" },
+  { c:"n2v", w:"coach", p:"v", zh:"指導、訓練（運動、考試）", kk:"/kotʃ/", s:"She ___ the team to the national finals.", a:"coached", t:"她帶領球隊打進全國決賽。", n:"coach sb in / for sth" },
+  { c:"n2v", w:"broadcast", p:"v", zh:"廣播、轉播；散播（消息）", kk:"/ˋbrɔdˌkæst/", s:"The final will be ___ live on TV.", a:"broadcast", t:"決賽會在電視上現場轉播。", n:"三態 broadcast–broadcast–broadcast（加 -ed 也可）；be broadcast live 現場轉播", f:"三態" },
+
+  // 詞性轉換與重音
+  { c:"shift", w:"present", p:"n", zh:"禮物", kk:"/ˋprɛznt/", s:"She wrapped the birthday ___ in red paper.", a:"present", t:"她用紅紙把生日禮物包起來。", n:"名詞、形容詞重音在前", f:"重音" },
+  { c:"shift", w:"present", p:"v", zh:"贈送；頒發", kk:"/prɪˋzɛnt/", s:"The mayor ___ the winners with medals.", a:"presented", t:"市長頒發獎牌給得獎者。", n:"present sb with sth = present sth to sb；動詞重音在後", f:"重音" },
+  { c:"shift", w:"produce", p:"n", zh:"農產品（不可數）", kk:"/ˋprɑdjus/", s:"The market sells fresh local ___.", a:"produce", t:"這個市場賣新鮮的在地農產品。", n:"不可數，沒有 produces；動詞 /prəˋdjus/ 生產", f:"重音" },
+  { c:"shift", w:"hire", p:"n", zh:"雇用；租用", kk:"/haɪr/", s:"Boats are available for ___ by the hour.", a:"hire", t:"船可以按小時租用。", n:"for hire 出租、受雇；a new hire 新進員工" },
+
+  // 同字異義名詞
+  { c:"noun", w:"tank", p:"n", zh:"油箱", kk:"/tæŋk/", s:"He filled the gas ___ before the road trip.", a:"tank", t:"公路旅行前他把油箱加滿。", n:"a tank of gas 一箱油；另有「坦克」" },
+  { c:"noun", w:"tank", p:"n", zh:"水缸；魚缸；水槽", kk:"/tæŋk/", s:"The goldfish swam in circles in the ___.", a:"tank", t:"金魚在魚缸裡繞圈游。", n:"fish tank 魚缸；water tank 水塔" },
+  { c:"noun", w:"crop", p:"n", zh:"收成、產量", kk:"/krɑp/", s:"Farmers expect a good ___ of rice this year.", a:"crop", t:"農民預期今年稻米豐收。", n:"a good / poor crop 豐收 / 歉收；crops 農作物" },
+  { c:"noun", w:"fighter", p:"n", zh:"戰鬥機", kk:"/ˋfaɪtɚ/", s:"Two ___ escorted the president's plane.", a:"fighters", t:"兩架戰鬥機護送總統專機。", n:"fighter jet / plane；另有「鬥士」，firefighter 消防員" },
+  { c:"noun", w:"palm", p:"n", zh:"手掌", kk:"/pɑm/", s:"The fortune-teller studied the lines on my ___.", a:"palm", t:"算命師仔細看我的掌紋。", n:"l 不發音；have sb in the palm of one's hand 把某人玩弄於股掌" },
+  { c:"noun", w:"palm", p:"n", zh:"棕櫚樹", kk:"/pɑm/", s:"The beach is lined with tall ___.", a:"palms", t:"海灘沿岸種滿高大的棕櫚樹。", n:"palm tree；palm oil 棕櫚油" },
+  { c:"noun", w:"garage", p:"n", zh:"修車廠", kk:"/gəˋrɑʒ/", s:"I took my car to the ___ to fix the brakes.", a:"garage", t:"我把車開去修車廠修煞車。", n:"也指車庫；garage sale 在自家車庫賣二手物" },
+  { c:"noun", w:"pitch", p:"n", zh:"音調、音高", kk:"/pɪtʃ/", s:"Her voice rose to a high ___ when she got excited.", a:"pitch", t:"她一激動聲音就拉高了。", n:"perfect pitch 絕對音感；動詞 pitch a tent 搭帳篷" },
+  { c:"noun", w:"purse", p:"n", zh:"（女用）錢包；（美）手提包", kk:"/pɝs/", s:"She took a few coins out of her ___.", a:"purse", t:"她從錢包裡拿出幾枚硬幣。", n:"男用皮夾是 wallet；美式 purse = handbag" },
+  { c:"noun", w:"carriage", p:"n", zh:"馬車；（火車）車廂", kk:"/ˋkærɪdʒ/", s:"The queen rode through the city in a golden ___.", a:"carriage", t:"女王坐著金色馬車穿過市區。", n:"baby carriage 嬰兒車；是 carry 的名詞" },
+  { c:"noun", w:"coach", p:"n", zh:"（有頂的）大馬車", kk:"/kotʃ/", s:"Cinderella went to the ball in a magic ___.", a:"coach", t:"灰姑娘坐著魔法馬車去參加舞會。", n:"比 carriage 更大、多為四輪禮儀或公共馬車" },
+  { c:"noun", w:"coach", p:"n", zh:"長途巴士、遊覽車", kk:"/kotʃ/", s:"We took a ___ from London to Oxford.", a:"coach", t:"我們搭長途巴士從倫敦到牛津。", n:"英式用法；coach class 經濟艙" },
+  { c:"noun", w:"straw", p:"n", zh:"吸管", kk:"/strɔ/", s:"Please don't give me a plastic ___.", a:"straw", t:"請不要給我塑膠吸管。", n:"原意稻草；the last straw 壓垮駱駝的最後一根稻草" },
+  { c:"noun", w:"hay", p:"n", zh:"乾草（餵牲畜）", kk:"/he/", s:"The farmer fed the horses fresh ___.", a:"hay", t:"農夫用新鮮乾草餵馬。", n:"hit the hay 上床睡覺；hay fever 花粉熱" },
+  { c:"noun", w:"pine", p:"n", zh:"松樹", kk:"/paɪn/", s:"The cabin smelled of ___.", a:"pine", t:"小木屋裡有松木的香氣。", n:"pine cone 松果；pine nut 松子" },
+  { c:"noun", w:"dawn", p:"n", zh:"黎明、破曉", kk:"/dɔn/", s:"We set off at ___ to avoid the traffic.", a:"dawn", t:"我們天一亮就出發以避開車潮。", n:"at dawn；from dawn till dusk 從早到晚" },
+  { c:"noun", w:"dawn", p:"n", zh:"（時代的）開端、曙光", kk:"/dɔn/", s:"The internet marked the ___ of a new era.", a:"dawn", t:"網路標誌著新時代的開端。", n:"the dawn of + 時代 / 文明" },
+
+  // 形容詞多義
+  { c:"adj", w:"neat", p:"adj", zh:"整齊的、整潔的", kk:"/nit/", s:"Keep your desk ___ and tidy.", a:"neat", t:"保持書桌整齊乾淨。", n:"neat and tidy；neat handwriting 工整的字跡" },
+  { c:"adj", w:"neat", p:"adj", zh:"（口語）很棒的、很讚的", kk:"/nit/", s:"Using an app to split the bill is a ___ idea!", a:"neat", t:"用 app 分帳真是個好點子！", n:"美式口語，等於 cool、great" },
+  { c:"adj", w:"slim", p:"adj", zh:"（機會）渺茫的、微小的", kk:"/slɪm/", s:"Their chances of winning the game are ___.", a:"slim", t:"他們贏得比賽的機會很渺茫。", n:"a slim chance / hope；原意「苗條的」" },
+  { c:"adj", w:"frank", p:"adj", zh:"坦白的、直率的", kk:"/fræŋk/", s:"To be ___, I don't like the plan at all.", a:"frank", t:"坦白說，我一點也不喜歡這個計畫。", n:"to be frank 坦白說；be frank with sb；frankly adv." },
+
+  // 動詞與三態
+  { c:"n2v", w:"steam", p:"v", zh:"蒸（食物）；冒蒸氣", kk:"/stim/", s:"She ___ the fish with ginger and green onions.", a:"steamed", t:"她用薑和蔥蒸魚。", n:"steamed buns 包子、饅頭；let off steam 發洩情緒；steam up（鏡片）起霧" },
+  { c:"n2v", w:"tower", p:"v", zh:"高聳；遠高於", kk:"/ˋtaʊɚ/", s:"The new skyscraper ___ over the old temple.", a:"towers", t:"新的摩天大樓高高聳立在老廟旁邊。", n:"tower over / above sb / sth；towering adj. 高聳的" },
+  { c:"n2v", w:"drug", p:"v", zh:"下藥；使昏迷", kk:"/drʌg/", s:"The kidnappers ___ his drink and took him away.", a:"drugged", t:"綁匪在他的飲料裡下藥，然後把他帶走。", n:"drugged 雙寫 g；drug sb / sth" },
+  { c:"n2v", w:"trumpet", p:"v", zh:"大肆宣揚、吹捧", kk:"/ˋtrʌmpɪt/", s:"The company ___ its new phone as a game changer.", a:"trumpeted", t:"這家公司大肆宣傳新手機會改變遊戲規則。", n:"trumpet sth as…；名詞是小喇叭，大象的叫聲也叫 trumpet" },
+  { c:"n2v", w:"stream", p:"v", zh:"流出、湧出；串流", kk:"/strim/", s:"Tears ___ down her cheeks as she said goodbye.", a:"streamed", t:"道別時她淚流滿面。", n:"stream down / in / out；live-stream 直播" },
+  { c:"n2v", w:"hammer", p:"v", zh:"猛敲、重擊；反覆灌輸", kk:"/ˋhæmɚ/", s:"Someone was ___ on the door in the middle of the night.", a:"hammering", t:"半夜有人在猛敲門。", n:"hammer on / at sth；hammer sth home 反覆強調使人記住" },
+  { c:"n2v", w:"crane", p:"v", zh:"伸長（脖子）", kk:"/kren/", s:"The kids ___ their necks to see the parade.", a:"craned", t:"孩子們伸長脖子看遊行。", n:"固定搭配 crane one's neck" },
+
+  { c:"noun", w:"stream", p:"n", zh:"一連串、源源不絕", kk:"/strim/", s:"There has been a steady ___ of visitors all day.", a:"stream", t:"一整天訪客絡繹不絕。", n:"a stream of + 複數名詞；原意小溪" },
+  { c:"noun", w:"crane", p:"n", zh:"起重機", kk:"/kren/", s:"A huge ___ lifted the steel beams onto the roof.", a:"crane", t:"一台巨大的起重機把鋼樑吊到屋頂上。", n:"tower crane 塔式起重機" },
+  { c:"noun", w:"crane", p:"n", zh:"鶴", kk:"/kren/", s:"The red-crowned ___ is a symbol of long life.", a:"crane", t:"丹頂鶴是長壽的象徵。", n:"paper crane 紙鶴" },
+  { c:"noun", w:"nail", p:"n", zh:"指甲", kk:"/nel/", s:"Stop biting your ___ when you're nervous.", a:"nails", t:"緊張時別再咬指甲了。", n:"fingernail / toenail；nail polish 指甲油" },
+  { c:"noun", w:"nail", p:"n", zh:"釘子", kk:"/nel/", s:"He hung the painting on a ___ above the sofa.", a:"nail", t:"他把畫掛在沙發上方的釘子上。", n:"hit the nail on the head 一針見血；動詞 nail 釘牢" },
+  { c:"noun", w:"bead", p:"n", zh:"珠子", kk:"/bid/", s:"The necklace is made of colorful glass ___.", a:"beads", t:"這條項鍊是用彩色玻璃珠串成的。", n:"string beads 串珠子" },
+  { c:"noun", w:"bead", p:"n", zh:"（汗、水的）一滴", kk:"/bid/", s:"His forehead was covered in ___ of sweat.", a:"beads", t:"他滿頭大汗。", n:"beads of sweat / water" },
+
+  { c:"adj", w:"terrific", p:"adj", zh:"極好的、很棒的", kk:"/təˋrɪfɪk/", s:"You did a ___ job on the poster!", a:"terrific", t:"你的海報做得太棒了！", n:"不是「可怕的」，那是 terrible；= great、wonderful", f:"易混" },
+  { c:"adj", w:"terrific", p:"adj", zh:"極大的、驚人的", kk:"/təˋrɪfɪk/", s:"The car hit the wall at a ___ speed.", a:"terrific", t:"那輛車以驚人的速度撞上牆。", n:"a terrific speed / noise / amount" },
+
+  { c:"life", w:"camel", p:"n", zh:"駱駝", kk:"/ˋkæml/", s:"A ___ can travel for days without water.", a:"camel", t:"駱駝可以好幾天不喝水趕路。", n:"the straw that breaks the camel's back 壓垮駱駝的最後一根稻草" },
+  { c:"life", w:"cotton", p:"n", zh:"棉花；棉布", kk:"/ˋkɑtn/", s:"This T-shirt is made of 100% ___.", a:"cotton", t:"這件 T 恤是百分之百純棉。", n:"cotton candy 棉花糖；cotton swab 棉花棒" },
+  { c:"life", w:"wool", p:"n", zh:"羊毛；毛線", kk:"/wʊl/", s:"Grandma knitted me a scarf with soft ___.", a:"wool", t:"奶奶用柔軟的毛線幫我織了一條圍巾。", n:"woolen adj. 毛料的；pull the wool over sb's eyes 矇騙某人" },
+  { c:"life", w:"stove", p:"n", zh:"爐子、火爐", kk:"/stov/", s:"Don't leave the soup on the ___ unattended.", a:"stove", t:"湯在爐子上煮時別走開。", n:"gas stove 瓦斯爐；turn on / off the stove" },
+  { c:"life", w:"spinach", p:"n", zh:"菠菜（不可數）", kk:"/ˋspɪnɪtʃ/", s:"Many kids refuse to eat their ___.", a:"spinach", t:"很多小孩不肯吃菠菜。", n:"不加 s" },
+  { c:"life", w:"almond", p:"n", zh:"杏仁", kk:"/ˋɑmənd/", s:"She snacks on a handful of ___ every afternoon.", a:"almonds", t:"她每天下午吃一把杏仁當點心。", n:"l 通常不發音；almond milk 杏仁奶" },
+
+  { c:"verb", w:"bind", p:"v", zh:"綁、捆；使團結；約束", kk:"/baɪnd/", s:"The thief was ___ hand and foot.", a:"bound", t:"小偷被綁住手腳。", n:"三態 bind–bound–bound；bind A to B；be bound by 受…約束", f:"三態" },
+  { c:"verb", w:"elect", p:"v", zh:"選舉、推選", kk:"/ɪˋlɛkt/", s:"She was ___ mayor last year.", a:"elected", t:"她去年當選市長。", n:"elect sb (as) + 職位，職位前不加冠詞；president-elect 當選但尚未就職的總統" },
+  { c:"verb", w:"omit", p:"v", zh:"省略；遺漏", kk:"/oˋmɪt/", s:"You can ___ the last paragraph if you're short of time.", a:"omit", t:"時間不夠的話可以省略最後一段。", n:"omitted 雙寫 t；omission n.；omit to V 忘了做" },
+  { c:"verb", w:"pat", p:"v", zh:"輕拍", kk:"/pæt/", s:"He ___ the dog gently on the head.", a:"patted", t:"他輕輕拍了拍狗的頭。", n:"pat sb on the back 拍背（表示稱讚）；a pat on the back 讚許" },
+  { c:"verb", w:"crop", p:"v", zh:"剪短（頭髮）；裁切（照片）", kk:"/krɑp/", s:"She had her hair ___ short for the summer.", a:"cropped", t:"她為了夏天把頭髮剪短了。", n:"cropped 雙寫 p；crop a photo 裁切照片" },
+  { c:"verb", w:"pine", p:"v", zh:"渴望；（因思念）憔悴", kk:"/paɪn/", s:"Living abroad, she ___ for her hometown.", a:"pined", t:"住在國外時，她非常想念家鄉。", n:"pine for sth / sb；pine away 日漸憔悴" },
+  { c:"verb", w:"dawn", p:"v", zh:"破曉；（時代）開始", kk:"/dɔn/", s:"The day ___ bright and clear.", a:"dawned", t:"那天破曉時晴朗無雲。", n:"主詞多為 day、morning、a new age" },
+
+  // 片語
+  { c:"phr", w:"stage fright", p:"phr", zh:"怯場", kk:"/stedʒ fraɪt/", s:"He had terrible ___ before his first speech.", a:"stage fright", t:"他第一次演講前嚴重怯場。", n:"have / get / overcome stage fright" },
+  { c:"phr", w:"dawn on", p:"phr", zh:"（某人）突然明白", kk:"/dɔn ɑn/", s:"It suddenly ___ on me that I had left my keys at home.", a:"dawned", t:"我突然想到我把鑰匙忘在家裡了。", n:"正確說法是 It dawned on me that…，不是 It's dawn on me；事情當主詞，人放在 on 後面" },
+  { c:"phr", w:"be bound to", p:"phr", zh:"必定會", kk:"/baʊnd tu/", s:"If you keep practicing, you are ___ to improve.", a:"bound", t:"只要持續練習，你一定會進步。", n:"be bound to + V 原形" },
+  { c:"n2v", w:"condition", p:"v", zh:"使習慣於、制約；調理", kk:"/kənˋdɪʃən/", s:"Dogs can be ___ to expect food when they hear a bell.", a:"conditioned", t:"狗可以被訓練成一聽到鈴聲就期待食物。", n:"be conditioned to V / by sth；conditioner 潤髮乳" },
+  { c:"n2v", w:"fund", p:"v", zh:"資助、提供資金", kk:"/fʌnd/", s:"The research project is ___ by the government.", a:"funded", t:"這個研究計畫由政府出資。", n:"be funded by；fund-raising 募款" },
+  { c:"n2v", w:"nurse", p:"v", zh:"看護、照顧", kk:"/nɝs/", s:"She ___ her sick mother back to health.", a:"nursed", t:"她把生病的母親照顧到康復。", n:"nurse sb back to health" },
+  { c:"n2v", w:"nurse", p:"v", zh:"心懷（怨恨、夢想）", kk:"/nɝs/", s:"He has ___ a grudge against his boss for years.", a:"nursed", t:"他對老闆懷恨多年。", n:"nurse a grudge / hope / dream" },
+  { c:"n2v", w:"bar", p:"v", zh:"阻擋；禁止", kk:"/bɑr/", s:"Fans without tickets were ___ from entering the stadium.", a:"barred", t:"沒有票的球迷被禁止進入球場。", n:"bar sb from V-ing；barred 雙寫 r" },
+  { c:"n2v", w:"signal", p:"v", zh:"示意、打信號", kk:"/ˋsɪgnl/", s:"The officer ___ the driver to pull over.", a:"signaled", t:"警察示意駕駛靠邊停車。", n:"signal sb to V；signal that…（英式 signalled）" },
+  { c:"n2v", w:"issue", p:"v", zh:"發布、發行、核發", kk:"/ˋɪʃʊ/", s:"The weather bureau ___ a typhoon warning this morning.", a:"issued", t:"氣象局今天早上發布颱風警報。", n:"issue a warning / statement / passport；issue sb with sth" },
+
+  { c:"noun", w:"remains", p:"n", zh:"遺跡；遺體；剩餘物", kk:"/rɪˋmenz/", s:"Archaeologists found the ___ of an ancient city.", a:"remains", t:"考古學家發現一座古城的遺跡。", n:"名詞恆用複數；動詞 remain 仍然、留下" },
+  { c:"noun", w:"volume", p:"n", zh:"（書的）冊、卷", kk:"/ˋvɑljəm/", s:"The encyclopedia comes in twenty ___.", a:"volumes", t:"這套百科全書共二十冊。", n:"Vol. 1 第一冊；也指音量、容量；speak volumes 意義重大" },
+  { c:"noun", w:"column", p:"n", zh:"柱子", kk:"/ˋkɑləm/", s:"The temple roof is supported by marble ___.", a:"columns", t:"神殿的屋頂由大理石柱支撐。", n:"n 不發音；也指專欄、直行；columnist 專欄作家" },
+  { c:"noun", w:"mission", p:"n", zh:"使命、任務；傳教（團）", kk:"/ˋmɪʃən/", s:"Her ___ in life is to help children in need.", a:"mission", t:"她一生的使命是幫助需要幫助的孩子。", n:"on a mission；字根 miss / mit = send，被派出去做事" },
+  { c:"noun", w:"missionary", p:"n", zh:"傳教士", kk:"/ˋmɪʃənˌɛrɪ/", s:"A Canadian ___ built the first hospital in this town.", a:"missionary", t:"一位加拿大傳教士在這個小鎮蓋了第一間醫院。", n:"mission 的衍生字" },
+  { c:"noun", w:"bar", p:"n", zh:"條、塊（棒狀物）；鐵條", kk:"/bɑr/", s:"He unwrapped a ___ of chocolate.", a:"bar", t:"他拆開一條巧克力。", n:"a bar of soap / chocolate；behind bars 坐牢" },
+  { c:"noun", w:"relief", p:"n", zh:"救濟（物資）、救援", kk:"/rɪˋlif/", s:"Disaster ___ reached the village two days after the earthquake.", a:"relief", t:"地震兩天後救災物資送達村子。", n:"relief supplies / fund；也指「鬆一口氣、緩解」" },
+  { c:"noun", w:"fair", p:"n", zh:"商展、博覽會", kk:"/fɛr/", s:"Our company will join the international trade ___ in Taipei.", a:"fair", t:"我們公司會參加台北的國際商展。", n:"trade fair / book fair / job fair / science fair" },
+  { c:"noun", w:"motor", p:"n", zh:"馬達、發動機", kk:"/ˋmotɚ/", s:"The fan is driven by a small electric ___.", a:"motor", t:"這台電扇由一個小電動馬達驅動。", n:"motorcycle 機車；motor vehicle 機動車輛" },
+  { c:"noun", w:"portion", p:"n", zh:"（食物的）一份", kk:"/ˋporʃən/", s:"The restaurant is famous for its huge ___.", a:"portions", t:"這家餐廳以份量超大出名。", n:"也指「一部分」a portion of" },
+  { c:"noun", w:"practice", p:"n", zh:"（醫生、律師的）業務；診所、事務所", kk:"/ˋpræktɪs/", s:"Dr. Lin opened his own ___ last year.", a:"practice", t:"林醫師去年自己開了診所。", n:"medical / legal practice" },
+  { c:"noun", w:"practice", p:"n", zh:"實行；慣例", kk:"/ˋpræktɪs/", s:"It's time to put the plan into ___.", a:"practice", t:"是時候把計畫付諸實行了。", n:"put…into practice；common practice 慣例" },
+
+  { c:"noun", w:"period", p:"n", zh:"（學校的）一節課", kk:"/ˋpɪrɪəd/", s:"We have English in the third ___ on Mondays.", a:"period", t:"我們星期一第三節是英文課。", n:"也指「句點」（comma 是逗號）、「期間、時期」；a free period 空堂" },
+  { c:"shift", w:"express", p:"n", zh:"快遞；快車", kk:"/ɪkˋsprɛs/", s:"I sent the documents by ___.", a:"express", t:"我用快遞寄出文件。", n:"by express；express delivery 快遞；動詞是「表達」" },
+
+  { c:"adj", w:"express", p:"adj", zh:"特快的", kk:"/ɪkˋsprɛs/", s:"We took the ___ train to save time.", a:"express", t:"為了省時間我們搭特快車。", n:"express train / lane / mail" },
+  { c:"adj", w:"express", p:"adj", zh:"明確的、特定的", kk:"/ɪkˋsprɛs/", s:"He came for the ___ purpose of seeing you.", a:"express", t:"他專程來見你。", n:"express purpose / permission / wish" },
+  { c:"adj", w:"expressive", p:"adj", zh:"富有表情的、意味深長的", kk:"/ɪkˋsprɛsɪv/", s:"She gave me an ___ look but said nothing.", a:"expressive", t:"她意味深長地看了我一眼，什麼也沒說。", n:"be expressive of 表現出…" },
+  { c:"adj", w:"civil", p:"adj", zh:"民事的", kk:"/ˋsɪvl/", s:"He filed a ___ lawsuit against the company.", a:"civil", t:"他對那家公司提起民事訴訟。", n:"civil case 民事 ↔ criminal case 刑事；civil rights 公民權；civil war 內戰" },
+  { c:"adj", w:"fair", p:"adj", zh:"（天氣）晴朗的", kk:"/fɛr/", s:"The forecast says it will be ___ and warm tomorrow.", a:"fair", t:"氣象預報說明天晴朗溫暖。", n:"fair weather 好天氣" },
+  { c:"adj", w:"fair", p:"adj", zh:"（膚色）白皙的；（頭髮）金色的；美麗的", kk:"/fɛr/", s:"The girl had ___ hair and blue eyes.", a:"fair", t:"那女孩有一頭金髮和藍眼睛。", n:"fair skin / hair；「美麗的」是文學用法" },
+
+  { c:"verb", w:"recognize", p:"v", zh:"（正式）承認", kk:"/ˋrɛkəgˌnaɪz/", s:"Only a few countries ___ the new government.", a:"recognize", t:"只有少數國家承認新政府。", n:"recognize sth as legal / valid；recognition n." },
+  { c:"verb", w:"recognize", p:"v", zh:"表揚、表彰", kk:"/ˋrɛkəgˌnaɪz/", s:"She was ___ for her work with refugees.", a:"recognized", t:"她因為協助難民的工作受到表揚。", n:"be recognized for sth；in recognition of 為了表彰" },
+  { c:"verb", w:"observe", p:"v", zh:"遵守", kk:"/əbˋzɝv/", s:"All drivers must ___ the speed limit.", a:"observe", t:"所有駕駛都必須遵守速限。", n:"= abide by / obey；observance n. 遵守 ≠ observation n. 觀察" },
+  { c:"verb", w:"perform", p:"v", zh:"履行、執行", kk:"/pɚˋfɔrm/", s:"Every citizen should ___ his or her duties.", a:"perform", t:"每個公民都應該履行義務。", n:"perform a duty / task；perform an operation 動手術" },
+  { c:"verb", w:"survive", p:"v", zh:"比…活得久", kk:"/sɚˋvaɪv/", s:"She ___ her husband by ten years.", a:"survived", t:"她比丈夫多活了十年。", n:"survive sb by + 時間；survivor 倖存者" },
+  { c:"verb", w:"practice", p:"v", zh:"執業（醫生、律師）", kk:"/ˋpræktɪs/", s:"She ___ law in Taipei for twenty years.", a:"practiced", t:"她在台北當了二十年律師。", n:"practice law / medicine" },
+  { c:"verb", w:"practice", p:"v", zh:"實行、奉行", kk:"/ˋpræktɪs/", s:"You should ___ what you preach.", a:"practice", t:"你應該以身作則。", n:"practice what you preach 言行一致；practice a religion 信奉宗教" },
+
+  { c:"life", w:"flute", p:"n", zh:"長笛", kk:"/flut/", s:"She plays the ___ in the school orchestra.", a:"flute", t:"她在學校管弦樂團吹長笛。", n:"play the + 樂器，要加 the" },
+  { c:"life", w:"pub", p:"n", zh:"酒吧（英式）", kk:"/pʌb/", s:"They met at a ___ after work.", a:"pub", t:"他們下班後在酒吧碰面。", n:"public house 的縮寫" },
+  { c:"life", w:"informer", p:"n", zh:"告密者、線民", kk:"/ɪnˋfɔrmɚ/", s:"The police learned of the plan from an ___.", a:"informer", t:"警方從線民那裡得知這個計畫。", n:"inform on sb 告發某人" },
+
+  { c:"phr", w:"attitude toward(s)", p:"phr", zh:"對…的態度", kk:"/ˋætətjud təˋwɔrd/", s:"His ___ toward his studies has changed a lot.", a:"attitude", t:"他對課業的態度改變很多。", n:"介系詞用 toward(s)，不是 to 或 for；a positive attitude toward" },
+  { c:"phr", w:"be engaged to", p:"phr", zh:"與…訂婚", kk:"/ɪnˋgedʒd tu/", s:"Tom is ___ to his college sweetheart.", a:"engaged", t:"湯姆跟大學時的女友訂婚了。", n:"get engaged 訂婚；engagement ring 訂婚戒指；be engaged in 從事" },
+
+  { c:"phr", w:"bleed sb dry", p:"phr", zh:"榨乾某人的錢財、敲竹槓", kk:"/blid ˋsʌmˌbʌdɪ draɪ/", s:"The loan sharks ___ him dry with sky-high interest.", a:"bled", t:"地下錢莊用超高利息把他榨乾。", n:"三態 bleed–bled–bled；bleed sb for money 向某人勒索錢", f:"三態" },
+  { c:"phr", w:"be bound for", p:"phr", zh:"開往、前往", kk:"/baʊnd fɔr/", s:"This train is ___ for Kaohsiung.", a:"bound", t:"這班列車開往高雄。", n:"bound for + 地點" }
+];
+
+const POS = { v:["動詞","pos-v"], n:["名詞","pos-n"], adj:["形容詞","pos-adj"], phr:["片語","pos-phr"] };
+const UPDATED = "2026-10-03";
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[ch]));
+const exHTML = e => esc(e.s).replace("___", "<b>" + esc(e.a) + "</b>");
+const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+D.forEach((e, i) => e.id = i);
+
+/* ---------- list view ---------- */
+function renderList() {
+  const words = new Set(D.map(e => e.w)).size;
+  $("#heroMeta").innerHTML = `<span><strong>${D.length}</strong> 個字義</span><span><strong>${words}</strong> 個單字／片語</span><span>更新於 ${UPDATED}</span>`;
+  $("#footer").textContent = `${D.length} 個字義 · ${CATS.length} 類`;
+  $("#nav").innerHTML = CATS.map(c => `<li><a href="#cat-${c.id}">${esc(c.name)}<span class="nav-count" data-nav="${c.id}">${D.filter(e => e.c === c.id).length}</span></a></li>`).join("");
+  $("#categories").innerHTML = CATS.map(c => {
+    const rows = D.filter(e => e.c === c.id).map(e => {
+      const [pl, pc] = POS[e.p];
+      const q = [e.w, e.zh, e.s, e.a, e.t, e.n].join(" ").toLowerCase();
+      return `<tr data-q="${esc(q)}">
+        <td class="word">${esc(e.w)}${e.f ? `<span class="flag">${esc(e.f)}</span>` : ""}</td>
+        <td><span class="pos-tag ${pc}">${pl}</span></td>
+        <td class="zh">${esc(e.zh)}</td>
+        <td class="kk">${esc(e.kk)}</td>
+        <td class="example"><div class="ex-en">${exHTML(e)}</div><div class="ex-zh">${esc(e.t)}</div></td>
+        <td class="colloc">${esc(e.n)}</td>
+      </tr>`;
+    }).join("");
+    return `<section class="category" id="cat-${c.id}" data-cat="${c.id}">
+      <div class="category-head"><h2>${esc(c.name)}</h2><span class="category-count" data-count="${c.id}"></span></div>
+      <p class="category-desc">${esc(c.desc)}</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>單字</th><th>詞性</th><th>要加強的字義</th><th>KK 音標</th><th>例句（標色為填入形式）</th><th>搭配與提示</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </section>`;
+  }).join("");
+  applySearch();
+}
+
+function applySearch() {
+  const q = $("#search").value.trim().toLowerCase();
+  let total = 0;
+  document.querySelectorAll(".category").forEach(sec => {
+    let n = 0;
+    sec.querySelectorAll("tbody tr").forEach(tr => {
+      const hit = !q || tr.dataset.q.includes(q);
+      tr.hidden = !hit; if (hit) n++;
+    });
+    sec.hidden = n === 0;
+    sec.querySelector("[data-count]").textContent = n + " 個";
+    const nav = document.querySelector(`[data-nav="${sec.dataset.cat}"]`);
+    if (nav) nav.textContent = n;
+    total += n;
+  });
+  $("#resultCount").textContent = q ? `找到 ${total} 個字義` : "";
+  $("#empty").hidden = total !== 0;
+}
+$("#search").addEventListener("input", () => { if (studyOn) toggleStudy(false); applySearch(); });
+
+/* ---------- study ---------- */
+let studyOn = false;
+const cfg = { cats: new Set(CATS.map(c => c.id)), mode: "cloze", count: 10 };
+
+function toggleStudy(force) {
+  studyOn = typeof force === "boolean" ? force : !studyOn;
+  $("#listView").hidden = studyOn;
+  $("#studyView").hidden = !studyOn;
+  $("#studyToggle").classList.toggle("active", studyOn);
+  $("#studyToggleText").textContent = studyOn ? "回到單字表" : "進入練習";
+  if (studyOn) renderSetup();
+  window.scrollTo(0, 0);
+}
+$("#studyToggle").addEventListener("click", () => toggleStudy());
+$("#nav").addEventListener("click", () => { if (studyOn) toggleStudy(false); });
+
+const pool = () => D.filter(e => cfg.cats.has(e.c));
+const uniqueByAnswer = list => { const seen = new Set(); return list.filter(e => { const k = e.a.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); };
+
+function renderSetup() {
+  const p = pool();
+  const uniq = uniqueByAnswer(p).length;
+  const isCloze = cfg.mode === "cloze";
+  const ready = isCloze ? uniq >= 4 : p.length >= 1;
+  $("#studyView").innerHTML = `<div class="study-card">
+    <div class="study-head"><h2>練習設定</h2><button class="ghost-btn" type="button" id="backList">回到單字表</button></div>
+    <div class="study-section">
+      <div class="study-section-title">範圍<button class="mini-btn" type="button" id="allCats">${cfg.cats.size === CATS.length ? "全部取消" : "全選"}</button></div>
+      <div class="chip-group">${CATS.map(c => `<button type="button" class="chip ${cfg.cats.has(c.id) ? "checked" : ""}" data-cat="${c.id}">${esc(c.name)}<span class="chip-count">${D.filter(e => e.c === c.id).length}</span></button>`).join("")}</div>
+    </div>
+    <div class="study-section">
+      <div class="study-section-title">題型</div>
+      <div class="radio-group">
+        <button type="button" class="radio-pill ${isCloze ? "checked" : ""}" data-mode="cloze">文意選填<span class="pill-desc">一組最多 10 格，選項各用一次</span></button>
+        <button type="button" class="radio-pill ${!isCloze ? "checked" : ""}" data-mode="single">單題四選一<span class="pill-desc">每題馬上看解析</span></button>
+      </div>
+    </div>
+    ${!isCloze ? `<div class="study-section"><div class="study-section-title">題數</div>
+      <div class="count-row"><input id="qCount" type="number" min="1" max="${p.length}" value="${Math.min(cfg.count, p.length) || 1}"><span class="pool-hint" style="margin:0">題，最多 ${p.length} 題</span></div></div>` : ""}
+    <button class="primary-btn" type="button" id="startBtn" ${ready ? "" : "disabled"}>開始練習</button>
+    <p class="pool-hint">${isCloze
+      ? (ready ? `目前範圍有 <strong>${uniq}</strong> 個不重複的填入形式，每組抽 <strong>${Math.min(10, uniq)}</strong> 格。` : "範圍太小，至少要 4 個不同的填入形式才能出一組。")
+      : `目前範圍共 <strong>${p.length}</strong> 個字義。`}</p>
+  </div>`;
+  $("#backList").onclick = () => toggleStudy(false);
+  $("#allCats").onclick = () => { if (cfg.cats.size === CATS.length) cfg.cats.clear(); else CATS.forEach(c => cfg.cats.add(c.id)); renderSetup(); };
+  document.querySelectorAll("[data-cat].chip").forEach(b => b.onclick = () => { const id = b.dataset.cat; cfg.cats.has(id) ? cfg.cats.delete(id) : cfg.cats.add(id); renderSetup(); });
+  document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { cfg.mode = b.dataset.mode; renderSetup(); });
+  const qc = $("#qCount");
+  if (qc) qc.oninput = () => { const v = parseInt(qc.value, 10); if (v > 0) cfg.count = v; };
+  $("#startBtn").onclick = () => isCloze ? startCloze() : startSingle();
+}
+
+/* 文意選填 */
+let cz = null;
+function startCloze() {
+  const qs = shuffle(uniqueByAnswer(shuffle(pool()))).slice(0, 10);
+  const letters = "ABCDEFGHIJ";
+  const opts = shuffle(qs.map(q => q.a)).map((a, i) => ({ a, lt: letters[i] }));
+  cz = { qs, opts, fill: Array(qs.length).fill(null), active: 0, done: false };
+  renderCloze();
+}
+function renderCloze() {
+  const { qs, opts, fill, active, done } = cz;
+  const right = done ? qs.filter((q, i) => fill[i] !== null && opts[fill[i]].a === q.a).length : 0;
+  const items = qs.map((q, i) => {
+    const f = fill[i];
+    const label = f === null ? `(${i + 1})` : `<span class="lt">${opts[f].lt}</span> ${esc(opts[f].a)}`;
+    let cls = "blank";
+    if (done) cls += (f !== null && opts[f].a === q.a) ? " right" : " wrong";
+    else if (i === active) cls += " active";
+    const parts = esc(q.s).split("___");
+    const reveal = done ? `<div class="reveal">${(f !== null && opts[f].a === q.a) ? "" : `正解 <span class="fix">${esc(q.a)}</span>　`}${esc(q.w)}（${POS[q.p][0]}）${esc(q.zh)}｜${esc(q.t)}</div>` : "";
+    return `<li class="cloze-item"><span class="qn">${i + 1}.</span>${parts[0]}<button type="button" class="${cls}" data-blank="${i}" ${done ? "disabled" : ""}>${label}</button>${parts[1] || ""}${reveal}</li>`;
+  }).join("");
+  const usedBy = new Map(); fill.forEach((f, i) => { if (f !== null) usedBy.set(f, i); });
+  const bank = opts.map((o, k) => `<button type="button" class="opt ${usedBy.has(k) ? "used" : ""}" data-opt="${k}" ${done ? "disabled" : ""}><span class="lt">${o.lt}</span>${esc(o.a)}</button>`).join("");
+  const filled = fill.filter(f => f !== null).length;
+  $("#studyView").innerHTML = `<div class="study-card">
+    <div class="study-head"><h2>文意選填</h2>${done ? `<span class="score">${right}<small> / ${qs.length}</small></span>` : `<span class="progress-text">已填 ${filled} / ${qs.length}</span>`}</div>
+    <ol class="cloze-list">${items}</ol>
+    <div class="bank">${bank}</div>
+    <div class="btn-row">
+      ${done ? `<button class="primary-btn" type="button" id="again">再來一組</button>` : `<button class="primary-btn" type="button" id="submit" ${filled === qs.length ? "" : "disabled"}>交卷</button>`}
+      <button class="ghost-btn" type="button" id="toSetup">回設定</button>
+    </div>
+  </div>`;
+  document.querySelectorAll("[data-blank]").forEach(b => b.onclick = () => {
+    const i = +b.dataset.blank;
+    if (cz.active === i && cz.fill[i] !== null) cz.fill[i] = null;
+    cz.active = i; renderCloze();
+  });
+  document.querySelectorAll("[data-opt]").forEach(b => b.onclick = () => {
+    const k = +b.dataset.opt;
+    const prev = cz.fill.indexOf(k);
+    if (prev !== -1) cz.fill[prev] = null;
+    cz.fill[cz.active] = k;
+    const next = cz.fill.findIndex((f, i) => f === null && i > cz.active);
+    const any = cz.fill.indexOf(null);
+    cz.active = next !== -1 ? next : (any !== -1 ? any : cz.active);
+    renderCloze();
+  });
+  const s = $("#submit"); if (s) s.onclick = () => { cz.done = true; renderCloze(); window.scrollTo(0, 0); };
+  const a = $("#again"); if (a) a.onclick = startCloze;
+  $("#toSetup").onclick = renderSetup;
+}
+
+/* 單題四選一 */
+let sg = null;
+function distractors(q) {
+  const taken = new Set([q.a.toLowerCase()]);
+  const pick = [];
+  const same = shuffle(D.filter(e => e.p === q.p));
+  const rest = shuffle(D.filter(e => e.p !== q.p));
+  for (const e of same.concat(rest)) {
+    const k = e.a.toLowerCase();
+    if (!taken.has(k)) { taken.add(k); pick.push(e.a); }
+    if (pick.length === 3) break;
+  }
+  return pick;
+}
+function startSingle() {
+  const p = pool();
+  const n = Math.max(1, Math.min(cfg.count, p.length));
+  const qs = shuffle(p).slice(0, n).map(q => ({ q, opts: shuffle([q.a].concat(distractors(q))), pick: null }));
+  sg = { qs, i: 0 };
+  renderSingle();
+}
+function renderSingle() {
+  const { qs, i } = sg;
+  if (i >= qs.length) return renderSingleEnd();
+  const it = qs[i], q = it.q, answered = it.pick !== null;
+  const parts = esc(q.s).split("___");
+  const gap = answered ? esc(q.a) : "&nbsp;";
+  const opts = it.opts.map((o, k) => {
+    let cls = "opt";
+    if (answered) { if (o === q.a) cls += " right"; else if (k === it.pick) cls += " wrong"; }
+    return `<button type="button" class="${cls}" data-k="${k}" ${answered ? "disabled" : ""}><span class="lt">${"ABCD"[k]}</span>${esc(o)}</button>`;
+  }).join("");
+  $("#studyView").innerHTML = `<div class="study-card">
+    <div class="study-head"><h2>單題四選一</h2><span class="progress-text">${i + 1} / ${qs.length}</span></div>
+    <div class="progress-bar"><span style="width:${(i / qs.length) * 100}%"></span></div>
+    <p class="q-sentence">${parts[0]}<span class="gap">${gap}</span>${parts[1] || ""}</p>
+    <div class="q-opts">${opts}</div>
+    ${answered ? `<div class="feedback"><span class="fb-word">${esc(q.w)}</span>　${POS[q.p][0]}　${esc(q.kk)}<br>${esc(q.zh)}｜${esc(q.t)}<br>${esc(q.n)}</div>
+      <div class="btn-row"><button class="primary-btn" type="button" id="next">${i + 1 < qs.length ? "下一題" : "看結果"}</button></div>` : ""}
+    <div class="btn-row"><button class="ghost-btn" type="button" id="toSetup">回設定</button></div>
+  </div>`;
+  document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { it.pick = +b.dataset.k; renderSingle(); });
+  const nx = $("#next"); if (nx) nx.onclick = () => { sg.i++; renderSingle(); };
+  $("#toSetup").onclick = renderSetup;
+}
+function renderSingleEnd() {
+  const wrong = sg.qs.filter(it => it.opts[it.pick] !== it.q.a);
+  const right = sg.qs.length - wrong.length;
+  $("#studyView").innerHTML = `<div class="study-card">
+    <div class="study-head"><h2>練習結果</h2><span class="score">${right}<small> / ${sg.qs.length}</small></span></div>
+    ${wrong.length ? `<div class="study-section-title">答錯的字義</div><ul class="wrong-list">${wrong.map(it => `<li><b>${esc(it.q.w)}</b>（${POS[it.q.p][0]}）${esc(it.q.zh)}<br>${exHTML(it.q)}</li>`).join("")}</ul>` : `<p class="pool-hint">全對。</p>`}
+    <div class="btn-row">
+      ${wrong.length ? `<button class="primary-btn" type="button" id="retryWrong">只練答錯的</button>` : ""}
+      <button class="primary-btn" type="button" id="again">再練一輪</button>
+      <button class="ghost-btn" type="button" id="toSetup">回設定</button>
+    </div>
+  </div>`;
+  const rw = $("#retryWrong");
+  if (rw) rw.onclick = () => { sg = { qs: shuffle(wrong).map(it => ({ q: it.q, opts: shuffle([it.q.a].concat(distractors(it.q))), pick: null })), i: 0 }; renderSingle(); };
+  $("#again").onclick = startSingle;
+  $("#toSetup").onclick = renderSetup;
+}
+
+renderList();
+</script>
+<div class="pwa-toast" id="pwaToast" hidden></div>
+<script>
+(function () {
+  const toast = msg => { const t = document.getElementById("pwaToast"); t.textContent = msg; t.hidden = false; setTimeout(() => t.hidden = true, 3500); };
+  const footer = document.getElementById("footer");
+  const status = document.createElement("span"); status.className = "pwa-status";
+  if (footer) footer.appendChild(status);
+  const paint = () => status.textContent = navigator.onLine ? "已連線 · 會自動抓新版" : "離線中 · 使用已存的版本";
+  paint(); addEventListener("online", paint); addEventListener("offline", paint);
+  if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
+  let hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register("sw.js").then(reg => {
+    const check = () => reg.update().catch(() => {});
+    addEventListener("online", check);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+  });
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController) { hadController = true; return; }
+    if (studyOn) { toast("單字集有新版本，回到單字表時會自動更新"); 
+      const wait = setInterval(() => { if (!studyOn) { clearInterval(wait); location.reload(); } }, 1000); }
+    else { sessionStorage.setItem("pwaUpdated", "1"); location.reload(); }
+  });
+  try { if (sessionStorage.getItem("pwaUpdated")) { sessionStorage.removeItem("pwaUpdated"); toast("已更新到最新的單字集"); } } catch (_) {}
+})();
+</script>
+</body>
+</html>
