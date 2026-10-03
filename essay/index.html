@@ -1,0 +1,2151 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><meta name="theme-color" content="#a8781f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="作文單字">
+<style>.pwa-toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink,#1c2430);color:var(--surface,#fff);font:600 13px/1.4 "Noto Sans TC",system-ui,sans-serif;padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:100;max-width:calc(100% - 32px);text-align:center}.pwa-status{display:block;margin-top:4px}</style>
+</head><body>
+<title>學測作文單字庫</title>
+<style>
+:root {
+  --bg: #eef1f3;
+  --surface: #ffffff;
+  --surface-2: #f5f7f8;
+  --ink: #1c2430;
+  --ink-soft: #56606d;
+  --ink-faint: #8993a1;
+  --accent: #2f5d8a;
+  --accent-strong: #1f4569;
+  --accent-soft: #dce8f2;
+  --gold: #a8781f;
+  --gold-soft: #f3e6cd;
+  --border: #dde2e6;
+  --shadow: 0 1px 2px rgba(28,36,48,0.06), 0 8px 24px -12px rgba(28,36,48,0.12);
+  --pos-v: #2f5d8a;      --pos-v-bg: #dce8f2;
+  --pos-adj: #3f7a4e;    --pos-adj-bg: #dcefe0;
+  --pos-adv: #6a4c93;    --pos-adv-bg: #e7dff2;
+  --pos-n: #a8781f;      --pos-n-bg: #f3e6cd;
+  --pos-phrase: #1f7a72; --pos-phrase-bg: #dbefec;
+  --pos-default: #56606d; --pos-default-bg: #e7eaed;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161b;
+    --surface: #1a1f26;
+    --surface-2: #20262e;
+    --ink: #e7eaee;
+    --ink-soft: #a3adb8;
+    --ink-faint: #6d7885;
+    --accent: #7db1e0;
+    --accent-strong: #9cc6ec;
+    --accent-soft: #223447;
+    --gold: #e0b768;
+    --gold-soft: #3a3018;
+    --border: #2b323b;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    --pos-v: #7db1e0;      --pos-v-bg: #1f3348;
+    --pos-adj: #8fca9d;    --pos-adj-bg: #1e3324;
+    --pos-adv: #b9a0dd;    --pos-adv-bg: #2c2440;
+    --pos-n: #e0b768;      --pos-n-bg: #3a3018;
+    --pos-phrase: #7fd0c6; --pos-phrase-bg: #1a3532;
+    --pos-default: #a3adb8; --pos-default-bg: #262c34;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161b;
+  --surface: #1a1f26;
+  --surface-2: #20262e;
+  --ink: #e7eaee;
+  --ink-soft: #a3adb8;
+  --ink-faint: #6d7885;
+  --accent: #7db1e0;
+  --accent-strong: #9cc6ec;
+  --accent-soft: #223447;
+  --gold: #e0b768;
+  --gold-soft: #3a3018;
+  --border: #2b323b;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  --pos-v: #7db1e0;      --pos-v-bg: #1f3348;
+  --pos-adj: #8fca9d;    --pos-adj-bg: #1e3324;
+  --pos-adv: #b9a0dd;    --pos-adv-bg: #2c2440;
+  --pos-n: #e0b768;      --pos-n-bg: #3a3018;
+  --pos-phrase: #7fd0c6; --pos-phrase-bg: #1a3532;
+  --pos-default: #a3adb8; --pos-default-bg: #262c34;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans TC", "Noto Sans", system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, .display {
+  font-family: "Noto Serif TC", "Noto Serif", serif;
+  text-wrap: balance;
+}
+::selection { background: var(--accent-soft); }
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+  gap: 16px;
+  overflow: hidden;
+  transition: width 0.22s ease, padding 0.22s ease, opacity 0.15s ease, border-color 0.22s ease;
+}
+.sidebar.collapsed {
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-right-color: transparent;
+  opacity: 0;
+  pointer-events: none;
+}
+.sidebar-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sidebar-title {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+.sidebar-sub {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--ink-faint);
+  padding: 0 4px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+.icon-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 0;
+}
+.icon-btn:hover { background: var(--accent-soft); color: var(--accent-strong); }
+.icon-btn svg { width: 15px; height: 15px; }
+.expand-fab {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 40;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-soft);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.expand-fab:hover { color: var(--accent-strong); }
+.expand-fab svg { width: 17px; height: 17px; }
+.expand-fab[hidden] { display: none; }
+.search-box {
+  position: relative;
+}
+.search-box input {
+  width: 100%;
+  padding: 10px 30px 10px 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+.search-box input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.search-box input:focus + .search-kbd { display: none; }
+.search-box svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+.search-kbd {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: inherit;
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 6px;
+  pointer-events: none;
+}
+.result-count {
+  margin: -8px 4px 0;
+  font-size: 0.72rem;
+  color: var(--accent);
+  min-height: 1em;
+}
+mark {
+  background: var(--gold-soft);
+  color: var(--ink);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-list a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--ink-soft);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.nav-list a:hover { background: var(--surface-2); color: var(--ink); }
+.nav-list a.active { background: var(--accent-soft); color: var(--accent-strong); font-weight: 600; }
+.nav-count {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-variant-numeric: tabular-nums;
+}
+.nav-list a.active .nav-count { background: var(--surface); }
+
+.sidebar-footer {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  padding: 8px 4px 0;
+  border-top: 1px solid var(--border);
+}
+
+/* ---- Main ---- */
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 40px clamp(20px, 4vw, 56px) 80px;
+  max-width: 980px;
+  transition: max-width 0.22s ease;
+}
+body.sidebar-collapsed .main {
+  max-width: 1240px;
+}
+.hero {
+  margin-bottom: 36px;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: var(--gold-soft);
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+  font-family: "Noto Sans TC", sans-serif;
+  font-weight: 600;
+}
+.hero h1 {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-weight: 700;
+}
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.hero-meta strong { color: var(--ink); font-weight: 600; }
+.hero-note {
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  border-left: 3px solid var(--border);
+  padding-left: 12px;
+  margin-top: 14px;
+}
+
+.category {
+  margin-bottom: 44px;
+  scroll-margin-top: 20px;
+}
+.category-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.category-num {
+  font-family: "Noto Serif TC", serif;
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+}
+.category h2 {
+  font-size: 1.15rem;
+  margin: 0;
+  color: var(--ink);
+  font-weight: 700;
+}
+.category-count {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 760px;
+}
+thead th {
+  text-align: left;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 600;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--ink-soft);
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--surface-2); }
+td.word {
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+}
+td.zh { white-space: nowrap; }
+td.kk {
+  color: var(--accent);
+  font-family: "Noto Sans TC", "Doulos SIL", "Charis SIL", "Segoe UI", sans-serif;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+td.example { font-style: italic; color: var(--ink-soft); min-width: 220px; }
+td.colloc { color: var(--ink-faint); font-size: 0.83rem; }
+td.colloc:empty::after { content: "—"; color: var(--border); font-style: normal; }
+.speak-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--accent);
+  opacity: 0.75;
+  vertical-align: middle;
+  border-radius: 6px;
+}
+.speak-btn:hover { opacity: 1; background: var(--accent-soft); }
+.speak-btn.speak-btn-sm { font-size: 0.75rem; width: 18px; height: 18px; opacity: 0.55; }
+.pos-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-family: "Noto Sans TC", sans-serif;
+}
+
+/* Sentence bank */
+.sentence-grid {
+  display: grid;
+  gap: 14px;
+}
+.sentence-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+.sentence-en {
+  font-family: "Source Serif 4", "Noto Serif TC", serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  color: var(--ink);
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+.sentence-zh {
+  font-size: 0.87rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--ink-faint);
+  padding: 60px 20px;
+  font-size: 0.9rem;
+  display: none;
+}
+.hidden { display: none !important; }
+
+@media (max-width: 860px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-list { max-height: 200px; }
+  .main { padding: 28px 18px 60px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* ---- Study mode toggle (sidebar) ---- */
+.study-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-family: "Noto Sans TC", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.study-toggle-btn:hover { background: var(--accent); color: #fff; }
+.study-toggle-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.study-toggle-btn.active { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+
+/* ---- Study view shell ---- */
+#studyView { max-width: 720px; }
+.study-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 22px clamp(16px, 3vw, 28px);
+  margin-bottom: 20px;
+}
+.study-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.study-head h2 {
+  font-size: 1.3rem;
+  margin: 0;
+  color: var(--ink);
+}
+.study-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 13px;
+  cursor: pointer;
+  font-family: "Noto Sans TC", sans-serif;
+}
+.study-back-btn:hover { color: var(--accent-strong); border-color: var(--accent); }
+
+.study-section { margin-bottom: 22px; }
+.study-section:last-child { margin-bottom: 0; }
+.study-section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.study-section-title .mini-btn {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  cursor: pointer;
+  user-select: none;
+  font-family: "Noto Sans TC", sans-serif;
+}
+.chip input { display: none; }
+.chip.checked {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+.chip .chip-count {
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+.chip.checked .chip-count { color: var(--accent-strong); }
+.chip.disabled { opacity: 0.4; cursor: not-allowed; }
+
+.radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.radio-pill {
+  flex: 1;
+  min-width: 130px;
+  text-align: center;
+  font-size: 0.83rem;
+  padding: 10px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: "Noto Sans TC", sans-serif;
+}
+.radio-pill input { display: none; }
+.radio-pill.checked {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+.radio-pill .pill-desc {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  font-weight: 400;
+  margin-top: 2px;
+}
+.radio-pill.checked .pill-desc { color: var(--accent-strong); opacity: 0.85; }
+
+.custom-count-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.custom-count-row input {
+  width: 100px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+.custom-count-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.custom-count-suffix { font-size: 0.82rem; color: var(--ink-soft); }
+
+.study-pool-hint {
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  margin: 4px 0 0;
+}
+.study-pool-hint strong { color: var(--accent-strong); }
+
+.study-start-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent-strong);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: "Noto Sans TC", sans-serif;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.study-start-btn:hover { background: var(--accent); }
+.study-start-btn:disabled { background: var(--border); color: var(--ink-faint); cursor: not-allowed; }
+
+.study-reset-link {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ---- Drill screen ---- */
+.drill-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.drill-progress-text {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+.drill-exit-btn {
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.drill-exit-btn:hover { color: var(--accent-strong); border-color: var(--accent); }
+
+.drill-mode-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-radius: 999px;
+  padding: 3px 10px;
+  margin-bottom: 14px;
+}
+
+.flashcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  min-height: 260px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  gap: 10px;
+}
+.flashcard .fc-cat {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.flashcard .fc-word {
+  font-family: "Noto Serif TC", serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.flashcard .fc-kk {
+  color: var(--accent);
+  font-size: 0.95rem;
+}
+.flashcard .fc-hint {
+  font-size: 0.76rem;
+  color: var(--ink-faint);
+  margin-top: 14px;
+}
+.flashcard .fc-back-block {
+  width: 100%;
+  text-align: left;
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flashcard .fc-back-row { font-size: 0.88rem; color: var(--ink-soft); }
+.flashcard .fc-back-row strong { color: var(--ink); }
+.flashcard .fc-example { font-style: italic; color: var(--ink-soft); }
+.flashcard .fc-sentence-en {
+  font-family: "Source Serif 4", "Noto Serif TC", serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+.rate-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.rate-btn {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: "Noto Sans TC", sans-serif;
+  color: var(--ink-soft);
+}
+.rate-btn[data-rate="0"]:hover { background: #f6dede; border-color: #c96a6a; color: #9c3b3b; }
+.rate-btn[data-rate="1"]:hover { background: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
+.rate-btn[data-rate="2"]:hover { background: var(--pos-adj-bg); border-color: var(--pos-adj); color: var(--pos-adj); }
+
+.mc-question, .cloze-question {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 28px;
+  text-align: center;
+}
+.mc-prompt-word {
+  font-family: "Noto Serif TC", serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.mc-prompt-kk { color: var(--accent); font-size: 0.9rem; margin-top: 4px; }
+.mc-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+.mc-option {
+  padding: 13px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: "Noto Sans TC", sans-serif;
+  text-align: left;
+}
+.mc-option:hover:not(:disabled) { border-color: var(--accent); }
+.mc-option.correct { background: var(--pos-adj-bg); border-color: var(--pos-adj); color: var(--pos-adj); font-weight: 700; }
+.mc-option.wrong { background: #f6dede; border-color: #c96a6a; color: #9c3b3b; }
+.mc-option:disabled { cursor: default; }
+
+.cloze-sentence {
+  font-family: "Source Serif 4", "Noto Serif TC", serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: var(--ink);
+}
+.cloze-blank {
+  display: inline-block;
+  min-width: 70px;
+  border-bottom: 2px solid var(--accent);
+  color: var(--accent-strong);
+  font-weight: 700;
+  font-style: normal;
+}
+.cloze-zh-hint { font-size: 0.85rem; color: var(--ink-faint); margin-top: 10px; }
+.hint-pattern {
+  font-family: "Courier New", monospace;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--accent-strong);
+  margin-top: 14px;
+}
+.dictation-zh {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.hint-pattern.dictation-hint {
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  line-height: 2;
+  text-align: left;
+  white-space: normal;
+  word-spacing: 6px;
+}
+.dict-word { display: inline-block; }
+.dictation-textarea {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+}
+.dictation-textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.dictation-diff {
+  font-family: "Source Serif 4", "Noto Serif TC", serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  text-align: left;
+}
+.diff-word { padding: 1px 3px; border-radius: 4px; }
+.diff-word.correct { background: var(--pos-adj-bg); color: var(--pos-adj); font-weight: 600; }
+.diff-word.wrong { background: #f6dede; color: #9c3b3b; text-decoration: line-through; text-decoration-color: #c96a6a; }
+.diff-word.missing { background: #f6dede; color: #9c3b3b; }
+.dictation-score { font-weight: 700; }
+
+.spelling-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 28px;
+  text-align: center;
+}
+.spelling-zh { font-size: 1.15rem; color: var(--ink); font-weight: 600; }
+.spelling-pos { font-size: 0.78rem; color: var(--ink-faint); margin-top: 4px; }
+.spelling-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+.spelling-input-row input {
+  flex: 1;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.spelling-input-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.spelling-input-row input.correct { border-color: var(--pos-adj); background: var(--pos-adj-bg); }
+.spelling-input-row input.wrong { border-color: #c96a6a; background: #f6dede; }
+.spelling-submit-btn {
+  padding: 11px 20px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent-strong);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: "Noto Sans TC", sans-serif;
+}
+.spelling-feedback {
+  margin-top: 14px;
+  font-size: 0.88rem;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.spelling-feedback.correct { color: var(--pos-adj); }
+.spelling-feedback.wrong { color: #9c3b3b; }
+.spelling-feedback .fb-example { color: var(--ink-soft); font-style: italic; margin-top: 4px; }
+
+.next-btn-row { display: flex; justify-content: flex-end; margin-top: 16px; }
+.next-btn {
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--ink);
+  color: var(--surface);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: "Noto Sans TC", sans-serif;
+}
+.next-btn:hover { background: var(--accent-strong); }
+
+/* ---- Summary screen ---- */
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.summary-stat {
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 16px 10px;
+  text-align: center;
+}
+.summary-stat .num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent-strong);
+  font-family: "Noto Serif TC", serif;
+}
+.summary-stat .lbl { font-size: 0.75rem; color: var(--ink-faint); margin-top: 2px; }
+.missed-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.missed-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.85rem;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+}
+.missed-list li strong { color: var(--ink); }
+.summary-btn-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.summary-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: "Noto Sans TC", sans-serif;
+}
+.summary-btn.primary { background: var(--accent-strong); color: #fff; border-color: var(--accent-strong); }
+.summary-btn:hover { border-color: var(--accent); color: var(--accent-strong); }
+.summary-btn.primary:hover { background: var(--accent); color: #fff; }
+
+.mastery-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+@media (max-width: 640px) {
+  .mc-options { grid-template-columns: 1fr; }
+  .summary-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .spelling-input-row { flex-direction: column; }
+}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;600;700&family=Source+Serif+4:ital,wght@1,500&display=swap">
+
+<button id="expandBtn" class="expand-fab" aria-label="展開側欄" title="展開側欄（搜尋／分類）" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div>
+        <p class="sidebar-title">學測作文單字庫</p>
+        <p class="sidebar-sub" id="entryCount">— 個條目</p>
+      </div>
+      <button id="collapseBtn" class="icon-btn" aria-label="收合側欄" title="收合側欄">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+    <button id="studyModeBtn" class="study-toggle-btn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5C10.5 3 8 2.5 6 3v14c2-.5 4.5 0 6 1.5V4.5zM12 4.5c1.5-1.5 4-2 6-1.5v14c-2-.5-4.5 0-6 1.5V4.5z"/></svg>
+      <span id="studyModeBtnLabel">背誦模式</span>
+    </button>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="text" placeholder="搜尋單字、片語、中文、例句…（按 / 快速跳到搜尋）" autocomplete="off">
+      <kbd class="search-kbd">/</kbd>
+    </div>
+    <p class="result-count" id="resultCount"></p>
+    <ul class="nav-list" id="navList"></ul>
+    <div class="sidebar-footer">最後更新：<span id="lastUpdated"></span></div>
+  </aside>
+
+  <main class="main">
+    <div id="browseView">
+      <div class="hero">
+        <span class="hero-eyebrow">學測英文作文 · 目標 18–20 分</span>
+        <h1 id="docTitle"></h1>
+        <div class="hero-meta" id="heroMeta"></div>
+        <p class="hero-note" id="heroNote"></p>
+      </div>
+
+      <div id="content"></div>
+      <p class="empty-state" id="emptyState">找不到符合的條目，換個關鍵字試試。</p>
+    </div>
+
+    <div id="studyView" hidden>
+      <div id="studyPanel"></div>
+    </div>
+  </main>
+</div>
+
+<script id="vocab-data" type="application/json">{"title": "English Writing Vocabulary & Sentence Bank v23 (Editable Version)", "meta": ["姓名： __________________", "最後更新日期： 2026 年 8 月 27 日", "目標： 學測英文作文 18–20 分（高分指引：動詞精準、描寫生動、句型多變）", "提示：本文件已整理為標準表格與條列式，方便你後續直接插入表格列（Table Row）來擴充單字或補充新句型。", "更新說明： 新增 reach a consensus（達成共識）歸入第17類；Word 檔尚未同步，待下次產出時一併更新。"], "categories": [{"name": "1. Narrative Action Verbs（敘事動作動詞）", "rows": [["grab", "/græb/", "v.", "抓起", "He grabbed his bag and rushed out.", "grab one's arm／grab a bite／grab the opportunity"], ["toss", "/tɔs/", "v.", "丟", "He tossed the bottle into the trash can.", "toss A into B／toss and turn（輾轉難眠）"], ["dash", "/dæʃ/", "v.", "衝刺", "She dashed across the street.", "dash across/into/toward + 地點／make a dash for"], ["dart", "/dɑrt/", "v.", "猛衝", "The cat darted into the bushes.", "dart into/across/past + 地點／one's eyes darted（眼神飛快掃過）"], ["stride", "/straɪd/", "v.", "大步走", "He strode into the room confidently.", "stride into/across/toward + 地點（強調自信、氣勢）"], ["wander", "/ˋwɑndɚ/", "v.", "漫步", "She wandered along the beach.", "wander along/around/through + 地點／one's mind wandered（分心）"], ["linger", "/ˋlɪŋgɚ/", "v.", "逗留", "He lingered after class.", "linger over/in/around + N／a lingering smell/doubt"], ["glide", "/glaɪd/", "v.", "滑行", "The swan glided across the lake.", "glide across/through + 地點（強調流暢優雅）"], ["creep", "/krip/", "v.", "躡手躡腳", "The boy crept into the room.", "creep into/up on + N／a creeping fear（漸生的恐懼）"], ["stumble", "/ˋstʌmbl/", "v.", "絆倒", "He stumbled over a rock.", "stumble over/upon + N／stumble across（無意間發現）"], ["stagger", "/ˋstægɚ/", "v.", "蹣跚", "He staggered to the finish line.", "stagger to/toward + 地點／a staggering amount（誇飾：驚人的數量）"], ["yank", "/jæŋk/", "v.", "猛拉", "He yanked the door open.", "yank + N + open/away／yank on the rope"], ["shove", "/ʃʌv/", "v.", "推", "He shoved the door open.", "shove + N + open/aside／shove one's way through（強行擠過）"], ["fling", "/flɪŋ/", "v.", "用力丟", "She flung the paper away.", "fling + N + open/away/across the room"], ["withdraw", "/wɪðˋdrɔ/", "v.", "撤回；退出", "He withdrew from the competition.", "withdraw from + N／withdraw money/support"], ["devour", "/dɪˋvaʊɚ/", "v.", "狼吞虎嚥；沉迷閱讀", "She devoured the novel overnight.", "devour a book/meal（廢寢忘食地讀/吃）"], ["gorge", "/gɔrdʒ/", "v.", "暴食", "They gorged on snacks.", "gorge on/oneself on + food（語氣比 devour 更負面）"], ["sip", "/sɪp/", "v.", "啜飲", "She slowly sipped her hot tea.", "sip on + 飲料／take a sip of（與 gorge/devour 的『大口』相反，強調小口慢飲）"], ["sprint", "/sprɪnt/", "v.", "衝刺；全力奔跑", "He sprinted toward the finish line.", "sprint toward/for + 地點／a final sprint"], ["tiptoe", "/ˋtɪpto/", "v.", "踮腳走", "She tiptoed past the sleeping baby.", "tiptoe into/past/around + N（強調不出聲）"], ["trudge", "/trʌdʒ/", "v.", "拖著沉重步伐走", "They trudged through the snow.", "trudge through/along + 地點（強調疲憊、吃力）"], ["plod", "/plɑd/", "v.", "跋涉；緩慢沉重地走", "The old man plodded up the hill.", "plod along/through/up + 地點（比 trudge 更強調緩慢單調）"], ["gulp", "/gʌlp/", "v.", "大口喝；（緊張地）吞嚥", "He gulped down his water after the race.", "gulp down + 飲料（大口喝）／gulp air／let out a gulp（緊張吞嚥一下，名詞用法，語氣近 swallow hard）"], ["trek", "/trɛk/", "v./n.", "跋涉；長途跋涉旅行", "They trekked through the mountains for three days.", "trek through/across + 地點／go on a trek（當名詞：一趟長途跋涉的旅程）"], ["expedition", "/ɛkspɪˋdɪʃən/", "n.", "遠征；探險（隊）", "The team organized an expedition to the South Pole.", "go on/lead an expedition to + 地點（純名詞，常與 trek 搭配描述冒險旅程；此類雖名為『動詞』，此字例外收錄於此以便主題配對）"]]}, {"name": "2. Body Language（肢體與細微動作）", "rows": [["glance", "/glæns/", "v.", "瞥一眼", "She glanced at her phone.", "glance at/over/through + N／a quick glance"], ["stare", "/stɛr/", "v.", "盯著看", "He stared at the screen.", "stare at + N／stare blankly into space"], ["nod", "/nɑd/", "v.", "點頭", "She nodded in agreement.", "nod in agreement/approval／nod off（打瞌睡）"], ["shrug", "/ʃrʌg/", "v.", "聳肩", "He shrugged helplessly.", "shrug one's shoulders／shrug off + criticism（不以為意）"], ["tap", "/tæp/", "v.", "輕敲", "He tapped the desk.", "tap on/at + N／tap one's foot"], ["grip", "/grɪp/", "v.", "緊握", "She gripped the handle tightly.", "grip + N + tightly／a firm grip on"], ["clutch", "/klʌtʃ/", "v.", "抓緊", "She clutched her bag.", "clutch at/onto + N／clutch one's chest（強調驚恐/緊張地抓）"], ["tremble", "/ˋtrɛmbl/", "v.", "發抖", "His hands trembled.", "tremble with fear/excitement／one's voice trembled"], ["fidget", "/ˋfɪdʒɪt/", "v.", "坐立不安", "The boy fidgeted in class.", "fidget with + N（把玩小物）／fidget nervously"], ["lean", "/lin/", "v.", "倚靠", "She leaned against the wall.", "lean against/on/over + N"], ["perspire", "/pɚˋspaɪr/", "v.", "流汗；出汗", "He was perspiring heavily after the intense workout.", "perspire heavily/profusely（比 sweat 正式、書面）"], ["clench", "/klɛntʃ/", "v.", "握緊；咬緊", "He clenched his fists in anger.", "clench one's fist/teeth/jaw（常表憤怒或忍耐）"], ["flinch", "/flɪntʃ/", "v.", "畏縮；退縮", "She flinched at the loud noise.", "flinch at + N／without flinching（毫不退縮）"], ["twitch", "/twɪtʃ/", "v.", "抽動", "His eyebrow twitched nervously.", "one's + 身體部位 + twitched（不自主抽動）"], ["acrobatic", "/ækrəˋbætɪk/", "adj.", "雜技般的；靈活敏捷的", "The gymnast performed an acrobatic flip that amazed the audience.", "an acrobatic move/leap/performance（形容『技巧高超、如雜技般』的身體動作，比 agile/nimble 更誇張生動）"], ["yawn", "/jɔn/", "v.", "打哈欠", "He let out a loud yawn during the boring lecture, unable to hide his exhaustion.", "let out a yawn／stifle a yawn（強忍住哈欠）；也可作名詞 a yawn"]]}, {"name": "3. Emotion, Sound & Mental Verbs（情緒、聲音與心理動詞）", "rows": [["sigh", "/saɪ/", "v.", "嘆氣", "She sighed with relief.", "sigh with relief/frustration／heave a sigh"], ["hesitate", "/ˋhɛzətet/", "v.", "猶豫", "He hesitated before answering.", "hesitate to V／without hesitation"], ["frown", "/fraʊn/", "v.", "皺眉", "The teacher frowned.", "frown at/upon + N／frown in disapproval"], ["grin", "/grɪn/", "v.", "咧嘴笑", "He grinned happily.", "grin from ear to ear／grin at + N"], ["murmur", "/ˋmɝmɚ/", "v.", "低聲說", "She murmured softly.", "murmur to oneself／a murmur of agreement"], ["whisper", "/ˋhwɪspɚ/", "v.", "耳語", "They whispered quietly.", "whisper to + N／whisper in one's ear"], ["gasp", "/gæsp/", "v.", "倒吸氣", "The audience gasped.", "gasp in shock/surprise／gasp for air（喘氣）"], ["groan", "/gron/", "v.", "呻吟；哀嘆（表不滿）", "Students groaned when extra homework was assigned.", "groan with pain／groan in protest（並非開口『抱怨』，而是發出不滿的哀嘆聲）"], ["chuckle", "/ˋtʃʌkl/", "v.", "輕笑", "He chuckled at the joke.", "chuckle to oneself／chuckle at + N（比 laugh 輕、比 grin 多了聲音）"], ["glare", "/glɛr/", "v.", "怒視", "She glared at him.", "glare at + N／a hostile glare"], ["gossip", "/ˋgɑsɪp/", "v./n.", "聊八卦；八卦", "They loved to gossip about their classmates.", "gossip about + N／a piece of gossip"], ["procrastinate", "/proˋkræstənet/", "v.", "拖延；拖拖拉拉", "Stop procrastinating and start writing your essay.", "procrastinate on/about + N"], ["rehabilitate", "/riəˋbɪlətet/", "v.", "復原；康復；改過自新", "The center helps injured athletes rehabilitate.", "rehabilitate + offenders/patients（常用於機構『幫助…康復』）"], ["ponder", "/ˋpɑndɚ/", "v.", "沉思；仔細考慮", "She pondered the question for a while.", "ponder over/on + N（比 think 正式、深入）"], ["reminisce", "/rɛməˋnɪs/", "v.", "回想；追憶", "They reminisced about their school days.", "reminisce about + N（帶懷舊情感）"], ["dread", "/drɛd/", "v.", "害怕；恐懼", "He dreads public speaking.", "dread + Ving／dread the thought of + N"], ["scruple", "/ˋskrupl/", "n./v.", "顧忌；良心不安（常用複數 scruples）；對……感到遲疑", "He had no scruples about lying to protect his own interests.", "have no scruples about + Ving（毫無顧忌地做某事，常用於批判不道德行為）"], ["remorse", "/rɪˋmɔrs/", "n.", "懊悔；悔恨（比 regret 更強烈，常帶有罪惡感）", "He was filled with remorse after realizing how his words had hurt his best friend.", "feel/show remorse for + N／be filled with remorse（語氣比 regret 更沉重，常暗示『良心不安』）"]]}, {"name": "4. Emotion & Character Adjectives（情緒與人格特質形容詞）", "rows": [["sentimental", "/sɛntəˋmɛntl/", "adj.", "感傷的", "She felt sentimental.", "feel sentimental about + N"], ["eager", "/ˋigɚ/", "adj.", "渴望的", "Students are eager to learn.", "be eager to V／eager for + N"], ["fond", "/fɑnd/", "adj.", "喜愛的", "She is fond of music.", "be fond of + N"], ["jubilant", "/ˋdʒublənt/", "adj.", "歡欣鼓舞的", "The crowd was jubilant after the victory.", "jubilant about/at + N"], ["overwhelmed", "/ovɚˋhwɛlmd/", "adj.", "不知所措的；被壓垮的", "She felt overwhelmed by the amount of homework.", "be overwhelmed by/with + N（注意與 overwhelming 不同：這個字描述『人的感受』）"], ["anxious", "/ˋæŋkʃəs/", "adj.", "焦慮的", "He was anxious about the upcoming exam.", "be anxious about + N／anxious to V"], ["nostalgic", "/nɑsˋtældʒɪk/", "adj.", "懷舊的", "The old photos made her nostalgic.", "feel nostalgic about/for + N"], ["relieved", "/rɪˋlivd/", "adj.", "鬆了一口氣的", "I was relieved to hear the good news.", "be relieved to V／relieved that..."], ["ashamed", "/əˋʃemd/", "adj.", "羞愧的", "He felt ashamed of his mistake.", "be ashamed of + N"], ["envious", "/ˋɛnvɪəs/", "adj.", "羨慕的；忌妒的", "She was envious of her friend's success.", "be envious of + N"], ["grateful", "/ˋgretfəl/", "adj.", "感激的", "I am grateful for your help.", "be grateful for + N／grateful to + 人"], ["apprehensive", "/æprɪˋhɛnsɪv/", "adj.", "憂慮不安的", "He felt apprehensive about the interview.", "be apprehensive about + N（比 anxious 略正式）"], ["meticulous", "/məˋtɪkjələs/", "adj.", "一絲不苟的；極其細心的", "She is meticulous about every detail in her research.", "be meticulous about/in + N（強調做事態度嚴謹、講究細節，非情緒詞，而是人格特質，故此類名稱一併調整）"], ["eccentric", "/ɪkˋsɛntrɪk/", "adj.", "古怪的；異於常人的（形容人的性格）", "The eccentric professor was known for his unusual teaching methods.", "an eccentric personality/behavior（形容『特立獨行』的人格特質，語氣中性偏有趣）"], ["bizarre", "/bɪˋzɑr/", "adj.", "怪誕的；離奇的（形容事件而非人）", "It was a bizarre coincidence that they met again after so many years.", "a bizarre incident/coincidence/dream（常形容『詭異難解的事件』；與 eccentric 形容『人的性格古怪』不同，注意原字拼法為 bizarre 非 bizzare）"], ["obliged", "/əˋblaɪdʒd/", "adj.", "感激的；感到有義務的", "I feel obliged to help my classmates whenever they are in need.", "feel obliged to V（感到有義務做某事）／be much obliged（十分感激，較正式、略帶古風）"], ["dedicated", "/ˋdɛdɪketɪd/", "adj.", "專注的；奉獻的；盡心盡力的", "The dedicated volunteers spent their weekends cleaning up the beach.", "be dedicated to + N/V-ing（強調『全心投入、堅定不移』，常用於形容人格特質或工作態度）"], ["amiable", "/ˋemɪəbl/", "adj.", "友善的；和藹可親的", "Her amiable personality made her popular among classmates.", "an amiable manner/personality（形容『待人親切隨和』，語氣比 friendly 更書面優雅）"], ["peculiar", "/pɪˋkjuljɚ/", "adj.", "古怪的；奇特的（也可指『特有的』）", "There was something peculiar about the way he avoided eye contact during the interview.", "peculiar to + N（表『……所特有的』）／something peculiar about + N（跟 eccentric 相近但語氣更中性，可形容人事物）"], ["judicious", "/dʒuˋdɪʃəs/", "adj.", "明智的；審慎的", "A judicious leader carefully weighs both the risks and benefits before making a decision.", "a judicious decision/choice/leader（形容『經過深思熟慮、判斷力佳』，議論文評論決策品質時很好用，反義為 injudicious）"]]}, {"name": "5. Environment & Description（環境與氣氛描寫）", "rows": [["breeze", "/briz/", "n.", "微風", "A breeze blew gently.", "a gentle/cool breeze／a breeze blew"], ["gale", "/gel/", "n.", "強風", "The ship faced a gale.", "a gale blew/hit／gale-force winds"], ["tranquil", "/ˋtræŋkwɪl/", "adj.", "寧靜的", "The lake was tranquil.", "a tranquil atmosphere/setting"], ["gloomy", "/ˋglumɪ/", "adj.", "陰沉的", "The sky looked gloomy.", "a gloomy sky/mood"], ["vibrant", "/ˋvaɪbrənt/", "adj.", "充滿活力的", "The city is vibrant.", "a vibrant city/atmosphere/color"], ["gorgeous", "/ˋgɔrdʒəs/", "adj.", "美麗的", "The view was gorgeous.", "absolutely gorgeous／a gorgeous view"], ["serene", "/səˋrin/", "adj.", "寧靜安詳的", "The lake looked serene at dawn.", "a serene expression/atmosphere（比 tranquil 更強調『安詳感』）"], ["picturesque", "/pɪktʃəˋrɛsk/", "adj.", "風景如畫的", "The village was picturesque.", "a picturesque view/village/scene"], ["desolate", "/ˋdɛsəlɪt/", "adj.", "荒涼的", "The abandoned town looked desolate.", "a desolate landscape/place（與 gloomy 不同：強調『荒無人煙』）"], ["lush", "/lʌʃ/", "adj.", "蒼翠茂密的", "The valley was covered in lush greenery.", "lush greenery/vegetation/fields"], ["breathtaking", "/ˋbrɛθtekɪŋ/", "adj.", "令人屏息的", "The view from the peak was breathtaking.", "a breathtaking view/scenery（比 gorgeous 語氣更強）"], ["crisp", "/krɪsp/", "adj.", "清新的；(空氣)涼爽乾淨的", "The autumn air felt crisp.", "crisp air/morning"], ["humid", "/ˋhjumɪd/", "adj.", "潮濕悶熱的", "It was hot and humid in summer.", "hot and humid／humid weather"], ["perilous", "/ˋpɛrələs/", "adj.", "危險的（書面語，比 dangerous 正式、文學化）", "They embarked on a perilous journey across the desert.", "a perilous journey/situation/path"], ["hazardous", "/ˋhæzɚdəs/", "adj.", "危險的；有害的（尤指對健康或環境）", "Working in such hazardous conditions requires special protective gear.", "hazardous conditions/waste/materials（強調『對健康或環境有害』；perilous 則偏重『冒險犯難』的情境）"], ["lethal", "/ˋliθəl/", "adj.", "致命的（強調殺傷力）", "The venom of this snake is lethal to humans.", "a lethal weapon/dose/injection（強調『物質或武器本身的致死殺傷力』）"], ["fatal", "/ˋfetl/", "adj.", "致命的（強調造成死亡的後果）", "The car accident proved fatal for two of the passengers.", "a fatal accident/mistake/disease（強調『導致死亡』的後果，與 lethal 著重『殺傷力本身』略有不同）"]]}, {"name": "6. Color Vocabulary（精準色彩詞彙）", "rows": [["crimson", "/ˋkrɪmzn/", "adj./n.", "深紅", "The sky turned crimson.", "turn crimson／a crimson sunset"], ["scarlet", "/ˋskɑrlɪt/", "adj./n.", "鮮紅", "She wore scarlet.", "a scarlet dress/ribbon"], ["emerald", "/ˋɛmərəld/", "adj./n.", "翡翠綠", "The forest looked emerald.", "emerald green／emerald waters"], ["sapphire", "/ˋsæfaɪr/", "adj./n.", "寶石藍", "The sea was sapphire.", "sapphire blue／a sapphire sea"], ["turquoise", "/ˋtɝkwɔɪz/", "adj./n.", "青綠", "The water was turquoise.", "turquoise water/sky"], ["ivory", "/ˋaɪvərɪ/", "adj./n.", "象牙白", "The walls were ivory.", "ivory white／ivory walls"], ["amber", "/ˋæmbɚ/", "adj./n.", "琥珀色", "Amber light filled the room.", "amber light/glow"], ["azure", "/ˋæʒɚ/", "adj./n.", "蔚藍", "The azure sky stretched endlessly.", "an azure sky/sea"], ["lavender", "/ˋlævəndɚ/", "adj./n.", "薰衣草紫", "The field was covered in lavender blossoms.", "a lavender field/hue"], ["charcoal", "/ˋtʃɑrkol/", "adj./n.", "炭灰色", "He wore a charcoal suit.", "charcoal grey／a charcoal sky"]]}, {"name": "7. Food & Culinary Descriptions（美食與飲食描寫）", "rows": [["scrumptious", "/ˋskrʌmpʃəs/", "adj.", "美味可口的（口語，語氣誇張生動）", "The bakery's cinnamon rolls are absolutely scrumptious.", "scrumptious food/meal/dessert（口語化且生動的『美味』說法，比 delicious 更活潑）"], ["delectable", "/dɪˋlɛktəbl/", "adj.", "美味的；令人愉悅的（書面語，較正式優雅）", "The chef prepared a delectable seven-course meal for the guests.", "a delectable dish/meal/flavor（比 scrumptious 更正式書面，常見於美食評論）"], ["delicate", "/ˋdɛləkɪt/", "adj.", "（味道）細緻的；（質地）精巧易碎的", "The soup has a delicate flavor that is easily overpowered by too much seasoning.", "a delicate flavor/texture/balance（強調『細緻、需要小心呵護』的特質，可用於味道或工藝；原字拼法為 delicate 非 dellicate）"], ["cuisine", "/kwɪˋzin/", "n.", "菜餚；（某地區或文化的）烹飪風格", "Taiwanese cuisine is renowned for its diverse night market snacks.", "Italian/Japanese/local cuisine（指『某地區或民族特有的烹飪風格』，為不可數名詞）"], ["delicacy", "/ˋdɛləkəsɪ/", "n.", "佳餚；珍饈（某地特有的精緻食物）", "Stinky tofu is considered a local delicacy in Taiwan, despite its polarizing smell.", "a local/regional delicacy（指『地方特色美食』；與 cuisine 指『整體烹飪風格』不同，delicacy 是單一珍饈食物）"], ["exquisite", "/ɪkˋskwɪzɪt/", "adj.", "精緻的；極其優美的", "The dessert was an exquisite blend of chocolate and sea salt.", "exquisite taste/craftsmanship/design（不限於食物，也常用於形容工藝或品味的『精緻優雅』）"]]}, {"name": "8. Trend & Change Verbs（趨勢與變化動詞）", "rows": [["surge", "/sɝdʒ/", "v./n.", "激增", "Demand surged.", "surge in/to + N（強調快速大量增加）／a surge of anger"], ["plunge", "/plʌndʒ/", "v./n.", "暴跌", "Prices plunged.", "plunge into/to + N"], ["soar", "/sor/", "v.", "飆升", "Costs soared.", "soar to/above + N（強調『飛快上升』，也可形容士氣）"], ["skyrocket", "/ˋskaɪrɑkɪt/", "v.", "暴漲", "Sales skyrocketed.", "skyrocket to/by + N（口語感強，誇張式暴漲）"], ["rise", "/raɪz/", "v.", "上升", "Prices rose.", "rise by/to + N／a sharp rise in（中性、最常用的『上升』）"], ["climb", "/klaɪm/", "v.", "上升", "Numbers climbed.", "climb to/by + N steadily（強調緩慢穩定上升）"], ["peak", "/pik/", "v./n.", "到達高峰", "It peaked in July.", "peak at + N／reach a peak"], ["plummet", "/ˋplʌmɪt/", "v.", "暴跌", "Stocks plummeted.", "plummet to/by + N（比 plunge 語氣更急遽）"], ["decline", "/dɪˋklaɪn/", "v./n.", "下降", "Birth rate declined.", "decline in/by + N／a steady decline（中性，常用於長期趨勢）"], ["dwindle", "/ˋdwɪndl/", "v.", "減少", "Resources dwindled.", "dwindle to/away／dwindling supplies（強調逐漸變少至匱乏）"], ["fluctuate", "/ˋflʌktʃuet/", "v.", "波動", "Prices fluctuate.", "fluctuate between A and B"], ["stabilize", "/ˋstebəlaɪz/", "v.", "穩定", "The market stabilized.", "stabilize at + N"], ["rebound", "/rɪˋbaʊnd/", "v.", "反彈", "The economy rebounded.", "rebound from + N／a strong rebound"], ["trail", "/trel/", "v./n.", "落後；緊追在後；(n.)小徑", "Taiwan still trails other countries in renewable energy use.", "trail behind + N／trail by + 數量（原誤放在 Body Language，已移至此類）"], ["escalate", "/ˋɛskəlet/", "v.", "升級；惡化", "Tensions escalated quickly.", "escalate into + N／escalate rapidly"]]}, {"name": "9. Argument Verbs（議論與因果論述動詞）", "rows": [["mitigate", "/ˋmɪtəget/", "v.", "緩解", "Exercise mitigates stress.", "mitigate the effects/risk/damage of + N（正式，多接負面名詞）"], ["enhance", "/ɪnˋhæns/", "v.", "提升", "Reading enhances skills.", "enhance one's ability/performance/experience（強調『提升品質』）"], ["promote", "/prəˋmot/", "v.", "促進", "Exercise promotes health.", "promote health/growth/equality（強調『推廣、助長』）"], ["boost", "/bust/", "v.", "提升", "Praise boosts confidence.", "boost one's confidence/morale/sales（語氣較強、常指『瞬間拉抬』，與 enhance 的『漸進提升品質』不同）"], ["cultivate", "/ˋkʌltəvet/", "v.", "培養", "Schools cultivate creativity.", "cultivate a habit/skill/relationship"], ["foster", "/ˋfɔstɚ/", "v.", "促進；培養", "Environment fosters growth.", "foster a sense of + N（常接抽象名詞，如 belonging）"], ["highlight", "/ˋhaɪlaɪt/", "v.", "強調", "This highlights importance.", "highlight the need/importance of + N（客觀點出重點）"], ["underscore", "/ʌndɚˋskɔr/", "v.", "凸顯", "This underscores the issue.", "underscore the importance/urgency of + N（比 highlight 語氣更正式強烈）"], ["illustrate", "/ˋɪləstret/", "v.", "說明；闡明", "The graph illustrates the trend clearly.", "illustrate + how/that子句（常搭配圖表、例子）"], ["demonstrate", "/ˋdɛmənstret/", "v.", "證明", "The experiment demonstrates the theory.", "demonstrate that.../demonstrate a skill"], ["reveal", "/rɪˋvil/", "v.", "顯示", "The survey revealed surprising results.", "reveal that.../reveal the truth"], ["spark", "/spɑrk/", "v.", "引發", "The issue sparked heated debate.", "spark controversy/debate/interest（強調『引爆』討論或情緒）"], ["trigger", "/ˋtrɪgɚ/", "v.", "觸發", "Stress triggers health problems.", "trigger a reaction/response（較中性，常指『機制式』反應）"], ["fuel", "/ˋfjuəl/", "v.", "助長", "Media coverage fuels public anxiety.", "fuel speculation/fear/growth"], ["shape", "/ʃep/", "v.", "形塑", "Education shapes one's mindset.", "shape one's character/future/values"], ["transform", "/trænsˋfɔrm/", "v.", "改變", "Technology transforms our lives.", "transform A into B"], ["revolutionize", "/rɛvəˋluʃənaɪz/", "v.", "革命性改變", "The internet revolutionized communication.", "revolutionize the way we + V"], ["alleviate", "/əˋlivɪet/", "v.", "減輕", "Exercise alleviates stress.", "alleviate the burden/pain/pressure（強調『減輕』負面感受）"], ["empower", "/ɪmˋpaʊɚ/", "v.", "賦權；使有能力", "Education empowers people to change their lives.", "empower + 人 + to V"], ["erode", "/ɪˋrod/", "v.", "侵蝕", "Constant stress erodes motivation.", "erode trust/confidence/motivation"], ["forge", "/fɔrdʒ/", "v.", "塑造；鍛造", "Challenges forge strong character.", "forge a bond/relationship/character"], ["suffocate", "/ˋsʌfəket/", "v.", "壓迫；使窒息", "Excessive pressure suffocates creativity.", "suffocate creativity/growth（比喻用法）"], ["streamline", "/ˋstrimlaɪn/", "v.", "精簡；簡化", "The new system was streamlined.", "streamline the process/procedure"], ["captivate", "/ˋkæptəvet/", "v.", "吸引", "The story captivated readers.", "captivate the audience/readers"], ["prevail", "/prɪˋvel/", "v.", "勝過；戰勝；盛行", "Truth will ultimately prevail over lies.", "prevail over + N（戰勝）／prevail in/among + 地點（盛行）"], ["undermine", "/ʌndɚˋmaɪn/", "v.", "削弱；損害", "Constant criticism undermines one's confidence.", "undermine confidence/trust/efforts"], ["safeguard", "/ˋsefgɑrd/", "v.", "保障；保護", "Laws safeguard our basic rights.", "safeguard the rights/interests of + N"], ["necessitate", "/nəˋsɛsətet/", "v.", "使成為必要", "The crisis necessitated immediate action.", "necessitate + N/Ving（正式，常用於被動語境）"], ["counteract", "/kaʊntɚˋrækt/", "v.", "抵消；抗衡", "Regular exercise helps counteract the effects of stress.", "counteract the effects of + N"], ["orchestrate", "/ˋɔrkɪstret/", "v.", "精心策劃；統籌安排", "The committee orchestrated a series of events to raise public awareness.", "orchestrate a campaign/an event/a plan（強調『精心且有系統地』佈局安排，語氣比 organize 更講究巧妙）"], ["speculate", "/ˋspɛkjəlet/", "v.", "推測；臆測", "Experts speculate that the trend will continue into next year.", "speculate that.../speculate about + N（常用於引入『各方揣測』的論點）"], ["synchronize", "/ˋsɪŋkrənaɪz/", "v.", "使同步；協調一致", "The team worked hard to synchronize their schedules for the project.", "synchronize + efforts/schedules/movements（強調『協調一致、同步進行』）"], ["endeavor", "/ɪnˋdɛvɚ/", "v.", "努力；致力於", "She endeavored to complete the project before the deadline despite numerous setbacks.", "endeavor to V（正式書面用語，比 try to 更正式，強調『竭力嘗試』；也可作名詞，如 a noble endeavor 崇高的事業）"], ["advocate", "/ˋædvəket/", "v.", "提倡；主張", "Many experts advocate for stricter regulations on social media use.", "advocate for + N／advocate + Ving（常接 for，強調『公開倡議、大力支持』）"], ["contend", "/kənˋtɛnd/", "v.", "主張；聲稱（常用於引入對立論點）", "Critics contend that the policy does more harm than good.", "contend that...（引入『對立方的主張』，語氣正式，比 argue 更書面）"], ["refute", "/rɪˋfjut/", "v.", "反駁；駁斥", "The study refutes the common belief that video games cause violence.", "refute a claim/argument/belief（強調『提出證據推翻』，比 disagree 更有力）"], ["concede", "/kənˋsid/", "v.", "讓步；承認", "While I concede that the plan has flaws, I still believe it is worth pursuing.", "concede that.../concede a point（讓步句型必備，常接 while/although）"], ["substantiate", "/səbˋstænʃɪet/", "v.", "證實", "The claim is not substantiated by any credible evidence.", "substantiate a claim/allegation（常用被動語態，強調『用證據支持』）"], ["justify", "/ˋdʒʌstəfaɪ/", "v.", "證明……正當；為……辯護", "Such drastic measures cannot be justified without solid evidence.", "justify + N/Ving（評估手段是否『站得住腳』時常用）"], ["warrant", "/ˋwɔrənt/", "v.", "使有正當理由；證明……有必要", "The severity of the issue warrants immediate government intervention.", "warrant + N/Ving（主詞通常是『情況的嚴重性』，強調『足以構成理由』）"], ["outweigh", "/aʊtˋwe/", "v.", "勝過；超過", "The benefits of remote work outweigh its drawbacks for many employees.", "A outweigh(s) B（利弊比較句型的核心動詞，比 be better than 更精準有力）"], ["exacerbate", "/ɪgˋzæsɚbet/", "v.", "使惡化", "Ignoring the problem will only exacerbate the situation.", "exacerbate the situation/problem/tension（正式書面，比 worsen 更精準）"], ["perpetuate", "/pɚˋpɛtʃuet/", "v.", "使延續；助長（負面現象）", "Such stereotypes only perpetuate inequality in the workplace.", "perpetuate a stereotype/cycle/inequality（強調『使負面現象持續存在』）"], ["rectify", "/ˋrɛktəfaɪ/", "v.", "糾正；矯正", "The government must take action to rectify the situation.", "rectify the situation/mistake/problem（比 fix 更正式，常見於政策討論）"], ["endorse", "/ɪnˋdɔrs/", "v.", "背書；公開支持；認可", "Many celebrities endorse environmental campaigns to raise public awareness.", "endorse a product/policy/candidate（可指『代言』商品，也可指『公開支持』政策或候選人，議論文中常用於『支持某立場』）"]]}, {"name": "10. Intensity & Necessity Adjectives（程度、強度與必要性形容詞）", "rows": [["tremendous", "/trɪˋmɛndəs/", "adj.", "巨大的", "Tremendous change occurred.", "a tremendous amount/impact"], ["substantial", "/səbˋstænʃəl/", "adj.", "可觀的", "A substantial increase happened.", "a substantial increase/amount"], ["remarkable", "/rɪˋmɑrkəbl/", "adj.", "顯著的", "She made remarkable progress.", "remarkable progress/achievement"], ["significant", "/sɪgˋnɪfəkənt/", "adj.", "重要的", "It has significant impact.", "a significant impact/role/difference"], ["profound", "/prəˋfaʊnd/", "adj.", "深遠的", "It has profound influence.", "a profound effect/impact on + N"], ["overwhelming", "/ovɚˋhwɛlmɪŋ/", "adj.", "壓倒性的", "The response was overwhelming.", "overwhelming support/evidence（描述『事物』程度，注意與 overwhelmed 描述『人的感受』不同）"], ["immense", "/ɪˋmɛns/", "adj.", "巨大的", "The internet provides immense data.", "immense pressure/potential"], ["dramatic", "/drəˋmætɪk/", "adj.", "劇烈的", "There was a dramatic change.", "a dramatic increase/shift"], ["extraordinary", "/ɪkˋstrɔrdnɛrɪ/", "adj.", "非凡的", "She showed extraordinary courage.", "extraordinary talent/courage"], ["staggering", "/ˋstægərɪŋ/", "adj.", "驚人的（誇張語氣）", "The cost was staggering.", "a staggering amount/number"], ["considerable", "/kənˋsɪdərəbl/", "adj.", "相當大的", "It requires considerable effort.", "considerable effort/attention/time"], ["marginal", "/ˋmɑrdʒɪnl/", "adj.", "些微的；邊際的", "There was only a marginal improvement.", "a marginal increase/difference（原本此類全是『大程度』形容詞，補上這個表示『小程度』，寫作時對比更有層次）"], ["formidable", "/ˋfɔrmədəbl/", "adj.", "令人敬畏的；強大難以對付的", "The team faced a formidable opponent in the final round.", "a formidable opponent/challenge/task（強調『強大到令人畏懼』，比 tremendous 更聚焦於威懾感）"], ["daunting", "/ˋdɔntɪŋ/", "adj.", "令人畏懼的；令人卻步的（形容任務或挑戰艱鉅）", "Learning a new language can be a daunting task for many adults.", "a daunting task/challenge/prospect（強調『光用想的就令人卻步』，常與 formidable 互換，但 daunting 更著重『使人心生畏懼』的心理感受）"], ["inevitable", "/ɪnˋɛvətəbl/", "adj.", "不可避免的；必然的", "Given the current trends, a rise in living costs seems inevitable.", "it is inevitable that.../an inevitable consequence(outcome)（議論文中常用來加強『必然發生』的語氣，前面常接 seem/prove/become）"], ["indispensable", "/ɪndɪsˋpɛnsəbl/", "adj.", "不可或缺的；必要的", "Technology has become indispensable to modern education.", "be indispensable to/for + N（比 essential/necessary 更強調『少了它就無法運作』，用於強調某事物的關鍵重要性）"], ["feasible", "/ˋfizəbl/", "adj.", "可行的；行得通的", "Given the budget constraints, building a new library may not be feasible this year.", "a feasible plan/solution/option（強調『理論上可執行』，議論文評估方案可行性時常用，反義為 unfeasible/infeasible）"], ["controversial", "/kɑntrəˋvɝʃəl/", "adj.", "有爭議的", "The proposal remains a controversial topic among lawmakers.", "a controversial issue/topic/decision"], ["detrimental", "/dɛtrəˋmɛntl/", "adj.", "有害的", "Excessive screen time can be detrimental to children's development.", "be detrimental to + N（比 harmful 更正式書面）"], ["paramount", "/ˋpærəmaʊnt/", "adj.", "至關重要的", "Safety should be of paramount importance in any workplace.", "of paramount importance（固定搭配，比 extremely important 更高級）"], ["viable", "/ˋvaɪəbl/", "adj.", "可行的；能存續運作的", "Renewable energy is becoming an increasingly viable alternative to fossil fuels.", "a viable option/alternative/solution（與本類的 feasible 相近但更強調『能長久維持運作』，feasible 則強調『做得到』）"], ["prevalent", "/ˋprɛvələnt/", "adj.", "普遍的；盛行的", "Obesity has become increasingly prevalent among teenagers.", "become prevalent among + N（比 common 更正式，常用於描述社會現象的普及程度）"], ["obsolete", "/ˋɑbsəlit/", "adj.", "過時的；淘汰的", "Many traditional skills have become obsolete with the rise of automation.", "become/render obsolete（常用於科技、技能被時代淘汰的語境，render obsolete 為正式被動搭配）"], ["tedious", "/ˋtidɪəs/", "adj.", "冗長乏味的；令人厭煩的", "Filling out the same form repeatedly can be a tedious process.", "a tedious task/process/journey（強調『因冗長重複而令人厭煩』，比 boring 更正式書面）"], ["feeble", "/ˋfibl/", "adj.", "虛弱無力的；（比喻）站不住腳的", "His feeble excuse failed to convince the teacher of his innocence.", "a feeble argument/excuse/attempt（形容論點、藉口或嘗試軟弱無力，議論文中常用來批評對方論述薄弱）"], ["irreversible", "/ɪrɪˋvɝsəbl/", "adj.", "不可逆轉的；無法挽回的", "Deforestation on this scale could cause irreversible damage to the ecosystem.", "irreversible damage/consequences/harm（強調『後果一旦發生就無法回復』，議論文中常用來強化事態嚴重性）"]]}, {"name": "11. Adverbs（程度與修飾副詞）", "rows": [["slightly", "/ˋslaɪtlɪ/", "adv.", "稍微", "It changed slightly.", "slightly + adj./v.／a slight increase"], ["gradually", "/ˋgrædʒʊəlɪ/", "adv.", "逐漸地", "It gradually improved.", "gradually + v. over time"], ["dramatically", "/drəˋmætɪklɪ/", "adv.", "劇烈地", "It changed dramatically.", "change/increase dramatically"], ["barely", "/ˋbɛrlɪ/", "adv.", "幾乎不", "He barely passed.", "barely + v.／barely any + N"], ["deeply", "/ˋdiplɪ/", "adv.", "深深地", "She was deeply moved.", "deeply moved/affected/rooted"], ["strongly", "/ˋstrɔŋlɪ/", "adv.", "強烈地", "I strongly agree.", "strongly agree/believe/recommend"], ["gently", "/ˋdʒɛntlɪ/", "adv.", "輕柔地", "She gently closed the door.", "gently + v."], ["rapidly", "/ˋræpɪdlɪ/", "adv.", "快速地", "Technology grows rapidly.", "grow/increase/change rapidly"], ["rather", "/ˋræðɚ/", "adv.", "相當", "It was rather difficult.", "rather + adj.／would rather V"], ["relatively", "/ˋrɛlətɪvlɪ/", "adv.", "相對地", "It is relatively easy.", "relatively + adj."], ["briefly", "/ˋbriflɪ/", "adv.", "簡要地", "Briefly, the plan worked.", "put briefly／briefly explain"]]}, {"name": "12. Transition Adverbs（轉承副詞）", "rows": [["likewise", "/ˋlaɪkwaɪz/", "adv.", "同樣地", "Likewise, reading helps broaden one's mind.", "Likewise, + S + V（句首承接『同類』論點）"], ["moreover", "/morˋovɚ/", "adv.", "此外；再者", "Moreover, the plan saves both time and money.", "Moreover, + S + V（句首，補充『更進一步』的論點）"], ["furthermore", "/ˋfɝðɚmor/", "adv.", "此外", "Furthermore, it boosts team morale.", "Furthermore, + S + V（與 moreover 幾乎同義，可交替使用避免重複）"], ["nevertheless", "/nɛvɚðəˋlɛs/", "adv.", "然而；儘管如此", "Nevertheless, she decided to give it another try.", "Nevertheless, + S + V（句首，強調『轉折』）"], ["consequently", "/ˋkɑnsəkwɛntlɪ/", "adv.", "因此；結果", "He skipped class; consequently, he failed the test.", "..., consequently, + S + V（強調『因果』）"], ["meanwhile", "/ˋminhwaɪl/", "adv.", "與此同時", "Meanwhile, the situation grew worse.", "Meanwhile, + S + V（句首，強調『同時發生』）"], ["admittedly", "/ədˋmɪtɪdlɪ/", "adv.", "誠然；不可否認地", "Admittedly, the plan has some flaws.", "Admittedly, + S + V（句首讓步，之後常接 but/however 轉折）"], ["arguably", "/ˋɑrgjuəblɪ/", "adv.", "可以說是", "It is arguably the best solution available.", "arguably the + 最高級（緩和『絕對化』語氣）"], ["however", "/haʊˋɛvɚ/", "adv.", "然而", "The plan looked perfect on paper; however, it failed in practice.", "However, + S + V（句首，是使用頻率最高的轉折詞）"], ["therefore", "/ˋðɛrfor/", "adv.", "因此", "He didn't study at all; therefore, he failed the exam.", "..., therefore, + S + V（強調『邏輯上必然的結果』，比 so 正式）"], ["thus", "/ðʌs/", "adv.", "因此；如此", "The company cut costs and thus increased its profit margin.", "thus + Ving／thus, + S + V（比 therefore 更精簡、書面）"], ["additionally", "/əˋdɪʃənlɪ/", "adv.", "此外", "Additionally, the program offers free tutoring for struggling students.", "Additionally, + S + V（與 moreover/furthermore 同義，可交替使用避免重複）"], ["indeed", "/ɪnˋdid/", "adv.", "的確；事實上", "The results were, indeed, better than expected.", "..., indeed, ...（插入語，用於加強語氣或補充說明）"], ["similarly", "/ˋsɪmələrlɪ/", "adv.", "同樣地", "Similarly, students who read regularly tend to write better.", "Similarly, + S + V（用於承接『類似』的論點）"], ["accordingly", "/əˋkɔrdɪŋlɪ/", "adv.", "因此；相應地", "The rules have changed; students must adjust their study plans accordingly.", "..., accordingly（句尾，強調『依此』調整）／Accordingly, + S + V（句首）"], ["eventually", "/ɪˋvɛntʃʊəlɪ/", "adv.", "最終", "After months of practice, she eventually mastered the skill.", "eventually + V（強調『經過一段過程後』的結果，常用於敘事或結論）"], ["subsequently", "/ˋsʌbsɪkwəntlɪ/", "adv.", "隨後；其後", "The company launched the product in March; subsequently, sales exceeded all expectations.", "..., subsequently, + S + V（強調『按時間順序接續發生』，比 then 更正式書面）"]]}, {"name": "13. Health & Emergency Vocabulary（醫療與緊急狀況字彙）", "rows": [["contract", "/kənˋtrækt/", "v.", "染上；罹患（疾病）", "She contracted a rare disease during her trip abroad.", "contract an illness/a disease/a virus（正式，比 get/catch sick 高級）"], ["ailment", "/ˋelmənt/", "n.", "疾病；病痛（多指輕微或慢性）", "Regular exercise can help prevent common ailments.", "suffer from/a minor ailment（比 sickness 正式）"], ["malady", "/ˋmælədɪ/", "n.", "疾病；（比喻）弊病", "Loneliness is often described as a modern malady.", "a social/modern malady（常用於比喻『社會通病』，文學語氣濃厚）"], ["affliction", "/əˋflɪkʃən/", "n.", "病痛；苦難", "He has lived with a chronic affliction since childhood.", "be afflicted with + 疾病／a chronic affliction"], ["recuperate", "/rɪˋkjupəret/", "v.", "康復；療養", "He is recuperating at home after the operation.", "recuperate from + 疾病/手術（比 recover 正式、書面）"]]}, {"name": "14. Everyday Life Vocabulary（日常生活情境字彙）", "rows": [["botch", "/bɑtʃ/", "v.", "搞砸（較正式，語氣近 mess up）", "He botched the interview by arriving twenty minutes late.", "botch a job/an attempt/an interview（比 mess up 稍正式書面）"], ["bungle", "/ˋbʌŋgl/", "v.", "笨手笨腳地搞砸", "The team bungled the project due to poor communication.", "bungle a plan/an operation（強調『因笨拙、缺乏能力』而搞砸）"], ["dilemma", "/dɪˋlɛmə/", "n.", "困境；進退兩難的處境", "She found herself in a moral dilemma when she discovered her best friend had cheated on the exam.", "face/be in a dilemma／a moral dilemma（常搭配 face, be in, resolve 等動詞，強調『左右為難』的抉擇困境，可與 at a crossroads 搭配使用）"], ["affair", "/əˋfɛr/", "n.", "事務；事情（常用複數指時事、局勢）", "Keeping up with current affairs is essential for writing a well-informed argumentative essay.", "current affairs（時事，議論文審題常用）／a state of affairs（事態、局面）"]]}, {"name": "15. Precise Human Subject Nouns（精準人稱主詞，避免濫用 people／individual）", "rows": [["urban dweller", "/ˋɝbən ˋdwɛlɚ/", "n.", "都市居民", "Urban dwellers often suffer from chronic stress due to noise and overcrowding.", "urban dwellers vs. rural residents（都市居民 vs. 鄉村居民，都市化／環境議題的精準主詞）"], ["commuter", "/kəˋmjutɚ/", "n.", "通勤者", "Commuters spend hours stuck in traffic every day.", "daily commuters／rush-hour commuters（交通議題常用主詞）"], ["adolescent", "/ædlˋɛsnt/", "n./adj.", "青少年", "Adolescents are particularly vulnerable to peer pressure on social media.", "adolescents（比 teenagers 更正式書面，議論文常用，可替換過度使用的 young people）"], ["the elderly", "elderly /ˋɛldɚlɪ/", "n.", "老年人（集合稱呼，動詞用複數）", "The elderly are often left behind in the rapid digitalization of society.", "the elderly／senior citizens（the + 形容詞表『某一類人』的集合用法，取代籠統的 old people）"], ["pedestrian", "/pəˋdɛstrɪən/", "n.", "行人", "Pedestrians are increasingly at risk on streets dominated by delivery scooters.", "pedestrian safety／a pedestrian crossing（交通安全議題的精準主詞）"], ["policymaker", "/ˋpɑləsimekɚ/", "n.", "政策制定者", "Policymakers must weigh economic growth against environmental protection.", "policymakers vs. the general public（政策類議論文的關鍵對照主詞）"], ["the underprivileged", "underprivileged /ʌndɚˋprɪvəlɪdʒd/", "n.", "弱勢族群（集合稱呼，動詞用複數）", "Scholarship programs aim to give the underprivileged equal access to education.", "the underprivileged／the disadvantaged（取代籠統的 poor people，語氣更正式中性）"], ["bystander", "/ˋbaɪstændɚ/", "n.", "旁觀者", "Many bystanders filmed the accident instead of calling for help.", "an innocent bystander／bystander apathy（旁觀者冷漠效應，社會議題常用詞組）"], ["proponent", "/prəˋponənt/", "n.", "支持者；提倡者", "Proponents of remote work argue that it boosts productivity and morale.", "proponents of + N（比 supporters 正式，常與 critics/opponents 成對使用，構成正反對照句型）"], ["critic", "/ˋkrɪtɪk/", "n.", "批評者", "Critics of the policy warn that it could widen the wealth gap.", "critics of + N（常與 proponents/advocates 對照，議論文正反論述必備主詞）"], ["taxpayer", "/ˋtækspeɚ/", "n.", "納稅人", "Taxpayers ultimately bear the cost of the government's new subsidy program.", "taxpayer money／ordinary taxpayers（政策成本、公共支出議題的精準主詞）"], ["caregiver", "/ˋkɛrgɪvɚ/", "n.", "照顧者", "Caregivers often sacrifice their own careers to look after aging parents.", "family caregivers／unpaid caregivers（高齡化、家庭議題常用主詞）"]]}, {"name": "16. Phrases（實用高分片語）", "rows": [["take a deep breath", "—", "phrase", "深呼吸", "She took a deep breath.", "take a deep breath before Ving"], ["in tears", "—", "phrase", "流著淚", "She was in tears.", "be in tears／burst into tears"], ["in panic", "panic /ˋpænɪk/", "phrase", "驚慌地", "Students ran in panic.", "in a state of panic"], ["swallow hard", "—", "phrase", "緊張地吞口水", "He swallowed hard.", "swallow hard before Ving"], ["gear up for", "gear /gɪr/", "phrasal verb", "為……做準備", "Students gear up for exams.", "gear up for + N"], ["suffer from burnout", "burnout /ˋbɝnaʊt/", "phrase", "遭受身心過勞", "Many suffer from burnout.", "suffer from + 疾病/burnout"], ["heave a sigh", "heave /hiv/", "phrase", "嘆氣", "She heaved a sigh of relief after passing the exam.", "heave a sigh of relief"], ["make matters worse", "—", "phrase", "使情況更糟", "To make matters worse, it started to rain.", "To make matters worse, ...（句首，銜接『雪上加霜』的情節）"], ["on the verge of", "verge /vɝdʒ/", "phrase", "瀕臨；接近", "She was on the verge of tears.", "on the verge of + Ving/N"], ["keep one's cool", "—", "phrase", "保持冷靜", "He managed to keep his cool under pressure.", "keep/lose one's cool"], ["throw in the towel", "—", "phrase", "放棄；認輸", "Despite the setback, she refused to throw in the towel.", "throw in the towel（源自拳擊『丟毛巾』認輸）"], ["shed light on", "shed /ʃɛd/", "phrase", "闡明；使人了解", "The report sheds light on the causes of the problem.", "shed light on + N"], ["come to terms with", "—", "phrase", "接受；認清（現實）", "It took him years to come to terms with the loss.", "come to terms with + N"], ["when it comes to", "—", "phrase", "當談到……時", "When it comes to studying, consistency matters most.", "When it comes to + N/Ving, ...（句首破題常用）"], ["at the end of the day", "—", "phrase", "說到底；歸根究底", "At the end of the day, effort matters more than talent.", "At the end of the day, ...（常用於結論段）"], ["turn a blind eye to", "—", "phrase", "對……視而不見", "We should not turn a blind eye to bullying.", "turn a blind eye to + N"], ["burst into laughter", "burst /bɝst/", "phrase", "突然大笑", "The whole class burst into laughter.", "burst into laughter/tears"], ["sink into frustration", "frustration /frʌsˋtreʃən/", "phrase", "陷入沮喪；意志消沉", "After failing the exam again, he sank into frustration.", "sink into + despair/depression/frustration（陷入負面情緒的萬用句型，注意 sink 為不規則動詞：sink-sank-sunk）"], ["be trapped in the vicious cycle", "vicious /ˋvɪʃəs/", "phrase", "陷入惡性循環", "Many students are trapped in the vicious cycle of procrastination and stress.", "be trapped/caught in a vicious cycle／break the vicious cycle（打破惡性循環）"], ["hail as", "hail /hel/", "phrase", "譽為；稱頌為", "She was hailed as a pioneer in the field of renewable energy.", "be hailed as + a hero/pioneer/legend（常用被動語態，語氣正式，常見於新聞或傳記）"], ["legendary figure", "legendary /ˋlɛdʒəndɛrɪ/", "phrase", "傳奇人物", "Steve Jobs is often regarded as a legendary figure in the tech industry.", "a legendary figure/hero/status（常搭配 regard as/be seen as，強調『傳奇地位』；可與 hail as 連用）"], ["be eligible to", "eligible /ˋɛlɪdʒəbl/", "phrase", "有資格（做某事）", "Students who maintain a high GPA are eligible to apply for the scholarship.", "be eligible to V／be eligible for + N（強調『符合資格』，常用於獎學金、投票、申請等正式情境）"], ["on behalf of", "behalf /bɪˋhæf/", "phrase", "代表；以……的名義", "On behalf of the entire team, I would like to thank you for your continuous support.", "on behalf of + N／on somebody's behalf（正式場合代表發言、致謝或致歉時常用，介系詞固定搭配 of）"], ["indulge in", "indulge /ɪnˋdʌldʒ/", "phrase", "沉溺於；耽溺於（做某件享受的事，帶有『放縱自己』的意味）", "On weekends, she likes to indulge in a good book and a cup of coffee.", "indulge in + N/V-ing（強調『放縱自己享受』，語氣比 enjoy 更強調耽溺感；注意此片語習慣用主動語態 indulge in，而非 be indulged in）"], ["be immersed in", "immersed /ɪˋmɝst/", "phrase", "沉浸於；全神貫注於", "He was so immersed in the novel that he didn't notice the time passing.", "be immersed in + N（強調『全神貫注、渾然忘我』的投入狀態，常用於閱讀、工作、文化情境）"], ["be obsessed with", "obsessed /əbˋsɛst/", "phrase", "對……著迷；沉迷於", "Many teenagers are obsessed with social media nowadays.", "be obsessed with + N（強調『著迷到近乎無法自拔』，語氣比 be interested in 更強烈）"], ["under the veil of", "veil /vel/", "phrase", "在……的掩飾下；假借……之名", "The corrupt official carried out illegal transactions under the veil of charity work.", "under the veil of + N（強調『表面掩飾、實則另有目的』，常用於揭露虛偽或掩蓋真相的語境，也可作 under the guise of 的同義替換）"], ["to the utmost", "utmost /ˋʌtmost/", "phrase", "盡全力；達到極致", "He tried to the utmost to make the presentation flawless.", "try/do something to the utmost／to the utmost of one's ability（強調『竭盡所能』，語氣比 as much as possible 更強烈有力）"], ["beacon of hope", "beacon /ˋbikən/", "phrase", "希望的燈塔；希望的象徵", "Despite the chaos, the volunteer center stood as a beacon of hope for the flood victims.", "a beacon of hope/light（比喻『在困境中帶來希望的人事物』，語氣正向、文學感強，適合用於作文結論或勵志敘事段落）"], ["out of breath", "breath /brɛθ/", "phrase", "上氣不接下氣；喘不過氣", "She was completely out of breath after sprinting to catch the bus.", "be out of breath／gasp for breath（gasp for breath 更強調『大口喘氣的動作』）"], ["reflect on", "reflect /rɪˋflɛkt/", "phrasal verb", "反思；反省（回顧並仔細思考過去的事）", "Before writing her college essay, she took time to reflect on the challenges she had overcome.", "reflect on + N/V-ing（強調『回顧並深入思考』，常用於作文結尾段回顧成長或經驗；與 ponder 相近，但 reflect on 更常用於『回顧過去經驗』的語境）"], ["in peril", "peril /ˋpɛrəl/", "phrase", "處於危險中", "The hikers' lives were in peril when the storm suddenly hit.", "be in peril／put sb's life in peril（peril 為名詞，語氣比 danger 正式）"], ["level off", "—", "phrasal v.", "趨於平穩", "Growth finally leveled off.", "level off at + N"], ["bottom out", "—", "phrasal v.", "觸底", "Prices seem to have bottomed out.", "bottom out at + N"], ["broaden one's horizons", "horizons /həˋraɪzənz/", "phrase", "拓展視野", "Studying abroad allowed her to broaden her horizons and embrace different cultures.", "broaden/widen one's horizons（常用於教育、旅行、閱讀等『增廣見聞』的語境）"], ["be occupied with", "occupied /ˋɑkjəpaɪd/", "phrase", "忙於；被……佔據", "She has been so occupied with work lately that she barely has time for her family.", "be occupied with + N/Ving（語氣比 be busy with 稍正式）／keep oneself occupied（讓自己保持忙碌）"]]}, {"name": "17. Argument Phrases（議論文常用片語）", "rows": [["rein in", "rein /ren/", "phrasal verb", "抑制；控制（原指拉緊韁繩讓馬停下）", "The government introduced new policies to rein in inflation.", "rein in + inflation/spending/emotions（易與同音的 reign in 拼錯，注意 rein 才是『韁繩』）"], ["resort to", "resort /rɪˋzɔrt/", "phrasal verb", "訴諸於；採取（通常指不得已採取激烈手段）", "When negotiations failed, the two countries resorted to military action.", "resort to violence/cheating/drastic measures（強調『不得已採取的手段』，語氣中性偏負面）"], ["fall short of", "—", "phrasal verb", "未達到（標準、期望等）；不如預期", "The outcomes fell short of the committee's expectations.", "fall short of + expectations/standards/target（強調『結果與預期之間的落差』，議論文評論表現或成效時很好用）"], ["shoulder the load", "shoulder /ˋʃoldɚ/", "phrasal verb", "承擔重擔；扛起責任", "As the eldest child, she had to shoulder the load of caring for her younger siblings after their parents passed away.", "shoulder the load/burden/responsibility（shoulder 作動詞時比 carry 更強調『主動、堅毅地承擔』的意味）"], ["cater to", "cater /ˋketɚ/", "phrasal verb", "迎合；滿足（某群體的需求）", "The new policy aims to cater to the needs of low-income families.", "cater to the needs/demands of + N（常用於議論文分析政策或市場策略，強調『針對特定族群量身設計』）"], ["play a pivotal role in", "pivotal /ˋpɪvətl/", "phrase", "扮演關鍵角色", "Education plays a pivotal role in shaping one's future.", "play a pivotal/crucial/key role in + N（比 play an important role 更高級）"], ["give rise to", "—", "phrase", "導致；引發", "Rapid urbanization has given rise to numerous environmental problems.", "give rise to + N（比 cause/lead to 更書面，主詞常是抽象現象）"], ["at the heart of", "—", "phrase", "是……的核心", "Trust lies at the heart of every successful relationship.", "lie at the heart of + N（強調『核心本質』，常搭配 lie 動詞）"], ["in light of", "—", "phrase", "鑑於", "In light of recent events, the company revised its policy.", "In light of + N, ...（句首，引入『考量的依據』，正式書面）"], ["with regard to", "—", "phrase", "關於", "With regard to funding, the committee has yet to reach a decision.", "With regard to + N, ...（比 about 更正式，常用於轉換話題或聚焦特定面向）"], ["take into account", "—", "phrase", "將……納入考量", "Policymakers should take the long-term effects into account.", "take + N + into account／take into account + N（也可說 take into consideration，語意相同）"], ["there is no denying that", "—", "phrase", "不可否認", "There is no denying that technology has transformed the way we communicate.", "There is no denying that + S + V（強調『事實不容反駁』，常用於段落開頭建立共識）"], ["strike a balance between A and B", "—", "phrase", "在 A 與 B 之間取得平衡", "It's essential to strike a balance between work and personal life.", "strike a balance between A and B（比 balance A and B 更生動，常用於議論兩難情境）"], ["a double-edged sword", "—", "phrase", "雙面刃", "Social media is a double-edged sword, offering connection but also fostering isolation.", "be a double-edged sword（比喻『利弊並存』，常用於評論科技或政策）"], ["more often than not", "—", "phrase", "通常；多半", "More often than not, the root cause lies in poor communication.", "More often than not, + S + V（句首，比 usually 更生動、語氣更強）"], ["a case in point", "—", "phrase", "一個恰當的例子", "A case in point is the recent rise in remote work adoption.", "a case in point（常用於舉例句型，比 for example 更正式、更適合放在句首當主詞）"], ["bear in mind that", "—", "phrase", "謹記；別忘了", "We must bear in mind that not everyone has equal access to resources.", "bear in mind that + S + V（提醒讀者『別忽略的前提』，常用於論證中段）"], ["in the wake of", "wake /wek/", "phrase", "在……（尤指負面事件）之後", "In the wake of the scandal, public trust in the institution plummeted.", "in the wake of + N（強調『事件發生後的連鎖影響』；wake 在此非『醒來』而是『餘波』）"], ["a slippery slope", "slippery /ˋslɪpərɪ/", "phrase", "滑坡效應（一旦讓步，情況將每況愈下）", "Allowing this exception could lead to a slippery slope of further violations.", "a slippery slope argument（邏輯論證用語，警示『一步退讓、步步退讓』的風險）"], ["lie in", "—", "phrase", "在於；存在於", "The real challenge lies in changing people's deep-rooted habits, not in raising awareness.", "the problem/challenge/key lies in + N/Ving（指出『問題或關鍵的根源』，議論文常用句型，可與 at the heart of 換用）"], ["under no circumstances", "circumstances /ˈsɝkəmˌstænsɪz/", "phrase", "無論如何都不；絕不", "Under no circumstances should students be allowed to cheat during exams.", "Under no circumstances + should/will/can + S + V（否定副詞片語置於句首引導倒裝，語氣強烈，議論文中用於堅定表態）"], ["reach a consensus", "consensus /kənˋsɛnsəs/", "phrase", "達成共識", "After hours of debate, the committee finally reached a consensus on the new policy.", "reach a consensus on + N（議論文常用於描述多方討論後的結果）／a general consensus（普遍共識）"]]}, {"name": "18. Health & Emergency Phrases（醫療與緊急狀況片語）", "rows": [["fall ill", "—", "phrase", "患病", "He fell ill just days before the competition.", "fall ill with + 疾病（比 get sick 稍正式）"], ["come down with", "—", "phrasal verb", "染上；患上（較輕微疾病）", "He came down with a bad cold over the weekend.", "come down with + a cold/flu/fever（比 get sick 正式一些，但仍算口語，常接輕症）"], ["be afflicted with", "afflicted /əˋflɪktɪd/", "phrase", "罹患；受……所苦", "The region was afflicted with severe drought.", "be afflicted with + 疾病/災難（正式書面用語，也可用於疾病以外的苦難）"], ["seek medical attention", "seek /sik/", "phrase", "尋求醫療協助", "If symptoms persist, one should seek medical attention immediately.", "seek medical attention/advice/treatment（比 see a doctor 正式）"], ["consult a physician", "physician /fəˋzɪʃən/", "phrase", "就診；請教醫師", "It is advisable to consult a physician before taking any medication.", "consult a physician/specialist（physician 比 doctor 正式）"], ["be hospitalized", "hospitalized /ˋhɑspɪtəlaɪzd/", "phrase", "住院", "He was hospitalized for a week due to pneumonia.", "be hospitalized for/with + 疾病"], ["undergo treatment", "undergo /ʌndɚˋgo/", "phrase", "接受治療（亦可說 undergo surgery/an operation）", "She had to undergo surgery after the accident.", "undergo treatment/surgery/an operation"], ["alert the authorities", "authorities /əˋθɔrətɪz/", "phrase", "通知當局；報警", "Witnesses immediately alerted the authorities after the incident.", "alert the authorities/the police（比 call the police 正式）"], ["report the incident to the police", "incident /ˋɪnsədənt/", "phrase", "向警方報案", "She reported the incident to the police right away.", "report + 事件 + to the police/authorities"], ["summon emergency assistance", "summon /ˋsʌmən/", "phrase", "呼叫緊急救援", "Bystanders quickly summoned emergency assistance for the injured man.", "summon + help/assistance/emergency services（summon 比 call 正式、書面）"], ["law enforcement officers", "enforcement /ɪnˋfɔrsmənt/", "n. phrase", "執法人員（警察的正式說法）", "Law enforcement officers arrived at the scene within minutes.", "law enforcement officers/agencies（比 police 正式，常用於新聞或議論文）"], ["dial the emergency hotline", "emergency /ɪˋmɝdʒənsɪ/", "phrase", "撥打緊急專線", "In case of fire, one should dial the emergency hotline immediately.", "在台灣：110（報警）／119（消防、救護）；作文中可泛稱 dial the emergency hotline"]]}, {"name": "19. Everyday Life Phrases（日常生活情境片語）", "rows": [["mess up", "—", "phrasal verb", "搞砸；出差錯", "He messed up the final presentation due to nerves.", "mess up + N／mess things up（口語但很常用；較正式可換成 botch/bungle）"], ["in a catastrophic mess", "catastrophic /kætəˋstrɑfɪk/", "phrase", "陷入極度混亂；一團糟", "After the storm, the entire city was left in a catastrophic mess.", "leave sth in a mess → a complete mess → a catastrophic mess（混亂程度依序遞增）"], ["at a crossroads", "crossroads /ˋkrɔsrodz/", "phrase", "面臨抉擇；站在人生的十字路口", "After graduation, she found herself at a crossroads, unsure which career path to choose.", "be/stand at a crossroads（常用於人生重大抉擇的情境）"], ["weigh the pros and cons", "weigh /we/", "phrase", "權衡利弊", "Before making a decision, it is wise to weigh the pros and cons.", "weigh the pros and cons of + N/Ving"], ["make a snap decision", "snap /snæp/", "phrase", "倉促做決定", "He regretted making a snap decision without consulting his family.", "make a snap decision／a snap judgment（強調『未經思考』）"], ["patch things up", "patch /pætʃ/", "phrase", "和好；修補關係", "The two friends finally patched things up after months of silence.", "patch things up with + 人（常用於『和好』的情境）"], ["drift apart", "drift /drɪft/", "phrase", "（感情、友情）漸行漸遠", "The two of them gradually drifted apart after moving to different cities.", "drift apart from + 人（強調『非刻意、逐漸』疏遠）"], ["see eye to eye", "—", "phrase", "意見一致", "The siblings rarely see eye to eye on financial matters.", "see eye to eye on/with + N（常用否定句：don't see eye to eye）"], ["rack one's brains", "rack /ræk/", "phrase", "絞盡腦汁", "She racked her brains trying to solve the math problem.", "rack one's brains for/over + N"], ["race against time", "—", "phrase", "與時間賽跑", "Rescuers raced against time to save the trapped miners.", "race against time to V（強調『時間緊迫』）"], ["against all odds", "odds /ɑdz/", "phrase", "克服萬難；不畏艱難", "Against all odds, the team won the championship.", "Against all odds, + S + V（句首，常用於逆轉勝的情境）"], ["a blessing in disguise", "disguise /dɪsˋgaɪz/", "phrase", "因禍得福；塞翁失馬", "Losing that job turned out to be a blessing in disguise.", "turn out to be a blessing in disguise"], ["learn something the hard way", "—", "phrase", "從慘痛經驗中學到教訓", "He learned the importance of saving money the hard way.", "learn + N + the hard way（常用於結論段，帶出『領悟』）"], ["tuition fee", "tuition /tjuˋɪʃən/", "n. phrase", "學費", "Many students take up part-time jobs to help cover their tuition fees.", "pay/cover/afford tuition fees（也可單用 tuition 表示學費，如 tuition assistance／此條為實用詞彙而非慣用語，先併入本類方便查找）"]]}, {"name": "20. Transition Phrases（轉承片語）", "rows": [["as a result", "—", "phrase", "因此；結果", "He skipped every class; as a result, he failed the course.", "as a result of + N（介系詞用法）／..., as a result, + S + V"], ["on the other hand", "—", "phrase", "另一方面", "On the other hand, some argue that technology isolates people.", "On the one hand..., on the other hand...（常成對使用以呈現對比觀點）"], ["in other words", "—", "phrase", "換句話說", "He wasn't invited; in other words, he was excluded on purpose.", "..., in other words, ...（用於重新詮釋前句，幫助讀者理解）"], ["for instance", "instance /ˋɪnstəns/", "phrase", "舉例來說", "Many hobbies can relieve stress; reading, for instance, is both calming and enriching.", "..., for instance, ...（與 for example 同義，可交替使用避免重複）"], ["that said", "—", "phrase", "話雖如此", "The plan has risks; that said, it is still worth trying.", "That said, + S + V（句首讓步轉折，語氣比 however 稍委婉）"], ["all in all", "—", "phrase", "總而言之", "All in all, the trip was a memorable experience despite the rain.", "All in all, + S + V（常用於結論段，總結整體評價）"], ["needless to say", "—", "phrase", "不用說；不言而喻", "Needless to say, hard work is the key to success.", "Needless to say, + S + V（強調『顯而易見』的道理，常用於破題或呼應主題句）"], ["in a nutshell", "nutshell /ˋnʌtʃɛl/", "phrase", "簡而言之", "In a nutshell, the project failed due to poor planning.", "In a nutshell, + S + V（比 in short 更生動口語化，但仍適用於一般寫作）"], ["by the same token", "token /ˋtokən/", "phrase", "同樣地；基於同樣的道理", "She respects her teachers; by the same token, she expects respect from her students.", "By the same token, + S + V（比 similarly 更強調『邏輯上同理』）"], ["on top of that", "—", "phrase", "除此之外（更進一步，語氣較強）", "He lost his job; on top of that, his car broke down the same week.", "On top of that, + S + V（比 moreover 更口語，強調『雪上加霜』式的累加）"], ["judge from", "—", "phrase", "從……判斷；依據……推斷", "Judging from his tone, he was clearly upset about the decision.", "Judging from + N, S + V（句首推斷句型，實際使用時多為 Judging from，等同 based on/according to）"], ["from then on", "—", "phrase", "從那時起；從此以後", "He failed the exam once during his first year; from then on, he studied harder than anyone else in class.", "From then on, + S + V（常用於敘事文標記『轉折後持續改變』的時間點，比 since then 更口語敘事化）"], ["last but not least", "—", "phrase", "最後一點但同樣重要", "Last but not least, effective communication is essential for teamwork.", "Last but not least, + S + V（常用於列點的最後一項，強調『雖列在最後但同樣重要』）"]]}], "sentenceBank": [{"en": "He couldn’t fall asleep, tossing and turning on the bed overnight. He suffered from insomnia.", "zh": "他整夜在床上輾轉反側無法入睡，深受失眠之苦。"}, {"en": "He murdered the song off key just like a chicken being choked. A burst of neighing laughter erupted from the crowd, wild and untamed.", "zh": "他唱歌唱得走音且極其難聽，簡直就像一隻被掐住脖子的雞。人群中爆發出一陣馬嘶般的狂笑，野性而放蕩不羈。"}, {"en": "Upon feasting my eyes on the lucid air, the magnificent scenery and the sapphire sea, I forgot all the fatigue and frustration accumulated from the monthly examinations.", "zh": "一看到清澈的空氣、壯麗的景色與寶石藍的大海，我便忘卻了月考累積的所有疲憊與挫折。"}, {"en": "Life, for others, is a bed of roses and a bowl of cherries; however, for me, it is a bumpy road with numerous twists and turns.", "zh": "對其他人而言，生活是一床順遂的玫瑰與一碗甜美的櫻桃（順風順水）；然而對我來說，卻是一條充滿曲折與坎坷的崎嶇之路。"}, {"en": "Life is like a box of chocolate as well; you will never know which flavor you will pick.", "zh": "人生就像一盒巧克力，你永遠不會知道你會挑到哪種口味。"}, {"en": "Life is like ECG; without ups and downs, you are not living.", "zh": "人生就像心電圖；沒有起伏跌宕，你就等於沒有活過。"}, {"en": "Spring has transformed the outskirts of the metropolis into paradise.", "zh": "春天將這座大都會的郊區蛻變成了天堂。"}, {"en": "Sunlight shone upon the earth, and the breeze sang softly.", "zh": "陽光撒在大地上，微風輕聲吟唱。"}, {"en": "She burst into tears with her eyes blurred by teardrops.", "zh": "她潸然淚下，雙眼被淚水所模糊。"}, {"en": "The lush green meadow spread across hills and valleys just like a tremendous carpet.", "zh": "蒼翠茂密的草地如同一塊巨大的地毯，綿延覆蓋了山丘與山谷。"}, {"en": "Radiant and brilliant flowers of all sorts were in full blossom in the garden.", "zh": "花園裡繁花盛開，各式各樣璀璨奪目的花朵爭奇鬥艷。"}, {"en": "He sprained his arm, strained his muscle and scratched his skin. He got severely injured.", "zh": "他扭傷了手臂、拉傷了肌肉，還劃破了皮膚，受了極為嚴重的傷。"}, {"en": "She unzipped her lips as if to say something but remained silent.", "zh": "她張開雙唇彷彿想說些什麼，卻依然保持沉默。"}, {"en": "We began to strike up a conversation, sharing the bitterness and sweetness of our lives with one another.", "zh": "我們開始攀談起來，彼此分享著各自生活中的酸甜苦辣。"}, {"en": "Fatigued and exhausted, they ultimately reached the destination, only to find the area outside the building packed with a sea of faces to a degree that they could not see the contour.", "zh": "他們筋疲力竭地終於抵達了目的地，卻發現大樓外早已擠滿了茫茫人海，甚至連建築物的輪廓都看不清。"}, {"en": "Upon hearing the devastating shipwreck, my eyeballs popped out of my head.", "zh": "一聽到那起毀滅性的船難訊息，我震驚得目瞪口呆（眼睛差點掉出來）。"}, {"en": "Upon hearing the devastating shipwreck, my eye sockets turned into a wide-open faucet, tears gushing out of control.", "zh": "一聽到那起毀滅性的船難訊息，我的眼眶就像開了的水龍頭一樣，淚水完全失控流下。"}, {"en": "The children laughed and hopped around joyfully, their little hands waving in the air like untamed leaves in the wind.", "zh": "孩子們歡笑著快樂地到處蹦蹦跳跳，他們的小手在空中揮舞，宛如隨風飛揚的野性落葉。"}, {"en": "When we were on the brink of defeat with [Project Name / The Game], everyone thought it was over. But we refused to be counted out. Through sheer grit, we turned the tide and snatched victory from the jaws of defeat.", "zh": "當 [專案/比賽] 面臨失敗邊緣時，所有人都以為結束了。但我們拒絕認輸。憑藉著純粹的毅力，我們扭轉了局勢，從失敗的虎口中奪回了勝利。"}, {"en": "The crowd erupted into thunderous applause and cheers.", "zh": "群眾爆發出雷鳴般的掌聲與歡呼聲。"}, {"en": "With a face beaming with joy, she rushed to hug her parents at the airport.", "zh": "帶著洋溢喜悅的臉龐，她衝上前擁抱在機場等候的父母。"}, {"en": "The two of them clashed like thunder meeting lightning, their fists flying in a blur of raw fury, until at last both collapsed to the ground, breathless and battered.", "zh": "兩人交鋒恰如雷電相擊，拳頭在狂怒中翻飛成一片模糊，直到最後雙雙癱倒在地，氣喘吁吁、遍體鱗傷。"}, {"en": "The veil of mystery surrounded the government's new policy.", "zh": "神秘的面紗籠罩著政府的新政策。"}, {"en": "While proponents argue that social media fosters global connectivity, critics contend that it exacerbates feelings of isolation among young people.", "zh": "支持者主張社群媒體促進全球連結，批評者則認為它加劇了年輕人的孤立感。"}, {"en": "The rising rate of academic burnout can largely be attributed to excessive competition, which in turn undermines students' overall well-being.", "zh": "學業倦怠率上升很大程度上可歸因於過度競爭，而這反過來又損害了學生的整體福祉。"}, {"en": "Rather than viewing artificial intelligence as either a blessing or a curse, we should recognize the complexity of its impact on society.", "zh": "與其將人工智慧視為單純的福音或詛咒，我們應該認清它對社會影響的複雜性。"}, {"en": "His face flushed crimson with rage, and his clenched fists trembled as he fought to hold back the urge to scream.", "zh": "他的臉因盛怒而漲得通紅，緊握的拳頭顫抖著，強忍住想放聲怒吼的衝動。"}, {"en": "A cold shiver ran down her spine as the footsteps grew closer, her heart pounding so violently she thought it might burst from her chest.", "zh": "一陣寒意順著她的背脊竄下，腳步聲越來越近，她的心臟猛烈地跳動，彷彿隨時都會從胸口迸裂。"}, {"en": "Staring blankly at the rejection letter, he felt as though the last flicker of hope within him had been extinguished for good.", "zh": "他茫然地盯著那封拒絕信，感覺內心最後一絲希望的火光已徹底熄滅。"}, {"en": "Her palms grew clammy and her mind went blank the moment she stepped onto the stage, every pair of eyes in the audience pressing down on her like a physical weight.", "zh": "她一踏上舞台，手心就開始冒汗，腦中一片空白，觀眾的目光如同實質的重量般壓在她身上。"}, {"en": "Heat crept up his neck and flushed across his cheeks as the entire classroom burst into laughter at his mistake.", "zh": "當全班因他的失誤而爆出笑聲時，一股熱意從他的頸部竄升，蔓延至臉頰。"}, {"en": "A pang of envy twisted in her chest as she watched her classmate proudly hold up the trophy she had once dreamed of winning.", "zh": "看著同學驕傲地舉起她曾夢寐以求的獎盃，一陣忌妒感在她胸口糾結。"}, {"en": "Gulping down her water and perspiring profusely in the scorching heat, she leaned against the wall, utterly out of breath.", "zh": "她大口灌下水，在酷熱中汗流浹背，接著疲憊地靠在牆上直喘氣。"}], "lastUpdated": "2026-10-02（修正：句子朗讀改用自然語速、挑選較佳語音；修正側欄標題與條目數重疊的排版問題）"}</script>
+<script>
+(function () {
+  // ---- Sidebar collapse/expand ----
+  const sidebar = document.getElementById('sidebar');
+  const collapseBtn = document.getElementById('collapseBtn');
+  const expandBtn = document.getElementById('expandBtn');
+  const SIDEBAR_KEY = 'vocabBankSidebarCollapsed';
+
+  function setSidebarCollapsed(collapsed) {
+    sidebar.classList.toggle('collapsed', collapsed);
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    expandBtn.hidden = !collapsed;
+    sidebar.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+    try { localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0'); } catch (e) {}
+  }
+
+  collapseBtn.addEventListener('click', () => setSidebarCollapsed(true));
+  expandBtn.addEventListener('click', () => {
+    setSidebarCollapsed(false);
+    document.getElementById('searchInput').focus();
+  });
+
+  let startCollapsed = false;
+  try { startCollapsed = localStorage.getItem(SIDEBAR_KEY) === '1'; } catch (e) {}
+  setSidebarCollapsed(startCollapsed);
+
+  const data = JSON.parse(document.getElementById('vocab-data').textContent);
+  const content = document.getElementById('content');
+  const navList = document.getElementById('navList');
+  const emptyState = document.getElementById('emptyState');
+
+  document.getElementById('docTitle').textContent = '英文作文單字與句型庫';
+  document.getElementById('lastUpdated').textContent = data.lastUpdated;
+
+  const totalWords = data.categories.reduce((s, c) => s + c.rows.length, 0);
+  document.getElementById('entryCount').textContent = (totalWords + data.sentenceBank.length) + ' 個條目';
+
+  const metaEl = document.getElementById('heroMeta');
+  data.meta.slice(0, 3).forEach(m => {
+    const parts = m.split('：');
+    const span = document.createElement('span');
+    if (parts.length > 1) {
+      span.innerHTML = '<strong>' + parts[0] + '：</strong>' + parts.slice(1).join('：');
+    } else {
+      span.textContent = m;
+    }
+    metaEl.appendChild(span);
+  });
+  document.getElementById('heroNote').textContent = data.meta[3] || '';
+
+  function posClass(pos) {
+    const p = (pos || '').toLowerCase();
+    if (p.startsWith('v')) return 'v';
+    if (p.startsWith('adj')) return 'adj';
+    if (p.startsWith('adv')) return 'adv';
+    if (p.startsWith('n')) return 'n';
+    if (p.includes('phrase')) return 'phrase';
+    return 'default';
+  }
+
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---- Text-to-speech (read aloud) ----
+  // Uses the browser's built-in Web Speech API — no network/API key needed,
+  // so it works the same on a published Artifact page. Buttons carry the
+  // text to read in a data-speak attribute (not inline onclick) so we never
+  // have to worry about escaping quotes into JS string literals.
+  // Cache available voices and prefer a higher-quality en-US voice when the
+  // browser offers one (e.g. "Google US English" on Chrome). Voice lists can
+  // load asynchronously, so we also refresh the cache on 'voiceschanged'.
+  let _voiceCache = null;
+  function pickVoice() {
+    try {
+      const voices = _voiceCache || window.speechSynthesis.getVoices();
+      if (!voices || !voices.length) return null;
+      _voiceCache = voices;
+      const prefs = [
+        v => /en-US/i.test(v.lang) && /google/i.test(v.name),
+        v => /en-US/i.test(v.lang) && /natural/i.test(v.name),
+        v => /en-US/i.test(v.lang) && v.localService === false,
+        v => /en-US/i.test(v.lang),
+        v => /^en/i.test(v.lang),
+      ];
+      for (const test of prefs) {
+        const found = voices.find(test);
+        if (found) return found;
+      }
+    } catch (e) {}
+    return null;
+  }
+  if ('speechSynthesis' in window) {
+    try {
+      _voiceCache = window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => { _voiceCache = window.speechSynthesis.getVoices(); };
+    } catch (e) {}
+  }
+  // A flat slow rate sounds natural for a single word (helps pronunciation
+  // drilling) but makes a full sentence sound robotic/clipped, since the
+  // synthesizer's prosody is tuned around its default rate. So: short
+  // word/phrase text is read slightly slower, longer sentence text is read
+  // at a natural pace.
+  function speakEn(text) {
+    try {
+      if (!('speechSynthesis' in window) || !text) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      const wordCount = text.trim().split(/\s+/).length;
+      u.rate = wordCount <= 4 ? 0.88 : 1.0;
+      const voice = pickVoice();
+      if (voice) u.voice = voice;
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  window.speakEn = speakEn;
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.speak-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    speakEn(btn.dataset.speak || '');
+  });
+  function speakBtnHtml(text, extraClass) {
+    return `<button type="button" class="speak-btn${extraClass ? ' ' + extraClass : ''}" title="朗讀英文" data-speak="${escapeHtml(text)}">🔊</button>`;
+  }
+  // Exposed globally so the separate study-mode script (below) can reuse the
+  // same helpers instead of duplicating them.
+  window.speakBtnHtml = speakBtnHtml;
+
+  // Build nav
+  data.categories.forEach((cat, i) => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#cat-' + i;
+    a.dataset.target = 'cat-' + i;
+    a.innerHTML = '<span>' + escapeHtml(cat.name) + '</span><span class="nav-count">' + cat.rows.length + '</span>';
+    li.appendChild(a);
+    navList.appendChild(li);
+  });
+  const sbLi = document.createElement('li');
+  sbLi.innerHTML = '<a href="#cat-sentence-bank" data-target="cat-sentence-bank"><span>Sentence Bank（高分句型）</span><span class="nav-count">' + data.sentenceBank.length + '</span></a>';
+  navList.appendChild(sbLi);
+
+  // Build content
+  data.categories.forEach((cat, i) => {
+    const section = document.createElement('section');
+    section.className = 'category';
+    section.id = 'cat-' + i;
+
+    const numMatch = cat.name.match(/^(\d+)\.\s*(.*)$/);
+    const num = numMatch ? numMatch[1] : (i + 1);
+    const restName = numMatch ? numMatch[2] : cat.name;
+
+    section.innerHTML = `
+      <div class="category-head">
+        <span class="category-num">${num.toString().padStart(2, '0')}</span>
+        <h2>${escapeHtml(restName)}</h2>
+        <span class="category-count">${cat.rows.length} 筆</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>${/phrase/i.test(cat.name) ? 'Phrase' : 'Word'}</th>
+            <th>KK音標</th>
+            <th>POS</th>
+            <th>中文</th>
+            <th>Example</th>
+            <th>常見搭配</th>
+          </tr></thead>
+          <tbody>
+            ${cat.rows.map((r, j) => `
+              <tr class="row" data-idx="c${i}-${j}" data-search="${escapeHtml((r[0]+' '+r[3]+' '+r[4]+' '+(r[5]||'')).toLowerCase())}">
+                <td class="word"><span data-field="word">${escapeHtml(r[0])}</span> ${speakBtnHtml(r[0])}</td>
+                <td class="kk" data-field="kk">${escapeHtml(r[1])}</td>
+                <td><span class="pos-tag" style="color:var(--pos-${posClass(r[2])});background:var(--pos-${posClass(r[2])}-bg)">${escapeHtml(r[2])}</span></td>
+                <td class="zh" data-field="zh">${escapeHtml(r[3])}</td>
+                <td class="example"><span data-field="example">${escapeHtml(r[4])}</span> ${speakBtnHtml(r[4], 'speak-btn-sm')}</td>
+                <td class="colloc" data-field="colloc">${escapeHtml(r[5] || '')}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    content.appendChild(section);
+  });
+
+  // Sentence bank
+  const sbSection = document.createElement('section');
+  sbSection.className = 'category';
+  sbSection.id = 'cat-sentence-bank';
+  sbSection.innerHTML = `
+    <div class="category-head">
+      <span class="category-num">${(data.categories.length + 1).toString().padStart(2, '0')}</span>
+      <h2>Sentence Bank（考場必背高分句型）</h2>
+      <span class="category-count">${data.sentenceBank.length} 句</span>
+    </div>
+    <div class="sentence-grid">
+      ${data.sentenceBank.map((s, k) => `
+        <div class="sentence-card row" data-idx="s${k}" data-search="${escapeHtml((s.en + ' ' + s.zh).toLowerCase())}">
+          <p class="sentence-en"><span data-field="en">${escapeHtml(s.en)}</span> ${speakBtnHtml(s.en)}</p>
+          <p class="sentence-zh" data-field="zh">${escapeHtml(s.zh)}</p>
+        </div>`).join('')}
+    </div>
+  `;
+  content.appendChild(sbSection);
+
+  // Scroll spy
+  const navLinks = Array.from(navList.querySelectorAll('a'));
+  const sections = Array.from(document.querySelectorAll('.category'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const link = navLinks.find(l => l.dataset.target === entry.target.id);
+      if (!link) return;
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -70% 0px' });
+  sections.forEach(s => io.observe(s));
+
+  // ---- Search ----
+  const searchInput = document.getElementById('searchInput');
+  const resultCount = document.getElementById('resultCount');
+  const allRows = Array.from(document.querySelectorAll('.row'));
+
+  function rawFieldsFor(row) {
+    const idx = row.dataset.idx;
+    if (idx[0] === 'c') {
+      const [ci, ri] = idx.slice(1).split('-').map(Number);
+      const r = data.categories[ci].rows[ri];
+      return { word: r[0], kk: r[1], zh: r[3], example: r[4], colloc: r[5] || '' };
+    }
+    const s = data.sentenceBank[Number(idx.slice(1))];
+    return { en: s.en, zh: s.zh };
+  }
+
+  function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  function markedHtml(text, q) {
+    const safe = escapeHtml(text || '');
+    if (!q) return safe;
+    const re = new RegExp(escapeRegExp(escapeHtml(q)), 'ig');
+    return safe.replace(re, m => '<mark>' + m + '</mark>');
+  }
+
+  function applyHighlight(row, q) {
+    const raw = rawFieldsFor(row);
+    row.querySelectorAll('[data-field]').forEach(el => {
+      const key = el.dataset.field;
+      el.innerHTML = markedHtml(raw[key], q);
+    });
+  }
+
+  function runSearch() {
+    const q = searchInput.value.trim().toLowerCase();
+    let anyVisible = false;
+    let total = 0;
+    sections.forEach(sec => {
+      let sectionHasMatch = false;
+      sec.querySelectorAll('.row').forEach(row => {
+        const match = !q || row.dataset.search.includes(q);
+        row.classList.toggle('hidden', !match);
+        if (match) {
+          sectionHasMatch = true;
+          total++;
+          applyHighlight(row, q);
+        }
+      });
+      sec.classList.toggle('hidden', !sectionHasMatch);
+      if (sectionHasMatch) anyVisible = true;
+    });
+    emptyState.style.display = anyVisible ? 'none' : 'block';
+    resultCount.textContent = q ? `找到 ${total} 筆符合「${searchInput.value.trim()}」` : '';
+  }
+
+  searchInput.addEventListener('input', runSearch);
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      searchInput.value = '';
+      runSearch();
+      searchInput.blur();
+    }
+  });
+
+  // "/" focuses the search box from anywhere (unless already typing in a field);
+  // also re-opens the sidebar first if it's collapsed
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== searchInput &&
+        !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      if (sidebar.classList.contains('collapsed')) setSidebarCollapsed(false);
+      searchInput.focus();
+    }
+  });
+})();
+</script>
+
+
+<script>
+(function () {
+  const data = JSON.parse(document.getElementById('vocab-data').textContent);
+  const studyModeBtn = document.getElementById('studyModeBtn');
+  const studyModeBtnLabel = document.getElementById('studyModeBtnLabel');
+  const browseView = document.getElementById('browseView');
+  const studyView = document.getElementById('studyView');
+  const studyPanel = document.getElementById('studyPanel');
+
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function pick(arr, n) { return shuffle(arr).slice(0, n); }
+  function simpleHash(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(36);
+  }
+
+  // ---------- Build card pool ----------
+  const CARDS = [];
+  data.categories.forEach((cat) => {
+    const isPhrase = /phrase/i.test(cat.name);
+    cat.rows.forEach((r) => {
+      CARDS.push({
+        id: 'w:' + r[0].toLowerCase(),
+        type: isPhrase ? 'phrase' : 'word',
+        category: cat.name,
+        word: r[0], kk: r[1], pos: r[2], zh: r[3], example: r[4], colloc: r[5] || ''
+      });
+    });
+  });
+  data.sentenceBank.forEach((s) => {
+    CARDS.push({
+      id: 's:' + simpleHash(s.en),
+      type: 'sentence',
+      category: 'Sentence Bank（考場必背高分句型）',
+      word: s.en, zh: s.zh, example: '', colloc: '', kk: '', pos: ''
+    });
+  });
+  const CATEGORY_NAMES = data.categories.map(c => c.name);
+  const WORD_ONLY = CARDS.filter(c => c.type === 'word');
+
+  function catShort(name) {
+    const m = name.match(/^\d+\.\s*(.*)$/);
+    return m ? m[1] : name;
+  }
+
+  // ---------- Blank matching for sentence-context modes (word/phrase only) ----------
+  // Tries an exact match of the headword/phrase first (works for most phrases,
+  // which are usually quoted verbatim in their example), then falls back to a
+  // stem match on the first token (handles inflected single words like
+  // "gulp" -> "Gulping").
+  function escapeRegExpBlank(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  const blankCache = new Map();
+  function findBlank(card) {
+    if (card.type === 'sentence') return null;
+    if (blankCache.has(card.id)) return blankCache.get(card.id);
+    let result = null;
+    const exactRe = new RegExp('\\b' + escapeRegExpBlank(card.word) + '\\b', 'i');
+    let m = card.example.match(exactRe);
+    if (m) {
+      result = { matched: m[0], index: m.index };
+    } else {
+      const firstToken = card.word.split(/\s+/)[0].replace(/[^a-zA-Z]/g, '');
+      const stemLen = Math.min(5, firstToken.length);
+      const stem = firstToken.slice(0, stemLen);
+      if (stem) {
+        const stemRe = new RegExp('\\b' + stem + "[a-zA-Z']*", 'i');
+        m = card.example.match(stemRe);
+        if (m) result = { matched: m[0], index: m.index };
+      }
+    }
+    blankCache.set(card.id, result);
+    return result;
+  }
+
+  // Builds a "hangman"-style hint: reveals a short prefix of the word/phrase
+  // and blanks out the rest with underscores (non-letters like spaces and
+  // apostrophes are always shown as-is).
+  function hintPattern(word) {
+    const letterCount = word.replace(/[^a-zA-Z]/g, '').length;
+    const prefixLen = letterCount <= 4 ? 1 : letterCount <= 8 ? 2 : letterCount <= 14 ? 3 : 4;
+    let shown = 0, out = '';
+    for (const ch of word) {
+      if (/[a-zA-Z]/.test(ch)) {
+        out += shown < prefixLen ? ch.toUpperCase() : '_';
+        shown++;
+      } else {
+        out += ch;
+      }
+    }
+    return out;
+  }
+  function normAnswer(s) { return s.trim().toLowerCase().replace(/[.,!?;:'"’‘`]/g, '').replace(/\s+/g, ' '); }
+
+  // ---------- Sentence dictation (默寫) helpers ----------
+  // Per-word hint used for whole-sentence dictation: short/common words (<=3
+  // letters, e.g. "a", "the", "of") get NO revealed letters at all — only
+  // longer, harder words get a short prefix hint. This is a lighter touch
+  // than hintPattern() (used for the single-word cloze mode), which always
+  // reveals at least one letter.
+  // Strip ALL apostrophe variants (straight ' and curly ’) rather than keeping
+  // them — otherwise a user typing a plain ' for "couldn't" would never match
+  // the source text's curly "couldn't", producing a false "wrong" verdict.
+  function normalizeWord(w) { return (w || '').toLowerCase().replace(/[’'‘`]/g, '').replace(/[^a-z]/g, ''); }
+  function wordHint(token) {
+    const letterCount = token.replace(/[^a-zA-Z]/g, '').length;
+    const prefixLen = letterCount <= 3 ? 0 : letterCount <= 6 ? 1 : letterCount <= 10 ? 2 : 3;
+    let shown = 0, out = '';
+    for (const ch of token) {
+      if (/[a-zA-Z]/.test(ch)) {
+        out += shown < prefixLen ? ch.toUpperCase() : '_';
+        shown++;
+      } else {
+        out += ch;
+      }
+    }
+    return out;
+  }
+  // Word-level LCS diff between the target sentence and what the user typed,
+  // so a single missed/extra word doesn't misalign every word after it.
+  // Returns which target-word positions were matched (in order) and the
+  // longest-common-subsequence length (used as the "score").
+  function lcsWordDiff(targetWords, userWords) {
+    const nt = targetWords.map(normalizeWord);
+    const nu = userWords.map(normalizeWord);
+    const n = nt.length, m = nu.length;
+    const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+    for (let i = 1; i <= n; i++) {
+      for (let j = 1; j <= m; j++) {
+        dp[i][j] = (nt[i - 1] && nt[i - 1] === nu[j - 1]) ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+    const matchedTarget = new Array(n).fill(false);
+    let i = n, j = m;
+    while (i > 0 && j > 0) {
+      if (nt[i - 1] && nt[i - 1] === nu[j - 1]) { matchedTarget[i - 1] = true; i--; j--; }
+      else if (dp[i - 1][j] >= dp[i][j - 1]) i--;
+      else j--;
+    }
+    return { matchedTarget, lcsLen: dp[n][m] };
+  }
+
+  // ---------- Progress storage (Leitner-style) ----------
+  const PROG_KEY = 'vocabStudyProgress_v1';
+  const INTERVALS = [0, 1, 3, 7, 16, 30];
+  let progress = {};
+  try { progress = JSON.parse(localStorage.getItem(PROG_KEY) || '{}'); } catch (e) { progress = {}; }
+  function saveProgress() {
+    try { localStorage.setItem(PROG_KEY, JSON.stringify(progress)); } catch (e) {}
+  }
+  function getProg(id) {
+    return progress[id] || { box: 0, dueAt: 0, seen: 0, wrong: 0 };
+  }
+  function setProg(id, box, wasWrong) {
+    const p = getProg(id);
+    p.box = Math.max(0, Math.min(5, box));
+    p.seen = (p.seen || 0) + 1;
+    if (wasWrong) p.wrong = (p.wrong || 0) + 1;
+    p.dueAt = Date.now() + INTERVALS[p.box] * 86400000;
+    p.lastSeen = Date.now();
+    progress[id] = p;
+    saveProgress();
+  }
+
+  // ---------- Mode switch ----------
+  let inStudyMode = false;
+  function setStudyMode(on) {
+    inStudyMode = on;
+    browseView.hidden = on;
+    studyView.hidden = !on;
+    studyModeBtn.classList.toggle('active', on);
+    studyModeBtnLabel.textContent = on ? '返回瀏覽' : '背誦模式';
+    if (on) renderSetup();
+  }
+  studyModeBtn.addEventListener('click', () => setStudyMode(!inStudyMode));
+
+  // ---------- Setup state ----------
+  const cfg = {
+    types: { word: true, phrase: true, sentence: true },
+    cats: new Set(CATEGORY_NAMES),
+    mode: 'flashcard',
+    scope: 'due',
+    count: 20,
+    countIsCustom: false
+  };
+
+  function computePool() {
+    const needsBlank = cfg.mode === 'mc' || cfg.mode === 'cloze';
+    return CARDS.filter(c => {
+      if (!cfg.types[c.type]) return false;
+      if (c.type !== 'sentence' && !cfg.cats.has(c.category)) return false;
+      if (needsBlank && c.type === 'sentence') return false;
+      if (needsBlank && !findBlank(c)) return false;
+      return true;
+    });
+  }
+
+  function renderSetup() {
+    if (cfg.mode === 'dictation') {
+      cfg.types.word = false; cfg.types.phrase = false; cfg.types.sentence = true;
+    } else if (cfg.mode !== 'flashcard') {
+      cfg.types.sentence = false;
+    }
+
+    const pool = computePool();
+    const duePool = pool.filter(c => getProg(c.id).dueAt <= Date.now());
+
+    const modeInfo = {
+      flashcard: '看正面回想中文意思／英文句子，翻面自評熟悉度',
+      mc: '看例句克漏字，從 4 個單字／片語選項中選出正確答案',
+      spelling: '看中文意思，親自拼出英文單字或片語（無提示）',
+      cloze: '看例句克漏字＋字首字母提示，自己拼出正確答案',
+      dictation: '看中文默寫整句英文，會顯示單字數，較難的字給字首提示（僅限句庫）'
+    };
+    const sentenceOnlyMode = cfg.mode === 'flashcard' || cfg.mode === 'dictation';
+
+    studyPanel.innerHTML = `
+      <div class="study-card">
+        <div class="study-head">
+          <h2>🧠 背誦模式</h2>
+          <button class="study-back-btn" id="studyBackBtn" type="button">← 回到瀏覽</button>
+        </div>
+
+        <div class="study-section">
+          <p class="study-section-title">練習模式</p>
+          <div class="radio-group" id="modeGroup">
+            ${['flashcard','mc','spelling','cloze','dictation'].map(m => `
+              <label class="radio-pill ${cfg.mode === m ? 'checked' : ''}" data-mode="${m}">
+                <input type="radio" name="mode" value="${m}" ${cfg.mode === m ? 'checked' : ''}>
+                ${{flashcard:'🗂️ 單字卡', mc:'🔘 選擇題', spelling:'⌨️ 拼寫測驗', cloze:'✂️ 克漏字', dictation:'📝 句子默寫'}[m]}
+                <span class="pill-desc">${modeInfo[m]}</span>
+              </label>`).join('')}
+          </div>
+        </div>
+
+        <div class="study-section">
+          <p class="study-section-title">內容類型</p>
+          <div class="chip-group" id="typeGroup">
+            <label class="chip ${cfg.types.word ? 'checked' : ''} ${cfg.mode === 'dictation' ? 'disabled' : ''}" data-type="word">
+              <input type="checkbox" ${cfg.types.word ? 'checked' : ''} ${cfg.mode === 'dictation' ? 'disabled' : ''}>單字<span class="chip-count">${CARDS.filter(c=>c.type==='word').length}</span>
+            </label>
+            <label class="chip ${cfg.types.phrase ? 'checked' : ''} ${cfg.mode === 'dictation' ? 'disabled' : ''}" data-type="phrase">
+              <input type="checkbox" ${cfg.types.phrase ? 'checked' : ''} ${cfg.mode === 'dictation' ? 'disabled' : ''}>片語<span class="chip-count">${CARDS.filter(c=>c.type==='phrase').length}</span>
+            </label>
+            <label class="chip ${cfg.types.sentence ? 'checked' : ''} ${!sentenceOnlyMode ? 'disabled' : ''}" data-type="sentence">
+              <input type="checkbox" ${cfg.types.sentence ? 'checked' : ''} ${!sentenceOnlyMode ? 'disabled' : ''}>句子（單字卡／句子默寫模式）<span class="chip-count">${CARDS.filter(c=>c.type==='sentence').length}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="study-section">
+          <p class="study-section-title">分類範圍
+            <span>
+              <button class="mini-btn" id="catAllBtn" type="button">全選</button> /
+              <button class="mini-btn" id="catNoneBtn" type="button">全不選</button>
+            </span>
+          </p>
+          <div class="chip-group" id="catGroup">
+            ${CATEGORY_NAMES.map(name => `
+              <label class="chip ${cfg.cats.has(name) ? 'checked' : ''}" data-cat="${escapeHtml(name)}">
+                <input type="checkbox" ${cfg.cats.has(name) ? 'checked' : ''}>${escapeHtml(catShort(name))}
+              </label>`).join('')}
+          </div>
+        </div>
+
+        <div class="study-section">
+          <p class="study-section-title">複習範圍</p>
+          <div class="radio-group" id="scopeGroup">
+            <label class="radio-pill ${cfg.scope === 'due' ? 'checked' : ''}" data-scope="due">
+              <input type="radio" name="scope" value="due" ${cfg.scope === 'due' ? 'checked' : ''}>
+              優先複習<span class="pill-desc">還不熟／到期的優先出現</span>
+            </label>
+            <label class="radio-pill ${cfg.scope === 'all' ? 'checked' : ''}" data-scope="all">
+              <input type="radio" name="scope" value="all" ${cfg.scope === 'all' ? 'checked' : ''}>
+              全部隨機<span class="pill-desc">不分熟悉度，隨機出題</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="study-section">
+          <p class="study-section-title">題數</p>
+          <div class="radio-group" id="countGroup">
+            ${[10,20,30,50,'all'].map(n => `
+              <label class="radio-pill ${!cfg.countIsCustom && cfg.count === n ? 'checked' : ''}" data-count="${n}">
+                <input type="radio" name="count" value="${n}" ${!cfg.countIsCustom && cfg.count === n ? 'checked' : ''}>
+                ${n === 'all' ? '全部' : n + ' 題'}
+              </label>`).join('')}
+            <label class="radio-pill ${cfg.countIsCustom ? 'checked' : ''}" data-count="custom">
+              <input type="radio" name="count" value="custom" ${cfg.countIsCustom ? 'checked' : ''}>
+              ✏️ 自訂
+            </label>
+          </div>
+          ${cfg.countIsCustom ? `
+            <div class="custom-count-row">
+              <input type="number" id="customCountInput" min="1" step="1" inputmode="numeric"
+                     value="${typeof cfg.count === 'number' ? cfg.count : ''}" placeholder="輸入題數…">
+              <span class="custom-count-suffix">題</span>
+            </div>` : ''}
+        </div>
+
+        <p class="study-pool-hint" id="poolHint"></p>
+        <button class="study-start-btn" id="startBtn" type="button">開始背誦</button>
+        <button class="study-reset-link" id="resetProgBtn" type="button">清除本機學習紀錄</button>
+      </div>
+    `;
+
+    function updateHint() {
+      const p = computePool();
+      const due = p.filter(c => getProg(c.id).dueAt <= Date.now());
+      const hint = document.getElementById('poolHint');
+      const startBtn = document.getElementById('startBtn');
+      if (p.length === 0) {
+        hint.innerHTML = '目前條件下沒有符合的項目，請調整內容類型或分類範圍。';
+        startBtn.disabled = true;
+      } else if (cfg.scope === 'due' && due.length === 0) {
+        hint.innerHTML = `符合條件共 <strong>${p.length}</strong> 筆，目前沒有到期複習項目，將改為從全部項目中練習。`;
+        startBtn.disabled = false;
+      } else {
+        const useCount = cfg.scope === 'due' ? due.length : p.length;
+        hint.innerHTML = `符合條件共 <strong>${p.length}</strong> 筆，本次將練習 <strong>${cfg.count === 'all' ? useCount : Math.min(cfg.count, useCount)}</strong> 題。`;
+        startBtn.disabled = false;
+      }
+    }
+    updateHint();
+
+    document.getElementById('studyBackBtn').addEventListener('click', () => setStudyMode(false));
+
+    // Use 'change' on the actual <input> (not 'click' on the wrapping <label>) —
+    // clicking a label that contains its input fires a click on both the label
+    // and the input (event bubbles through), so a 'click' listener on the label
+    // double-fires and the toggle cancels itself out. 'change' fires exactly
+    // once per real state change regardless of how it was triggered.
+    document.querySelectorAll('#modeGroup .radio-pill input').forEach(inp => {
+      inp.addEventListener('change', () => { cfg.mode = inp.closest('.radio-pill').dataset.mode; renderSetup(); });
+    });
+    document.querySelectorAll('#typeGroup .chip input').forEach(inp => {
+      inp.addEventListener('change', (e) => {
+        const el = inp.closest('.chip');
+        if (el.classList.contains('disabled')) { e.preventDefault(); inp.checked = !inp.checked; return; }
+        cfg.types[el.dataset.type] = inp.checked;
+        renderSetup();
+      });
+    });
+    document.getElementById('catAllBtn').addEventListener('click', () => { cfg.cats = new Set(CATEGORY_NAMES); renderSetup(); });
+    document.getElementById('catNoneBtn').addEventListener('click', () => { cfg.cats = new Set(); renderSetup(); });
+    document.querySelectorAll('#catGroup .chip input').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const name = inp.closest('.chip').dataset.cat;
+        if (inp.checked) cfg.cats.add(name); else cfg.cats.delete(name);
+        renderSetup();
+      });
+    });
+    document.querySelectorAll('#scopeGroup .radio-pill input').forEach(inp => {
+      inp.addEventListener('change', () => { cfg.scope = inp.closest('.radio-pill').dataset.scope; renderSetup(); });
+    });
+    document.querySelectorAll('#countGroup .radio-pill input').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const v = inp.closest('.radio-pill').dataset.count;
+        if (v === 'custom') {
+          cfg.countIsCustom = true;
+          if (typeof cfg.count !== 'number') cfg.count = 20;
+        } else {
+          cfg.countIsCustom = false;
+          cfg.count = v === 'all' ? 'all' : Number(v);
+        }
+        renderSetup();
+      });
+    });
+    const customCountInput = document.getElementById('customCountInput');
+    if (customCountInput) {
+      customCountInput.focus();
+      customCountInput.addEventListener('input', () => {
+        // Update cfg + the hint/start-button in place (no renderSetup() here —
+        // a full re-render would rebuild the input and steal focus mid-type).
+        const n = parseInt(customCountInput.value, 10);
+        const valid = Number.isFinite(n) && n > 0;
+        if (valid) cfg.count = Math.min(n, 9999);
+        updateHint();
+        document.getElementById('startBtn').disabled = !valid || computePool().length === 0;
+      });
+    }
+    document.getElementById('startBtn').addEventListener('click', startSession);
+    document.getElementById('resetProgBtn').addEventListener('click', () => {
+      if (confirm('確定要清除所有本機學習紀錄嗎？此動作無法復原。')) {
+        progress = {};
+        saveProgress();
+        renderSetup();
+      }
+    });
+  }
+
+  // ---------- Session / Drill ----------
+  let session = null;
+
+  function startSession() {
+    const pool = computePool();
+    if (pool.length === 0) return;
+    let list;
+    if (cfg.scope === 'due') {
+      const due = pool.filter(c => getProg(c.id).dueAt <= Date.now());
+      list = due.length > 0 ? due : pool.slice();
+      list.sort((a, b) => (getProg(a.id).dueAt - getProg(b.id).dueAt) || (getProg(a.id).box - getProg(b.id).box));
+    } else {
+      list = shuffle(pool);
+    }
+    const n = cfg.count === 'all' ? list.length : Math.min(cfg.count, list.length);
+    session = { cards: list.slice(0, n), idx: 0, mode: cfg.mode, results: [] };
+    renderDrill();
+  }
+
+  function drillTopbar() {
+    const total = session.cards.length;
+    const doneCount = session.idx;
+    const pct = total ? Math.round((doneCount / total) * 100) : 0;
+    const modeLabel = {flashcard:'單字卡', mc:'選擇題', spelling:'拼寫測驗', cloze:'克漏字', dictation:'句子默寫'}[session.mode];
+    return `
+      <div class="drill-mode-badge">${modeLabel}</div>
+      <div class="drill-topbar">
+        <span class="drill-progress-text">第 ${Math.min(doneCount + 1, total)} / ${total} 題</span>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <button class="drill-exit-btn" id="exitBtn" type="button">結束</button>
+      </div>
+    `;
+  }
+
+  function recordResult(card, correct, box) {
+    session.results.push({ card, correct });
+    setProg(card.id, box, !correct);
+  }
+
+  function advance() {
+    session.idx++;
+    if (session.idx >= session.cards.length) renderSummary();
+    else renderDrill();
+  }
+
+  function renderDrill() {
+    const card = session.cards[session.idx];
+    let body = '';
+    if (session.mode === 'flashcard') body = flashcardHtml(card);
+    else if (session.mode === 'mc') body = mcHtml(card);
+    else if (session.mode === 'spelling') body = spellingHtml(card);
+    else if (session.mode === 'cloze') body = clozeHtml(card);
+    else if (session.mode === 'dictation') body = dictationHtml(card);
+
+    studyPanel.innerHTML = `<div class="study-card">${drillTopbar()}${body}</div>`;
+    document.getElementById('exitBtn').addEventListener('click', () => {
+      if (session.results.length > 0) renderSummary(); else renderSetup();
+    });
+    wireDrillMode(card);
+  }
+
+  function flashcardHtml(card) {
+    if (card.type === 'sentence') {
+      return `
+        <div class="flashcard" id="fcCard">
+          <div class="fc-word" style="font-size:1.15rem">${escapeHtml(card.zh)}</div>
+          <p class="fc-hint" id="fcHint">點擊卡片，試著回想這句英文</p>
+          <div class="fc-back-block hidden" id="fcBack">
+            <p class="fc-sentence-en">${escapeHtml(card.word)} ${speakBtnHtml(card.word)}</p>
+          </div>
+          <div class="rate-btns hidden" id="rateBtns">
+            <button class="rate-btn" data-rate="0" type="button">😵 還不熟</button>
+            <button class="rate-btn" data-rate="1" type="button">🙂 有印象</button>
+            <button class="rate-btn" data-rate="2" type="button">😎 記得</button>
+          </div>
+        </div>`;
+    }
+    return `
+      <div class="flashcard" id="fcCard">
+        <div class="fc-cat">${escapeHtml(catShort(card.category))}</div>
+        <div class="fc-word">${escapeHtml(card.word)} ${speakBtnHtml(card.word)}</div>
+        <div class="fc-kk">${escapeHtml(card.kk)} ${card.pos ? '· ' + escapeHtml(card.pos) : ''}</div>
+        <p class="fc-hint" id="fcHint">點擊卡片，回想中文意思</p>
+        <div class="fc-back-block hidden" id="fcBack">
+          <p class="fc-back-row"><strong>中文：</strong>${escapeHtml(card.zh)}</p>
+          <p class="fc-back-row fc-example">${escapeHtml(card.example)}</p>
+          ${card.colloc ? `<p class="fc-back-row">${escapeHtml(card.colloc)}</p>` : ''}
+        </div>
+        <div class="rate-btns hidden" id="rateBtns">
+          <button class="rate-btn" data-rate="0" type="button">😵 還不熟</button>
+          <button class="rate-btn" data-rate="1" type="button">🙂 有印象</button>
+          <button class="rate-btn" data-rate="2" type="button">😎 記得</button>
+        </div>
+      </div>`;
+  }
+
+  // 選擇題：例句克漏字，從 4 個單字／片語選項中選出正確答案
+  function mcHtml(card) {
+    const m = findBlank(card);
+    const before = card.example.slice(0, m.index);
+    const after = card.example.slice(m.index + m.matched.length);
+    let distractorPool = CARDS.filter(c => c.type === card.type && c.id !== card.id && c.word !== card.word);
+    if (distractorPool.length < 3) distractorPool = CARDS.filter(c => c.type !== 'sentence' && c.id !== card.id && c.word !== card.word);
+    const distractors = pick(distractorPool, 3).map(c => c.word);
+    const options = shuffle([card.word, ...distractors]);
+    return `
+      <div class="cloze-question">
+        <p class="cloze-sentence">${escapeHtml(before)}<span class="cloze-blank">＿＿＿＿＿</span>${escapeHtml(after)}</p>
+        <p class="cloze-zh-hint">提示：${escapeHtml(card.zh)}</p>
+        <div class="mc-options" id="mcOptions">
+          ${options.map(o => `<button class="mc-option" data-val="${escapeHtml(o)}" type="button">${escapeHtml(o)}</button>`).join('')}
+        </div>
+        <div class="next-btn-row hidden" id="nextRow"><button class="next-btn" id="nextBtn" type="button">下一題 →</button></div>
+      </div>`;
+  }
+
+  function spellingHtml(card) {
+    return `
+      <div class="spelling-block">
+        <div class="spelling-zh">${escapeHtml(card.zh)}</div>
+        <div class="spelling-pos">${card.pos ? escapeHtml(card.pos) : ''}</div>
+        <div class="spelling-input-row">
+          <input type="text" id="spellInput" autocomplete="off" placeholder="請輸入英文單字或片語…">
+          <button class="spelling-submit-btn" id="spellSubmit" type="button">送出</button>
+        </div>
+        <div id="spellFeedback"></div>
+        <div class="next-btn-row hidden" id="nextRow"><button class="next-btn" id="nextBtn" type="button">下一題 →</button></div>
+      </div>`;
+  }
+
+  // 克漏字：例句挖空 + 字首字母提示，自己打出正確答案
+  function clozeHtml(card) {
+    const m = findBlank(card);
+    const before = card.example.slice(0, m.index);
+    const after = card.example.slice(m.index + m.matched.length);
+    return `
+      <div class="cloze-question">
+        <p class="cloze-sentence">${escapeHtml(before)}<span class="cloze-blank">＿＿＿＿＿</span>${escapeHtml(after)}</p>
+        <p class="hint-pattern" id="hintPattern">${escapeHtml(hintPattern(card.word))}</p>
+        <div class="spelling-input-row">
+          <input type="text" id="spellInput" autocomplete="off" placeholder="請輸入完整答案…">
+          <button class="spelling-submit-btn" id="spellSubmit" type="button">送出</button>
+        </div>
+        <div id="spellFeedback"></div>
+        <div class="next-btn-row hidden" id="nextRow"><button class="next-btn" id="nextBtn" type="button">下一題 →</button></div>
+      </div>`;
+  }
+
+  // 句子默寫：給中文＋單字數＋（較難的字給字首），默寫出整句英文
+  function dictationHtml(card) {
+    const words = card.word.split(/\s+/).filter(Boolean);
+    const hintLine = words.map(w => `<span class="dict-word">${escapeHtml(wordHint(w))}</span>`).join(' ');
+    return `
+      <div class="cloze-question">
+        <p class="dictation-zh">${escapeHtml(card.zh)}</p>
+        <p class="cloze-zh-hint">共 ${words.length} 個單字（部分較長的字已給字首提示）</p>
+        <p class="hint-pattern dictation-hint">${hintLine}</p>
+        <textarea id="dictInput" class="dictation-textarea" rows="3" placeholder="請完整打出這句英文…"></textarea>
+        <div class="next-btn-row" style="justify-content:flex-start;margin-top:10px;">
+          <button class="spelling-submit-btn" id="spellSubmit" type="button">送出</button>
+        </div>
+        <div id="spellFeedback"></div>
+        <div class="next-btn-row hidden" id="nextRow"><button class="next-btn" id="nextBtn" type="button">下一題 →</button></div>
+      </div>`;
+  }
+
+  function wireDrillMode(card) {
+    if (session.mode === 'flashcard') {
+      const fcCard = document.getElementById('fcCard');
+      let flipped = false;
+      function flip(e) {
+        if (flipped) return;
+        if (e && e.target.closest('.speak-btn')) return; // tapping 🔊 shouldn't flip the card
+        flipped = true;
+        document.getElementById('fcBack').classList.remove('hidden');
+        document.getElementById('rateBtns').classList.remove('hidden');
+        document.getElementById('fcHint').textContent = '請選擇熟悉程度';
+      }
+      fcCard.addEventListener('click', flip);
+      document.querySelectorAll('.rate-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!flipped) return;
+          const rate = Number(btn.dataset.rate);
+          const curBox = getProg(card.id).box;
+          let newBox;
+          if (rate === 0) newBox = 0;
+          else if (rate === 1) newBox = curBox;
+          else newBox = curBox + 1;
+          recordResult(card, rate > 0, newBox);
+          advance();
+        });
+      });
+    } else if (session.mode === 'mc') {
+      // 選擇題：例句克漏字，點選正確的單字／片語選項
+      const opts = document.querySelectorAll('#mcOptions .mc-option');
+      opts.forEach(btn => {
+        btn.addEventListener('click', () => {
+          opts.forEach(b => b.disabled = true);
+          const correct = btn.dataset.val === card.word;
+          opts.forEach(b => {
+            if (b.dataset.val === card.word) b.classList.add('correct');
+            else if (b === btn) b.classList.add('wrong');
+          });
+          const curBox = getProg(card.id).box;
+          recordResult(card, correct, correct ? curBox + 1 : 0);
+          const nextRow = document.getElementById('nextRow');
+          nextRow.insertAdjacentHTML('beforebegin',
+            `<p class="cloze-zh-hint">${speakBtnHtml(card.example)} ${escapeHtml(card.example)}</p>`);
+          nextRow.classList.remove('hidden');
+          document.getElementById('nextBtn').addEventListener('click', advance);
+        });
+      });
+    } else if (session.mode === 'spelling') {
+      const input = document.getElementById('spellInput');
+      const submit = document.getElementById('spellSubmit');
+      input.focus();
+      function doSubmit() {
+        if (input.disabled) return;
+        const correct = normAnswer(input.value) === normAnswer(card.word);
+        input.disabled = true;
+        submit.disabled = true;
+        input.classList.add(correct ? 'correct' : 'wrong');
+        const fb = document.getElementById('spellFeedback');
+        fb.innerHTML = `
+          <div class="spelling-feedback ${correct ? 'correct' : 'wrong'}">
+            ${correct ? '✅ 正確！' : '❌ 正確答案：' + escapeHtml(card.word)} ${speakBtnHtml(card.word)}
+            <div class="fb-example">${escapeHtml(card.example)}</div>
+          </div>`;
+        const curBox = getProg(card.id).box;
+        recordResult(card, correct, correct ? curBox + 1 : 0);
+        document.getElementById('nextRow').classList.remove('hidden');
+        document.getElementById('nextBtn').addEventListener('click', advance);
+      }
+      submit.addEventListener('click', doSubmit);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSubmit(); });
+    } else if (session.mode === 'cloze') {
+      // 克漏字（拼寫版）：例句挖空 + 字首字母提示，親自打出答案
+      const input = document.getElementById('spellInput');
+      const submit = document.getElementById('spellSubmit');
+      input.focus();
+      function doSubmit() {
+        if (input.disabled) return;
+        const correct = normAnswer(input.value) === normAnswer(card.word);
+        input.disabled = true;
+        submit.disabled = true;
+        input.classList.add(correct ? 'correct' : 'wrong');
+        const fb = document.getElementById('spellFeedback');
+        fb.innerHTML = `
+          <div class="spelling-feedback ${correct ? 'correct' : 'wrong'}">
+            ${correct ? '✅ 正確！' : '❌ 正確答案：' + escapeHtml(card.word)} ${speakBtnHtml(card.word)}
+            <div class="fb-example">${escapeHtml(card.zh)}</div>
+            <div class="fb-example">${speakBtnHtml(card.example)} ${escapeHtml(card.example)}</div>
+            ${card.colloc ? `<div class="fb-example">${escapeHtml(card.colloc)}</div>` : ''}
+          </div>`;
+        const curBox = getProg(card.id).box;
+        recordResult(card, correct, correct ? curBox + 1 : 0);
+        document.getElementById('nextRow').classList.remove('hidden');
+        document.getElementById('nextBtn').addEventListener('click', advance);
+      }
+      submit.addEventListener('click', doSubmit);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSubmit(); });
+    } else if (session.mode === 'dictation') {
+      // 句子默寫：中文 + 單字數 + 部分字首提示，默寫出整句英文
+      const input = document.getElementById('dictInput');
+      const submit = document.getElementById('spellSubmit');
+      input.focus();
+      function doSubmit() {
+        if (input.disabled) return;
+        const targetWords = card.word.split(/\s+/).filter(Boolean);
+        const userWords = input.value.split(/\s+/).filter(Boolean);
+        const { matchedTarget, lcsLen } = lcsWordDiff(targetWords, userWords);
+        const n = targetWords.length;
+        const correct = n > 0 && lcsLen / n >= 0.9;
+        input.disabled = true;
+        submit.disabled = true;
+        const diffHtml = targetWords.map((w, idx) =>
+          `<span class="diff-word ${matchedTarget[idx] ? 'correct' : 'missing'}">${escapeHtml(w)}</span>`
+        ).join(' ');
+        const fb = document.getElementById('spellFeedback');
+        fb.innerHTML = `
+          <div class="spelling-feedback ${correct ? 'correct' : 'wrong'}">
+            <span class="dictation-score">${correct ? '✅' : '❌'} ${lcsLen} / ${n} 字正確</span>
+            ${speakBtnHtml(card.word)}
+            <p class="dictation-diff">${diffHtml}</p>
+          </div>`;
+        recordResult(card, correct, correct ? getProg(card.id).box + 1 : 0);
+        document.getElementById('nextRow').classList.remove('hidden');
+        document.getElementById('nextBtn').addEventListener('click', advance);
+      }
+      submit.addEventListener('click', doSubmit);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) doSubmit();
+      });
+    }
+  }
+
+  function renderSummary() {
+    const total = session.results.length;
+    const correct = session.results.filter(r => r.correct).length;
+    const missed = session.results.filter(r => !r.correct);
+    const rate = total ? Math.round((correct / total) * 100) : 0;
+
+    studyPanel.innerHTML = `
+      <div class="study-card">
+        <div class="study-head"><h2>📊 本次結果</h2></div>
+        <div class="summary-stats">
+          <div class="summary-stat"><div class="num">${total}</div><div class="lbl">已練習</div></div>
+          <div class="summary-stat"><div class="num">${correct}</div><div class="lbl">答對／記得</div></div>
+          <div class="summary-stat"><div class="num">${rate}%</div><div class="lbl">正確率</div></div>
+        </div>
+        ${missed.length > 0 ? `
+          <p class="study-section-title">還需加強（${missed.length}）</p>
+          <ul class="missed-list">
+            ${missed.map(r => `<li><strong>${escapeHtml(r.card.word)}</strong><span>${escapeHtml(r.card.zh)}</span></li>`).join('')}
+          </ul>` : '<p class="study-pool-hint">🎉 全部答對，太棒了！</p>'}
+        <div class="summary-btn-row">
+          ${missed.length > 0 ? '<button class="summary-btn" id="retryMissedBtn" type="button">只複習剛剛還不熟的</button>' : ''}
+          <button class="summary-btn primary" id="restartBtn" type="button">再練一輪</button>
+          <button class="summary-btn" id="backSetupBtn" type="button">回到設定</button>
+        </div>
+      </div>
+    `;
+    if (missed.length > 0) {
+      document.getElementById('retryMissedBtn').addEventListener('click', () => {
+        session = { cards: shuffle(missed.map(r => r.card)), idx: 0, mode: session.mode, results: [] };
+        renderDrill();
+      });
+    }
+    document.getElementById('restartBtn').addEventListener('click', startSession);
+    document.getElementById('backSetupBtn').addEventListener('click', renderSetup);
+  }
+})();
+</script>
+
+<div class="pwa-toast" id="pwaToast" hidden></div>
+<script>
+(function () {
+  const toast = msg => { const t = document.getElementById("pwaToast"); t.textContent = msg; t.hidden = false; setTimeout(() => t.hidden = true, 4000); };
+  const footer = document.querySelector(".sidebar-footer");
+  const status = document.createElement("span"); status.className = "pwa-status";
+  if (footer) footer.appendChild(status);
+  const paint = () => status.textContent = navigator.onLine ? "已連線 · 會自動抓新版" : "離線中 · 使用已存的版本";
+  paint(); addEventListener("online", paint); addEventListener("offline", paint);
+  if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
+  let had = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register("sw.js").then(reg => {
+    const check = () => reg.update().catch(() => {});
+    addEventListener("online", check);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+  });
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!had) { had = true; return; }
+    toast("單字庫有新版本，下次打開就會是最新的");
+  });
+})();
+</script>
+</body></html>
