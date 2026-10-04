@@ -1,12 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><meta name="theme-color" content="#1f4569">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-180.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="4500多義">
-<style>.pwa-toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink,#1c2430);color:var(--surface,#fff);font:600 13px/1.4 "Noto Sans TC",system-ui,sans-serif;padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:100;max-width:calc(100% - 32px);text-align:center}.pwa-status{display:block;margin-top:4px}</style>
-</head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>4500 單字多義複習</title>
 <style>
 /* Layout: sticky sidebar (search, 練習, categories) + main column of per-category tables; mirrors 學測作文單字庫 */
@@ -628,26 +620,4 @@ function renderSingleEnd() {
 renderList();
 </script>
 
-<div class="pwa-toast" id="pwaToast" hidden></div>
-<script>
-(function () {
-  const toast = msg => { const t = document.getElementById("pwaToast"); t.textContent = msg; t.hidden = false; setTimeout(() => t.hidden = true, 4000); };
-  const footer = document.querySelector(".sidebar-footer") || document.getElementById("footer");
-  const status = document.createElement("span"); status.className = "pwa-status";
-  if (footer) footer.appendChild(status);
-  const paint = () => status.textContent = navigator.onLine ? "已連線 · 會自動抓新版" : "離線中 · 使用已存的版本";
-  paint(); addEventListener("online", paint); addEventListener("offline", paint);
-  if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
-  let had = !!navigator.serviceWorker.controller;
-  navigator.serviceWorker.register("sw.js").then(reg => {
-    const check = () => reg.update().catch(() => {});
-    addEventListener("online", check);
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
-  });
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (!had) { had = true; return; }
-    toast("有新版本，下次打開就會是最新的");
-  });
-})();
-</script>
 </body></html>
