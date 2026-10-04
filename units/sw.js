@@ -1,4 +1,4 @@
-const VERSION = "20261004000057";
+const VERSION = "20261004091548";
 const CACHE = "units-" + VERSION;
 const FONTS = "units-fonts";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
