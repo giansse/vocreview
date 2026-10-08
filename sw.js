@@ -1,6 +1,6 @@
-// 由 tools/build.py 產生 sw.js；v4500 與 20261004185928 會被替換
+// 由 tools/build.py 產生 sw.js；v4500 與 20261008235903 會被替換
 const ID = "v4500";
-const CACHE = ID + "-" + "20261004185928";
+const CACHE = ID + "-" + "20261008235903";
 const FONTS = ID + "-fonts";
 // 舊版快取名稱，清掉
 const LEGACY = { v4500: ["vocab4500-"], vessay: ["essay-"], vunits: ["units-"] }[ID] || [];
