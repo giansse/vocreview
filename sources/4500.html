@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>4500 單字多義複習</title>
 <style>
 /* Layout: sticky sidebar (search, 練習, categories) + main column of per-category tables; mirrors 學測作文單字庫 */
@@ -408,12 +408,44 @@ const D = [
   { c:"verb", w:"release", p:"v", zh:"釋放（情緒）、發洩", kk:"/rɪˋlis/", s:"Singing helps me ___ my stress.", a:"release", t:"唱歌幫我釋放壓力。", n:"release anger / tension；也指「釋放（犯人）」「發行」" },
   { c:"adj", w:"even", p:"adv", zh:"甚至；（比較級前）更加", kk:"/ˋivən/", s:"It was cold yesterday, but today it's ___ colder.", a:"even", t:"昨天很冷，今天更冷。", n:"even if / even though 即使；even + 比較級" },
 
+  { c:"n2v", w:"steady", p:"v", zh:"使穩定、穩住", kk:"/ˋstɛdɪ/", s:"She held the rail to ___ herself on the boat.", a:"steady", t:"她扶著欄杆在船上站穩。", n:"steady oneself；steady one's nerves 定神；形容詞是「穩定的」" },
+  { c:"n2v", w:"frequent", p:"v", zh:"常去、常出入", kk:"/frɪˋkwɛnt/", s:"Students ___ this café near campus.", a:"frequent", t:"學生常去校園附近這家咖啡店。", n:"動詞重音在後；形容詞 /ˋfrikwənt/ 重音在前", f:"重音" },
+  { c:"n2v", w:"staff", p:"v", zh:"為…配置人員", kk:"/stæf/", s:"The clinic is ___ by volunteers.", a:"staffed", t:"這間診所由志工負責。", n:"be staffed by / with；understaffed 人手不足" },
+  { c:"n2v", w:"journey", p:"v", zh:"旅行、長途跋涉", kk:"/ˋdʒɝnɪ/", s:"They ___ across the desert on camels.", a:"journeyed", t:"他們騎駱駝橫越沙漠。", n:"journey to / across；名詞是「旅程」" },
+  { c:"n2v", w:"bare", p:"v", zh:"露出、使赤裸", kk:"/bɛr/", s:"The dog ___ its teeth at the stranger.", a:"bared", t:"那隻狗對陌生人齜牙。", n:"bare one's teeth 齜牙；bare one's heart / soul 吐露心聲" },
+  { c:"n2v", w:"spin", p:"v", zh:"吐絲、結網", kk:"/spɪn/", s:"The spider ___ a web between the branches.", a:"spun", t:"蜘蛛在樹枝間結了一張網。", n:"三態 spin–spun–spun；原意「旋轉」", f:"三態" },
+  { c:"n2v", w:"spin", p:"v", zh:"編造、杜撰（故事）", kk:"/spɪn/", s:"He ___ a story about being chased by a bear.", a:"spun", t:"他編了個被熊追的故事。", n:"spin a story / tale / yarn" },
+
+  { c:"noun", w:"colony", p:"n", zh:"聚落；（動物）群體", kk:"/ˋkɑlənɪ/", s:"A ___ of ants lives under the tree.", a:"colony", t:"樹下住著一窩螞蟻。", n:"an artists' colony 藝術村；原意「殖民地」" },
+  { c:"noun", w:"suburb", p:"n", zh:"郊區、市郊", kk:"/ˋsʌbɝb/", s:"They moved to the ___ to get a bigger house.", a:"suburbs", t:"他們搬到郊區住大一點的房子。", n:"live in the suburbs；suburban adj." },
+  { c:"noun", w:"wipe", p:"n", zh:"擦拭；濕紙巾", kk:"/waɪp/", s:"Give the table a quick ___.", a:"wipe", t:"把桌子快速擦一下。", n:"give sth a wipe；wet wipes 濕紙巾" },
+  { c:"noun", w:"barrel", p:"n", zh:"（木）桶；一桶（石油）；槍管", kk:"/ˋbærəl/", s:"Oil prices rose to 90 dollars a ___.", a:"barrel", t:"油價漲到每桶九十美元。", n:"a barrel of 一桶…；over a barrel 受制於人" },
+  { c:"noun", w:"spin", p:"n", zh:"兜風", kk:"/spɪn/", s:"Let's go for a ___ in my new car.", a:"spin", t:"我們開我的新車去兜風吧。", n:"go for a spin / take sth for a spin" },
+  { c:"noun", w:"beam", p:"n", zh:"（屋）梁", kk:"/bim/", s:"The roof is supported by wooden ___.", a:"beams", t:"屋頂由木梁支撐。", n:"也指「光束」a beam of light；動詞「眉開眼笑」beam with joy" },
+  { c:"noun", w:"verse", p:"n", zh:"詩句、韻文；（歌）一段", kk:"/vɝs/", s:"I can only sing the first ___ of the song.", a:"verse", t:"這首歌我只會唱第一段。", n:"in verse 以韻文寫成 ↔ in prose 散文；chorus 副歌" },
+  { c:"noun", w:"reserve", p:"n", zh:"拘謹、矜持（不可數）", kk:"/rɪˋzɝv/", s:"After a few drinks, he lost his usual ___.", a:"reserve", t:"喝了幾杯之後，他不再像平常那麼拘謹。", n:"reserved adj. 拘謹的、內向的；without reserve 毫無保留" },
+  { c:"noun", w:"reserve", p:"n", zh:"保護區；儲備", kk:"/rɪˋzɝv/", s:"Lions roam freely in the wildlife ___.", a:"reserve", t:"獅子在野生動物保護區自由漫步。", n:"nature reserve 自然保護區；oil reserves 石油儲量" },
+  { c:"noun", w:"fortune", p:"n", zh:"命運、運氣", kk:"/ˋfɔrtʃən/", s:"The old woman offered to tell my ___.", a:"fortune", t:"那位老婆婆說要幫我算命。", n:"tell sb's fortune 算命；fortune-teller 算命師；也指「財富」make a fortune" },
+  { c:"noun", w:"float", p:"n", zh:"（遊行的）花車", kk:"/flot/", s:"Colorful ___ moved slowly down the street.", a:"floats", t:"色彩繽紛的花車緩緩沿街前進。", n:"動詞是「漂浮」" },
+  { c:"noun", w:"sink", p:"n", zh:"洗手槽、水槽", kk:"/sɪŋk/", s:"Wash your hands in the ___.", a:"sink", t:"在洗手槽洗手。", n:"kitchen sink 廚房水槽；動詞是「下沉」sink–sank–sunk" },
+  { c:"noun", w:"pole", p:"n", zh:"桿、竿、柱", kk:"/pol/", s:"The flag was raised to the top of the ___.", a:"pole", t:"旗子升到旗竿頂端。", n:"fishing pole 釣竿；telephone pole 電線桿；也指「極地」the North Pole" },
+  { c:"noun", w:"nut", p:"n", zh:"怪人；（某事的）狂熱者", kk:"/nʌt/", s:"My brother is a real fitness ___.", a:"nut", t:"我哥是個健身狂。", n:"a health / fitness nut；nuts adj. 瘋狂的 go nuts；原意「堅果」" },
+
+  { c:"adj", w:"remote", p:"adj", zh:"偏遠的；（可能性）微小的", kk:"/rɪˋmot/", s:"There is only a ___ chance of rain today.", a:"remote", t:"今天下雨的機率很小。", n:"a remote village 偏遠村落；a remote chance / possibility；remote control 遙控器" },
+  { c:"adj", w:"thorny", p:"adj", zh:"棘手的；多刺的", kk:"/ˋθɔrnɪ/", s:"Pension reform is a ___ issue.", a:"thorny", t:"年金改革是個棘手的議題。", n:"a thorny problem / issue；thorn n. 刺" },
+  { c:"adj", w:"plastic", p:"adj", zh:"可塑的、易塑造的", kk:"/ˋplæstɪk/", s:"Clay is ___ when it is wet.", a:"plastic", t:"黏土濕的時候可以塑形。", n:"plastic surgery 整形手術；名詞是「塑膠」" },
+
+  { c:"verb", w:"dine", p:"v", zh:"用餐、進餐", kk:"/daɪn/", s:"We ___ at a French restaurant last night.", a:"dined", t:"我們昨晚在一家法式餐廳用餐。", n:"dine out 外食；dine in 在家（店內）吃；dining room 餐廳" },
+  { c:"verb", w:"brag", p:"v", zh:"吹噓、自誇", kk:"/bræg/", s:"He keeps ___ about his new car.", a:"bragging", t:"他一直在炫耀他的新車。", n:"brag about / of；bragged、bragging 雙寫 g" },
+
+  { c:"phr", w:"for the sake of", p:"phr", zh:"為了…（的利益、緣故）", kk:"/fɔr ðə sek ɑv/", s:"He quit smoking for the ___ of his health.", a:"sake", t:"他為了健康戒菸。", n:"for sb's sake 為了某人；for God's sake 拜託；for the sake of argument 姑且假設" },
+
   { c:"phr", w:"bleed sb dry", p:"phr", zh:"榨乾某人的錢財、敲竹槓", kk:"/blid ˋsʌmˌbʌdɪ draɪ/", s:"The loan sharks ___ him dry with sky-high interest.", a:"bled", t:"地下錢莊用超高利息把他榨乾。", n:"三態 bleed–bled–bled；bleed sb for money 向某人勒索錢", f:"三態" },
   { c:"phr", w:"be bound for", p:"phr", zh:"開往、前往", kk:"/baʊnd fɔr/", s:"This train is ___ for Kaohsiung.", a:"bound", t:"這班列車開往高雄。", n:"bound for + 地點" }
 ];
 
 const POS = { v:["動詞","pos-v"], n:["名詞","pos-n"], adj:["形容詞","pos-adj"], adv:["副詞","pos-adj"], phr:["片語","pos-phr"] };
-const UPDATED = "2026-10-08";
+const UPDATED = "2026-10-09";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[ch]));
 const exHTML = e => esc(e.s).replace("___", "<b>" + esc(e.a) + "</b>");
