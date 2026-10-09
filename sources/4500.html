@@ -204,10 +204,37 @@ td.colloc { color: var(--ink-soft); font-size: 0.82rem; min-width: 200px; }
 .wrong-list li { font-size: 0.86rem; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); color: var(--ink-soft); }
 .wrong-list b { color: var(--ink); }
 
+/* 單字卡 */
+.fc-top { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.fc-top .progress-bar { flex: 1; min-width: 80px; margin: 0; }
+.fc-card {
+  width: 100%; min-height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  text-align: center; padding: 28px 20px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--ink); cursor: pointer; font: inherit;
+}
+.fc-card.flipped { cursor: default; }
+.fc-word { font-family: var(--font-serif); font-size: 1.9rem; font-weight: 700; }
+.fc-kk { color: var(--accent); font-size: 0.92rem; }
+.fc-hint { font-size: 0.78rem; color: var(--ink-faint); }
+.fc-ex { font-style: italic; color: var(--ink-soft); font-size: 0.98rem; max-width: 52ch; }
+.fc-ex b { font-style: normal; color: var(--accent-strong); }
+.fc-back { width: 100%; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 4px; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.fc-zh { font-size: 1.1rem; font-weight: 700; color: var(--ink); }
+.fc-t { font-size: 0.86rem; color: var(--ink-soft); }
+.fc-n { font-size: 0.8rem; color: var(--ink-faint); }
+.rate-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.rate-btn { padding: 13px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); font-size: 0.92rem; font-weight: 700; cursor: pointer; }
+.rate-btn.bad:hover { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
+.rate-btn.good:hover { background: var(--good-bg); border-color: var(--good); color: var(--good); }
+.undo-btn { font-size: 0.8rem; color: var(--accent-strong); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 6px 13px; cursor: pointer; white-space: nowrap; }
+.undo-btn:hover { background: var(--accent); color: var(--surface); }
+.chip.weak { margin-top: 10px; }
+
 @media (max-width: 860px) {
   .layout { flex-direction: column; }
   .sidebar { width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: 1px solid var(--border); }
   .nav-list { max-height: 180px; }
+  body.studying .nav-list, body.studying .search-box, body.studying .result-count, body.studying .sidebar-footer { display: none; }
   .main { padding: 28px 16px 60px; }
 }
 @media (max-width: 480px) { .q-opts { grid-template-columns: 1fr; } }
@@ -512,6 +539,7 @@ function toggleStudy(force) {
   $("#listView").hidden = studyOn;
   $("#studyView").hidden = !studyOn;
   $("#studyToggle").classList.toggle("active", studyOn);
+  document.body.classList.toggle("studying", studyOn);
   $("#studyToggleText").textContent = studyOn ? "回到單字表" : "進入練習";
   if (studyOn) renderSetup();
   window.scrollTo(0, 0);
@@ -526,7 +554,11 @@ function renderSetup() {
   const p = pool();
   const uniq = uniqueByAnswer(p).length;
   const isCloze = cfg.mode === "cloze";
-  const ready = isCloze ? uniq >= 4 : p.length >= 1;
+  const isFlash = cfg.mode === "flash";
+  const weakN = p.filter(e => weak.has(wkey(e))).length;
+  if (!weakN) cfg.weakOnly = false;
+  const fcPool = cfg.weakOnly ? weakN : p.length;
+  const ready = isCloze ? uniq >= 4 : (isFlash ? fcPool >= 1 : p.length >= 1);
   $("#studyView").innerHTML = `<div class="study-card">
     <div class="study-head"><h2>練習設定</h2><button class="ghost-btn" type="button" id="backList">回到單字表</button></div>
     <div class="study-section">
@@ -537,15 +569,17 @@ function renderSetup() {
       <div class="study-section-title">題型</div>
       <div class="radio-group">
         <button type="button" class="radio-pill ${isCloze ? "checked" : ""}" data-mode="cloze">文意選填<span class="pill-desc">一組最多 10 格，選項各用一次</span></button>
-        <button type="button" class="radio-pill ${!isCloze ? "checked" : ""}" data-mode="single">單題四選一<span class="pill-desc">每題馬上看解析</span></button>
+        <button type="button" class="radio-pill ${cfg.mode === "single" ? "checked" : ""}" data-mode="single">單題四選一<span class="pill-desc">每題馬上看解析</span></button>
+        <button type="button" class="radio-pill ${isFlash ? "checked" : ""}" data-mode="flash">單字卡<span class="pill-desc">看字和例句，回想這個字義</span></button>
       </div>
     </div>
     ${!isCloze ? `<div class="study-section"><div class="study-section-title">題數</div>
-      <div class="count-row"><input id="qCount" type="number" min="1" max="${p.length}" value="${Math.min(cfg.count, p.length) || 1}"><span class="pool-hint" style="margin:0">題，最多 ${p.length} 題</span></div></div>` : ""}
+      <div class="count-row"><input id="qCount" type="number" min="1" max="${isFlash ? fcPool : p.length}" value="${Math.min(cfg.count, isFlash ? fcPool : p.length) || 1}"><span class="pool-hint" style="margin:0">${isFlash ? "張" : "題"}，最多 ${isFlash ? fcPool : p.length} ${isFlash ? "張" : "題"}</span></div>
+      ${isFlash ? `<button type="button" class="chip weak ${cfg.weakOnly ? "checked" : ""}" id="weakOnly" ${weakN ? "" : "disabled"}>只練標成不熟的<span class="chip-count">${weakN}</span></button>` : ""}</div>` : ""}
     <button class="primary-btn" type="button" id="startBtn" ${ready ? "" : "disabled"}>開始練習</button>
     <p class="pool-hint">${isCloze
       ? (ready ? `目前範圍有 <strong>${uniq}</strong> 個不重複的填入形式，每組抽 <strong>${Math.min(10, uniq)}</strong> 格。` : "範圍太小，至少要 4 個不同的填入形式才能出一組。")
-      : `目前範圍共 <strong>${p.length}</strong> 個字義。`}</p>
+      : `目前範圍共 <strong>${p.length}</strong> 個字義${isFlash && weakN ? `，其中 <strong>${weakN}</strong> 個標成不熟` : ""}。`}</p>
   </div>`;
   $("#backList").onclick = () => toggleStudy(false);
   $("#allCats").onclick = () => { if (cfg.cats.size === CATS.length) cfg.cats.clear(); else CATS.forEach(c => cfg.cats.add(c.id)); renderSetup(); };
@@ -553,7 +587,91 @@ function renderSetup() {
   document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { cfg.mode = b.dataset.mode; renderSetup(); });
   const qc = $("#qCount");
   if (qc) qc.oninput = () => { const v = parseInt(qc.value, 10); if (v > 0) cfg.count = v; };
-  $("#startBtn").onclick = () => isCloze ? startCloze() : startSingle();
+  const wo = $("#weakOnly");
+  if (wo) wo.onclick = () => { cfg.weakOnly = !cfg.weakOnly; renderSetup(); };
+  $("#startBtn").onclick = () => isCloze ? startCloze() : (isFlash ? startFlash() : startSingle());
+}
+
+/* 單字卡 */
+const WEAK_KEY = "v4500.weak.v1";
+const wkey = e => e.w + "|" + e.zh;
+let weak = new Set();
+try { weak = new Set(JSON.parse(localStorage.getItem(WEAK_KEY) || "[]")); } catch (_) {}
+const saveWeak = () => { try { localStorage.setItem(WEAK_KEY, JSON.stringify([...weak])); } catch (_) {} };
+
+let fc = null;
+function startFlash(cards) {
+  if (!cards) {
+    let p = pool();
+    if (cfg.weakOnly) p = p.filter(e => weak.has(wkey(e)));
+    cards = shuffle(p).slice(0, Math.max(1, Math.min(cfg.count, p.length)));
+  }
+  fc = { cards, i: 0, flipped: false, results: [], hist: [] };
+  renderFlash();
+}
+function flashUndo() {
+  const h = fc.hist.pop(); if (!h) return;
+  if (h.wasWeak) weak.add(h.key); else weak.delete(h.key);
+  saveWeak();
+  fc.i = h.i; fc.results.length = h.i; fc.flipped = true;
+  renderFlash();
+}
+function flashRate(ok) {
+  const e = fc.cards[fc.i], key = wkey(e);
+  fc.hist.push({ i: fc.i, key, wasWeak: weak.has(key) });
+  ok ? weak.delete(key) : weak.add(key);
+  saveWeak();
+  fc.results[fc.i] = ok; fc.i++; fc.flipped = false;
+  renderFlash();
+}
+function renderFlash() {
+  if (fc.i >= fc.cards.length) return renderFlashEnd();
+  const e = fc.cards[fc.i], [pl, pc] = POS[e.p];
+  const undo = fc.hist.length ? `<button class="undo-btn" type="button" id="undoBtn" title="回到上一張重新選">← 上一張</button>` : "";
+  $("#studyView").innerHTML = `<div class="study-card">
+    <div class="fc-top">
+      <span class="progress-text">${fc.i + 1} / ${fc.cards.length}</span>
+      <div class="progress-bar"><span style="width:${(fc.i / fc.cards.length) * 100}%"></span></div>
+      ${undo}
+      <button class="ghost-btn" type="button" id="fcEnd">結束</button>
+    </div>
+    <button type="button" class="fc-card ${fc.flipped ? "flipped" : ""}" id="fcCard" ${fc.flipped ? 'tabindex="-1"' : ""}>
+      <span class="fc-word">${esc(e.w)}</span>
+      <span class="fc-kk">${esc(e.kk)}　<span class="pos-tag ${pc}">${pl}</span></span>
+      <span class="fc-ex">${exHTML(e)}</span>
+      ${fc.flipped ? `<span class="fc-back">
+        <span class="fc-zh">${esc(e.zh)}</span>
+        <span class="fc-t">${esc(e.t)}</span>
+        <span class="fc-n">${esc(e.n)}</span>
+      </span>` : `<span class="fc-hint">點卡片看中文字義</span>`}
+    </button>
+    ${fc.flipped ? `<div class="rate-row">
+      <button class="rate-btn bad" type="button" id="rBad">還不熟</button>
+      <button class="rate-btn good" type="button" id="rGood">記得</button>
+    </div>` : ""}
+  </div>`;
+  if (!fc.flipped) $("#fcCard").onclick = () => { fc.flipped = true; renderFlash(); };
+  const b = $("#rBad"); if (b) { b.onclick = () => flashRate(false); $("#rGood").onclick = () => flashRate(true); }
+  const u = $("#undoBtn"); if (u) u.onclick = flashUndo;
+  $("#fcEnd").onclick = () => { fc.cards = fc.cards.slice(0, fc.i); renderFlash(); };
+}
+function renderFlashEnd() {
+  const done = fc.results.length;
+  const miss = fc.cards.filter((_, k) => fc.results[k] === false);
+  $("#studyView").innerHTML = `<div class="study-card">
+    <div class="study-head"><h2>單字卡結果</h2><span class="score">${done - miss.length}<small> / ${done} 記得</small></span></div>
+    ${miss.length ? `<div class="study-section-title">還不熟的字義</div><ul class="wrong-list">${miss.map(e => `<li><b>${esc(e.w)}</b>（${POS[e.p][0]}）${esc(e.zh)}<br>${exHTML(e)}</li>`).join("")}</ul>` : (done ? `<p class="pool-hint">全部記得。</p>` : `<p class="pool-hint">這輪沒有翻任何卡。</p>`)}
+    <div class="btn-row">
+      ${miss.length ? `<button class="primary-btn" type="button" id="fcMiss">只練剛剛不熟的</button>` : ""}
+      <button class="primary-btn" type="button" id="fcAgain">再一輪</button>
+      <button class="ghost-btn" type="button" id="toSetup">回設定</button>
+    </div>
+    ${fc.hist.length && done ? `<div class="btn-row"><button class="undo-btn" type="button" id="undoBtn">← 回到最後一張重新選</button></div>` : ""}
+  </div>`;
+  const m = $("#fcMiss"); if (m) m.onclick = () => startFlash(shuffle(miss));
+  $("#fcAgain").onclick = () => startFlash();
+  $("#toSetup").onclick = renderSetup;
+  const u = $("#undoBtn"); if (u) u.onclick = () => { if (fc.cards.length < fc.hist[fc.hist.length - 1].i + 1) return; flashUndo(); };
 }
 
 /* 文意選填 */
