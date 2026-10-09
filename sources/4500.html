@@ -230,6 +230,18 @@ td.colloc { color: var(--ink-soft); font-size: 0.82rem; min-width: 200px; }
 .undo-btn:hover { background: var(--accent); color: var(--surface); }
 .chip.weak { margin-top: 10px; }
 
+/* 側欄收起／展開（同作文單字庫） */
+.side-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.icon-btn { flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-soft); cursor: pointer; padding: 0; }
+.icon-btn:hover { background: var(--accent-soft); color: var(--accent-strong); }
+.icon-btn svg { width: 15px; height: 15px; }
+.expand-fab { position: fixed; top: calc(20px + env(safe-area-inset-top, 0px)); left: 20px; z-index: 40; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); box-shadow: var(--shadow); cursor: pointer; padding: 0; }
+.expand-fab:hover { color: var(--accent-strong); }
+.expand-fab svg { width: 17px; height: 17px; }
+.expand-fab[hidden] { display: none; }
+body.sidebar-collapsed .sidebar { display: none; }
+body.sidebar-collapsed .main { max-width: 1240px; padding-top: 72px; }
+
 @media (max-width: 860px) {
   .layout { flex-direction: column; }
   .sidebar { width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: 1px solid var(--border); }
@@ -241,10 +253,20 @@ td.colloc { color: var(--ink-soft); font-size: 0.82rem; min-width: 200px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
+<button id="expandBtn" class="expand-fab" type="button" aria-label="展開側欄" title="展開側欄（搜尋／分類）" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
 <div class="layout">
   <aside class="sidebar">
-    <p class="sidebar-title">4500 單字多義複習</p>
-    <div class="sidebar-sub">學測 · 文意選填加強</div>
+    <div class="side-head">
+      <div>
+        <p class="sidebar-title">4500 單字多義複習</p>
+        <div class="sidebar-sub">學測 · 文意選填加強</div>
+      </div>
+      <button id="collapseBtn" class="icon-btn" type="button" aria-label="收合側欄" title="收合側欄">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
     <div class="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="search" type="search" placeholder="搜尋單字、中文、例句" autocomplete="off">
@@ -792,6 +814,25 @@ function renderSingleEnd() {
 }
 
 renderList();
+</script>
+<script>
+(function () {
+  const KEY = 'v4500.sidebarCollapsed';
+  const sidebar = document.querySelector('.sidebar');
+  const collapseBtn = document.getElementById('collapseBtn');
+  const expandBtn = document.getElementById('expandBtn');
+  function setCollapsed(c) {
+    document.body.classList.toggle('sidebar-collapsed', c);
+    expandBtn.hidden = !c;
+    sidebar.setAttribute('aria-hidden', c ? 'true' : 'false');
+    try { localStorage.setItem(KEY, c ? '1' : '0'); } catch (e) {}
+  }
+  collapseBtn.addEventListener('click', () => setCollapsed(true));
+  expandBtn.addEventListener('click', () => { setCollapsed(false); window.scrollTo(0, 0); });
+  let start = false;
+  try { start = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  setCollapsed(start);
+})();
 </script>
 
 </body></html>
