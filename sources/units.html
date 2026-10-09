@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>單元單字庫</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&family=Source+Serif+4:ital,wght@1,500&display=swap">
 <style>
@@ -203,8 +203,19 @@ mark { background: var(--gold-soft); color: var(--ink); border-radius: 3px; padd
 .btn-row button { flex: 1; min-width: 140px; padding: 11px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-soft); font-weight: 700; cursor: pointer; }
 .btn-row button.main-b { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--surface); }
 
+.side-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.side-toggle { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; color: var(--ink-soft); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 4px 9px; cursor: pointer; white-space: nowrap; }
+.side-toggle:hover { color: var(--accent-strong); border-color: var(--accent); }
+body.side-collapsed .search-box, body.side-collapsed .nav-list, body.side-collapsed .result-count, body.side-collapsed .sidebar-footer { display: none; }
+body.side-collapsed .sidebar { height: auto; align-self: flex-start; }
+.grid-toggle { font-size: 0.74rem; font-weight: 700; color: var(--accent-strong); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+.sel-summary { font-size: 0.84rem; color: var(--ink-soft); background: var(--surface-2); border: 1px dashed var(--border); border-radius: 10px; padding: 8px 12px; font-variant-numeric: tabular-nums; }
+.undo-btn { font-size: 0.8rem; color: var(--accent-strong); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+.undo-btn:hover { background: var(--accent); color: var(--surface); }
+
 @media (max-width: 860px) {
   .layout { flex-direction: column; }
+
   .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--border); }
   .nav-list { grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); max-height: 150px; }
   .main { padding: 24px 16px 60px; }
@@ -221,9 +232,12 @@ mark { background: var(--gold-soft); color: var(--ink); border-radius: 3px; padd
 
 <div class="layout">
   <aside class="sidebar">
-    <div>
-      <p class="sidebar-title">單元單字庫</p>
-      <p class="sidebar-sub" id="entryCount"></p>
+    <div class="side-head">
+      <div>
+        <p class="sidebar-title">單元單字庫</p>
+        <p class="sidebar-sub" id="entryCount"></p>
+      </div>
+      <button class="side-toggle" id="sideToggle" type="button" aria-expanded="true">收起 ▴</button>
     </div>
     <button id="studyBtn" class="study-toggle-btn" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5C10.5 3 8 2.5 6 3v14c2-.5 4.5 0 6 1.5V4.5zM12 4.5c1.5-1.5 4-2 6-1.5v14c-2-.5-4.5 0-6 1.5V4.5z"/></svg>
@@ -396,6 +410,14 @@ function pool() {
   if (cfg.wrongOnly) p = p.filter(w => progress[w.key]?.w);
   return p;
 }
+function compactRange(arr) {
+  const a = [...arr].sort((x, y) => x - y), out = [];
+  for (let i = 0; i < a.length; i++) {
+    let j = i; while (j + 1 < a.length && a[j + 1] === a[j] + 1) j++;
+    out.push(j > i ? `${a[i]}–${a[j]}` : `${a[i]}`); i = j;
+  }
+  return out.join('、');
+}
 function parseRange(str) {
   const out = new Set();
   str.split(/[,，\s]+/).forEach(part => {
@@ -414,9 +436,10 @@ function renderSetup() {
   <div class="card">
     <div class="study-head"><h2>背誦模式</h2><button class="ghost-btn" type="button" id="backBrowse">回到單字表</button></div>
     <div class="sec">
-      <p class="sec-title"><span>選擇單元（已選 ${cfg.units.length} 個）</span>
+      <p class="sec-title"><span>選擇單元（已選 ${cfg.units.length} 個）<button class="grid-toggle" type="button" id="gridToggle">${cfg.gridOpen ? '收起 ▴' : '展開 ▾'}</button></span>
         <span class="sec-tools"><input class="range-input" id="rangeIn" placeholder="輸入範圍，如 1-5, 8" aria-label="輸入單元範圍"><button class="mini-btn" type="button" id="rangeApply">套用</button><button class="mini-btn" type="button" id="selAll">全選</button><button class="mini-btn" type="button" id="selNone">清除</button></span></p>
-      <div class="unit-grid">${UNITS.map(U => `<div class="uchip${cfg.units.includes(U.u) ? ' on' : ''}" role="checkbox" tabindex="0" aria-checked="${cfg.units.includes(U.u)}" data-u="${U.u}" title="${esc(unitRange(U))}">${U.u}<small>${esc(U.g[0]?.w[0]?.[0] || '')}</small></div>`).join('')}</div>
+      ${cfg.gridOpen ? '' : `<div class="sel-summary">${cfg.units.length ? '第 ' + esc(compactRange(cfg.units)) + ' 單元' : '還沒選單元，點「展開」或在右邊輸入範圍'}</div>`}
+      <div class="unit-grid"${cfg.gridOpen ? '' : ' hidden'}>${UNITS.map(U => `<div class="uchip${cfg.units.includes(U.u) ? ' on' : ''}" role="checkbox" tabindex="0" aria-checked="${cfg.units.includes(U.u)}" data-u="${U.u}" title="${esc(unitRange(U))}">${U.u}<small>${esc(U.g[0]?.w[0]?.[0] || '')}</small></div>`).join('')}</div>
     </div>
     <div class="sec">
       <p class="sec-title">測驗方式</p>
@@ -451,6 +474,7 @@ function renderSetup() {
   $('#rangeIn').onkeydown = e => { if (e.key === 'Enter') applyRange(); };
   $('#selAll').onclick = () => { cfg.units = UNITS.map(U => U.u); saveCfg(); renderSetup(); };
   $('#selNone').onclick = () => { cfg.units = []; saveCfg(); renderSetup(); };
+  $('#gridToggle').onclick = () => { cfg.gridOpen = !cfg.gridOpen; saveCfg(); renderSetup(); };
   v.querySelectorAll('[data-mode]').forEach(el => el.onclick = () => { cfg.mode = el.dataset.mode; saveCfg(); renderSetup(); });
   v.querySelectorAll('[data-count]').forEach(el => el.onclick = () => { const c = el.dataset.count; cfg.count = isNaN(+c) ? c : +c; saveCfg(); renderSetup(); });
   v.querySelectorAll('[role=radio],[role=checkbox]').forEach(el => { if (!el.onkeydown) el.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); el.click(); } }; });
@@ -494,12 +518,12 @@ function gradeZh(ans, senses) {
 /* ---------- drill ---------- */
 let S = null;
 function startDrill(items) {
-  S = { items, i: 0, ok: 0, missed: [], rated: [0, 0, 0], mode: cfg.mode, answered: false };
+  S = { items, i: 0, ok: 0, missed: [], rated: [0, 0, 0], mode: cfg.mode, answered: false, hist: [] };
   renderQ();
 }
 function topBar() {
   const pct = (S.i / S.items.length) * 100;
-  return `<div class="drill-top"><span class="prog-text">${S.i + 1} / ${S.items.length}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div><button class="ghost-btn" type="button" id="quit">結束</button></div><span class="badge">${MODES[S.mode].name}</span>`;
+  return `<div class="drill-top"><span class="prog-text">${S.i + 1} / ${S.items.length}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div>${canUndo() ? '<button class="undo-btn" type="button" id="undoBtn" title="回到上一張重新選">← 上一張</button>' : ''}<button class="ghost-btn" type="button" id="quit">結束</button></div><span class="badge">${MODES[S.mode].name}</span>`;
 }
 function wordBack(it) {
   const exs = it.G.e.filter(E => E[4] === it.wi || (E[2] < 0 && it.wi === 0)).slice(0, 2);
@@ -544,13 +568,24 @@ function renderQ() {
     const a = $('#ans'); a.focus(); a.setSelectionRange(a.value.length, a.value.length);
   }
   $('#quit').onclick = renderSummary;
+  const ub = $('#undoBtn'); if (ub) ub.onclick = undoLast;
 }
 function flip() {
   const b = $('#fcBack'); if (!b || !b.hidden) return;
   b.hidden = false; $('#fcHint').hidden = true; $('#rate').hidden = false; S.answered = true;
 }
+const canUndo = () => !!(S && S.mode === 'flash' && S.hist && S.hist.length);
+function undoLast() {
+  if (!canUndo()) return;
+  const h = S.hist.pop();
+  if (h.prev) progress[h.key] = h.prev; else delete progress[h.key];
+  saveProg();
+  S.rated[h.r]--; if (h.r === 2) S.ok--; else S.missed.pop();
+  S.i = h.i; renderQ(); flip();
+}
 function rate(r) {
   const it = S.items[S.i];
+  S.hist.push({ i: S.i, key: it.key, r, prev: progress[it.key] ? Object.assign({}, progress[it.key]) : null });
   S.rated[r]++;
   record(it.key, r === 2);
   if (r === 2) S.ok++; else S.missed.push(it);
@@ -617,11 +652,23 @@ function renderSummary() {
   $('#studyView').innerHTML = `<div class="card"><div class="study-head"><h2>這回合結果</h2><button class="ghost-btn" type="button" id="toSetup">回設定</button></div>
     <div class="stats"><div class="stat"><div class="num">${done}</div><div class="lbl">完成題數</div></div><div class="stat"><div class="num">${S.ok}</div><div class="lbl">${S.mode === 'flash' ? '記住了' : '答對'}</div></div><div class="stat"><div class="num">${pct}%</div><div class="lbl">正確率</div></div></div>
     ${missed.length ? `<p class="sec-title">${S.mode === 'flash' ? '還不熟的字' : '答錯的題目'}（${missed.length}）</p><ul class="missed">${missed.map(it => `<li>${label(it)}</li>`).join('')}</ul>` : '<p class="pool-hint">全部答對，這幾個單元可以往下一個進度了。</p>'}
-    <div class="btn-row">${missed.length ? '<button type="button" class="main-b" id="redo">只重練這些</button>' : ''}<button type="button" id="again">同設定再來一次</button></div></div>`;
+    <div class="btn-row">${missed.length ? '<button type="button" class="main-b" id="redo">只重練這些</button>' : ''}<button type="button" id="again">同設定再來一次</button></div>
+    ${canUndo() ? '<div class="row-end" style="justify-content:flex-start"><button class="undo-btn" type="button" id="undoBtn">← 回到最後一張重新選</button></div>' : ''}</div>`;
+  const ub = $('#undoBtn'); if (ub) ub.onclick = undoLast;
   $('#toSetup').onclick = () => { S = null; renderSetup(); };
   const r = $('#redo'); if (r) r.onclick = () => startDrill(shuffle(missed.slice()));
   $('#again').onclick = () => { const p = pool(); const n = cfg.count === 'all' ? p.length : Math.min(p.length, cfg.count === 'custom' ? cfg.custom : cfg.count); startDrill(shuffle(p.slice()).slice(0, n)); };
 }
+
+/* ---------- sidebar collapse ---------- */
+const SIDE_KEY = 'unitvocab.sideCollapsed';
+function setSide(collapsed) {
+  document.body.classList.toggle('side-collapsed', collapsed);
+  const t = $('#sideToggle'); t.textContent = collapsed ? '展開 ▾' : '收起 ▴'; t.setAttribute('aria-expanded', String(!collapsed));
+  try { localStorage.setItem(SIDE_KEY, collapsed ? '1' : '0'); } catch (e) {}
+}
+$('#sideToggle').onclick = () => setSide(!document.body.classList.contains('side-collapsed'));
+try { if (localStorage.getItem(SIDE_KEY) === '1') setSide(true); } catch (e) {}
 
 /* ---------- view switching ---------- */
 function showStudy() {

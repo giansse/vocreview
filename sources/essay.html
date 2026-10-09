@@ -1021,6 +1021,14 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
   vertical-align: middle;
 }
 
+/* 點句子模糊／清楚 */
+.sentence-en [data-field="en"], td.example [data-field="example"] { cursor: pointer; border-radius: 4px; transition: filter 0.15s ease; }
+.is-blurred { filter: blur(6px); user-select: none; -webkit-user-select: none; }
+.blur-tip { font-size: 0.78rem; color: var(--ink-faint); margin: -4px 0 12px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.blur-tip button { font-size: 0.74rem; color: var(--accent); background: none; border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; cursor: pointer; font-family: inherit; }
+.blur-tip button:hover { border-color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .is-blurred { transition: none; } }
+
 @media (max-width: 640px) {
   .mc-options { grid-template-columns: 1fr; }
   .summary-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -2141,4 +2149,35 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
 })();
 </script>
 
+<script>
+(function () {
+  const SEL = '.sentence-en [data-field="en"], td.example [data-field="example"]';
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.speak-btn')) return;
+    const t = e.target.closest(SEL);
+    if (!t) return;
+    if (window.getSelection && String(window.getSelection()).length) return;
+    t.classList.toggle('is-blurred');
+  });
+  // 句子區、表格上方加一行說明與全部模糊／全部顯示
+  function addTips() {
+    document.querySelectorAll('.sentence-grid, .table-wrap').forEach(function (box) {
+      if (box.previousElementSibling && box.previousElementSibling.classList.contains('blur-tip')) return;
+      const tip = document.createElement('p');
+      tip.className = 'blur-tip';
+      tip.innerHTML = '<span>點英文句子可以模糊／再點變清楚</span><button type="button" data-blur="1">全部模糊</button><button type="button" data-blur="0">全部顯示</button>';
+      box.parentNode.insertBefore(tip, box);
+    });
+  }
+  document.addEventListener('click', function (e) {
+    const b = e.target.closest('.blur-tip [data-blur]');
+    if (!b) return;
+    const box = b.parentNode.nextElementSibling;
+    const on = b.dataset.blur === '1';
+    box.querySelectorAll(SEL).forEach(function (el) { el.classList.toggle('is-blurred', on); });
+  });
+  const content = document.getElementById('content');
+  if (content) { addTips(); new MutationObserver(addTips).observe(content, { childList: true }); }
+})();
+</script>
 </body></html>
