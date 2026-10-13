@@ -951,7 +951,7 @@ function renderCloze() {
     if (done) cls += (f !== null && opts[f].a === q.a) ? " right" : " wrong";
     else if (i === active) cls += " active";
     const parts = esc(q.s).split("___");
-    const reveal = done ? `<div class="reveal">${(f !== null && opts[f].a === q.a) ? "" : `正解 <span class="fix">${esc(q.a)}</span>　`}${esc(q.w)}（${POS[q.p][0]}）${esc(q.zh)}｜${esc(q.t)}</div>` : "";
+    const reveal = done ? `<div class="reveal">${(f !== null && opts[f].a === q.a) ? "" : `正解 <span class="fix">${esc(q.a)}</span>　`}${esc(q.w)}（${POS[q.p][0]}）${esc(q.zh)}｜${esc(q.t)}</div>${f !== null && opts[f].a !== q.a ? wdFor(opts[f].a, "你填的") : ""}` : "";
     return `<li class="cloze-item"><span class="qn">${i + 1}.</span>${parts[0]}<button type="button" class="${cls}" data-blank="${i}" ${done ? "disabled" : ""}>${label}</button>${parts[1] || ""}${reveal}</li>`;
   }).join("");
   const usedBy = new Map(); fill.forEach((f, i) => { if (f !== null) usedBy.set(f, i); });
@@ -984,6 +984,17 @@ function renderCloze() {
   const s = $("#submit"); if (s) s.onclick = () => { cz.done = true; cz.qs.forEach((q, i) => recordStat(q, cz.fill[i] !== null && cz.opts[cz.fill[i]].a === q.a)); renderCloze(); window.scrollTo(0, 0); };
   const a = $("#again"); if (a) a.onclick = startCloze;
   $("#toSetup").onclick = renderSetup;
+}
+
+/* 答錯時：列出選錯的那個字的完整釋義 */
+function wdFor(a, label) {
+  if (!window.wrongDefHTML || !a) return "";
+  const k = a.toLowerCase();
+  let hits = D.filter(e => e.a.toLowerCase() === k);
+  if (!hits.length) hits = D.filter(e => e.w.toLowerCase() === k);
+  if (!hits.length) return "";
+  const base = hits[0].w.toLowerCase() === k ? a : `${a}（${hits[0].w}）`;
+  return wrongDefHTML(base, hits.map(e => ({ pos: POS[e.p][0], kk: e.kk, zh: e.w.toLowerCase() === hits[0].w.toLowerCase() ? e.zh : `${e.w}：${e.zh}`, ex: exHTML(e), exZh: e.t, note: e.n })), label);
 }
 
 /* 單題四選一 */
@@ -1024,7 +1035,7 @@ function renderSingle() {
     <div class="progress-bar"><span style="width:${(i / qs.length) * 100}%"></span></div>
     <p class="q-sentence">${parts[0]}<span class="gap">${gap}</span>${parts[1] || ""}</p>
     <div class="q-opts">${opts}</div>
-    ${answered ? `<div class="feedback"><span class="fb-word">${esc(q.w)}</span>　${POS[q.p][0]}　${esc(q.kk)}<br>${esc(q.zh)}｜${esc(q.t)}<br>${esc(q.n)}</div>
+    ${answered ? `<div class="feedback"><span class="fb-word">${esc(q.w)}</span>　${POS[q.p][0]}　${esc(q.kk)}<br>${esc(q.zh)}｜${esc(q.t)}<br>${esc(q.n)}</div>${it.opts[it.pick] !== q.a ? wdFor(it.opts[it.pick], "你選的") : ""}
       <div class="btn-row"><button class="primary-btn" type="button" id="next">${i + 1 < qs.length ? "下一題" : "看結果"}</button></div>` : ""}
     <div class="btn-row"><button class="ghost-btn" type="button" id="toSetup">回設定</button></div>
   </div>`;
@@ -1459,11 +1470,31 @@ body.qz-open { overflow: hidden; }
 @keyframes fcBurst { from { transform: translate(-50%, -50%) rotate(0); opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)); opacity: 0; } }
 @keyframes fcPulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 var(--qz-good); } 35% { transform: scale(1.04); } 100% { transform: scale(1); box-shadow: 0 0 0 14px transparent; } }
 @media (prefers-reduced-motion: reduce) { .fc-pop .fc-ring, .fc-pop .fc-txt, .fc-hit, .fc-pop i { animation: none; } .fc-pop .fc-ring svg { animation: none; stroke-dashoffset: 0; } }
+/* ---------- 答錯時：選錯的那個字的完整釋義 ---------- */
+.wd-box { margin-top: 10px; text-align: left; border-left: 3px solid var(--qz-bad); background: var(--qz-bad-bg); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; line-height: 1.55; color: var(--ink-soft); display: grid; gap: 2px; font-style: normal; font-weight: 400; }
+.wd-box .wd-h { font-size: 0.76rem; color: var(--qz-bad); font-weight: 700; }
+.wd-box .wd-w { font-weight: 700; color: var(--ink); font-size: 1rem; margin-right: 6px; }
+.wd-box .wd-pos { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0 7px; border-radius: 999px; border: 1px solid var(--qz-bad); color: var(--qz-bad); margin-right: 6px; vertical-align: 1px; }
+.wd-box .wd-kk { color: var(--ink-faint); font-size: 0.8rem; margin-left: 4px; }
+.wd-box .wd-zh { color: var(--ink); }
+.wd-box .wd-ex { font-style: italic; color: var(--ink-soft); }
+.wd-box .wd-ex b { color: var(--ink); }
+.wd-box .wd-exzh, .wd-box .wd-note { color: var(--ink-faint); font-size: 0.8rem; }
+.qz-fb .wd-box { background: var(--surface); }
+.wd-box .wd-sense + .wd-sense { border-top: 1px dashed var(--qz-bad); padding-top: 6px; margin-top: 4px; }
 @media (prefers-reduced-motion: reduce) { .qz-fc, .qz-fc.flip, .qz-big i { animation: none; transition: none; } }
 </style>
 <div class="qz-overlay" id="qzRoot" hidden></div>
 <script>
 (function () {
+  /* ---------- 答錯時：把你選的那個字的完整釋義列出來（三種測驗與 Quizlet 式共用） ---------- */
+  // senses: [{ pos, kk, zh, ex(可含 <b> 的 HTML), exZh, note }]
+  if (!window.wrongDefHTML) window.wrongDefHTML = function (word, senses, label) {
+    const e = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    if (!senses || !senses.length) return '';
+    return `<div class="wd-box"><div class="wd-h">${e(label || '你選的')}「${e(word)}」是：</div>${senses.slice(0, 3).map(x =>
+      `<div class="wd-sense"><div>${x.pos ? `<span class="wd-pos">${e(x.pos)}</span>` : ''}<span class="wd-zh">${e(x.zh)}</span>${x.kk ? `<span class="wd-kk">${e(x.kk)}</span>` : ''}</div>${x.ex ? `<div class="wd-ex">${x.ex}</div>` : ''}${x.exZh ? `<div class="wd-exzh">${e(x.exZh)}</div>` : ''}${x.note ? `<div class="wd-note">${e(x.note)}</div>` : ''}</div>`).join('')}</div>`;
+  };
   /* ---------- 答對回饋：打勾動畫＋提示音＋連對計數（三種測驗與 Quizlet 式共用） ---------- */
   if (!window.famCheer) window.famCheer = (function () {
     let streak = 0, pop = null, timer = 0, ac = null;
@@ -1618,6 +1649,14 @@ body.qz-open { overflow: hidden; }
   }
   function answerHTML(it) {
     return `<div class="qz-term">${esc(it.term)} ${sayBtn(it.term)}</div>${it.kk ? `<div class="qz-kk">${esc(it.kk)}</div>` : ''}`;
+  }
+  function wrongDef(it) {   // 選錯（或拼成另一個字）時，列出那個字的完整釋義
+    const w = L.kind === 'mc' ? (L.opts && L.opts[L.choice]) : L.given;
+    if (!w || norm(w) === norm(it.term)) return '';
+    const hits = A.items.filter(x => norm(x.term) === norm(w));
+    if (!hits.length) return '';
+    const exH = x => { if (!x.exFull) return ''; let h = esc(x.exFull); if (x.exHi) { const i = x.exFull.toLowerCase().indexOf(String(x.exHi).toLowerCase()); if (i >= 0) h = esc(x.exFull.slice(0, i)) + '<b>' + esc(x.exFull.slice(i, i + x.exHi.length)) + '</b>' + esc(x.exFull.slice(i + x.exHi.length)); } return h; };
+    return wrongDefHTML(hits[0].term, hits.map(x => ({ pos: x.pos, kk: x.kk, zh: x.zh, ex: exH(x), exZh: x.exZh, note: x.note })), L.kind === 'mc' ? '你選的' : '你拼的');
   }
   function exFullHTML(it) {
     if (!it.exFull) return '';
@@ -1831,7 +1870,7 @@ body.qz-open { overflow: hidden; }
     }
     let fb = '';
     if (L.state === 'ok') fb = `<div class="qz-fb ok"><b>答對了！</b>${answerHTML(it).replace('qz-term', 'ans')}${exFullHTML(it)}</div>`;
-    if (L.state === 'no' || L.state === 'retype') fb = `<div class="qz-fb no"><b>${L.kind === 'mc' ? '再想想，正確答案是' : (L.given ? '不太對，正確答案是' : '正確答案是')}</b><div class="ans">${esc(it.term)} ${sayBtn(it.term)}</div>${it.kk ? `<div class="qz-kk">${esc(it.kk)}</div>` : ''}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}${L.kind === 'write' && L.given ? `<div class="qz-hint">你的答案：${esc(L.given)}</div>` : ''}</div>`;
+    if (L.state === 'no' || L.state === 'retype') fb = `<div class="qz-fb no"><b>${L.kind === 'mc' ? '再想想，正確答案是' : (L.given ? '不太對，正確答案是' : '正確答案是')}</b><div class="ans">${esc(it.term)} ${sayBtn(it.term)}</div>${it.kk ? `<div class="qz-kk">${esc(it.kk)}</div>` : ''}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}${L.kind === 'write' && L.given ? `<div class="qz-hint">你的答案：${esc(L.given)}</div>` : ''}${wrongDef(it)}</div>`;
     let actions = '';
     if (L.state === 'ok' || L.state === 'no') actions = `<div class="qz-sub"><button class="qz-primary" type="button" id="qzNext" style="flex:0;min-width:120px">繼續</button></div>`;
     if (L.state === 'retype' && L.given) actions = `<div class="qz-sub"><button class="qz-btn" type="button" id="qzOverride">我其實答對了</button></div>`;
