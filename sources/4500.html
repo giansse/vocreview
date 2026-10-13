@@ -1237,7 +1237,7 @@ body.qz-open { overflow: hidden; }
       </div>
       <div class="qz-modes">
         <button class="qz-mode" type="button" id="qzFlash" ${pool.length ? '' : 'disabled'}><b>單字卡</b><span>看中文和挖空例句，翻面看英文。分成「還在學／會了」，下一輪只練還在學的。</span></button>
-        <button class="qz-mode" type="button" id="qzLearn" ${pool.length ? '' : 'disabled'}><b>學習</b><span>每回合 ${ROUND} 個字：先四選一，答對後改成自己打英文；答錯會再考。</span></button>
+        <button class="qz-mode" type="button" id="qzLearn" ${pool.length ? '' : 'disabled'}><b>學習</b><span>每回合 ${ROUND} 個字：先全部考選擇題，再全部考拼寫；答錯的字下一回合再考。</span></button>
       </div>
       <div class="qz-opt"><span>單字卡正面</span><span class="qz-seg"><button type="button" data-front="zh" class="${st.front === 'zh' ? 'on' : ''}">中文</button><button type="button" data-front="en" class="${st.front === 'en' ? 'on' : ''}">英文</button></span>
         <button class="qz-reset" type="button" id="qzReset">${resetArmed ? '確定清除這個範圍的進度？再按一次' : '清除這個範圍的學習進度'}</button></div>
@@ -1341,21 +1341,31 @@ body.qz-open { overflow: hidden; }
 
   /* ---------- learn ---------- */
   let L = null;
+  // 每回合：這批字先全部考選擇題，再全部考拼寫；答錯的字留到下一回合，選擇題錯就下回合再考選擇題，拼寫錯就下回合再考拼寫
   function startLearn() {
-    const pool = poolItems();
-    const learning = shuffle(pool.filter(it => lvl(it.id) === 1));
-    const fresh = shuffle(pool.filter(it => lvl(it.id) === 0));
-    const pick = learning.concat(fresh).slice(0, ROUND).map(it => it.id);
+    const pool = poolItems(), inPool = new Set(pool.map(it => it.id));
+    const carry = (st.carry || []).filter(id => inPool.has(id) && lvl(id) < 2);
+    const learning = shuffle(pool.filter(it => lvl(it.id) === 1).map(it => it.id));
+    const fresh = shuffle(pool.filter(it => lvl(it.id) === 0).map(it => it.id));
+    const pick = [...new Set(carry.concat(learning, fresh))].slice(0, ROUND);
     mode = 'learn';
     if (!pick.length) return renderLearnDone();
-    L = { items: pick, queue: shuffle(pick), tries: {}, done: 0, total: pick.length, cur: null, state: 'ask', wrong: new Set(), hint: 0 };
-    nextQ();
+    L = { items: pick, phase: 'mc', queue: [], qDone: 0, qTotal: 0, cur: null, state: 'ask', hint: 0 };
+    startPhase('mc');
   }
-  function nextQ() {
-    if (!L.queue.length) return renderRoundEnd();
+  function startPhase(ph) {
+    L.phase = ph;
+    L.queue = shuffle(L.items.filter(id => ph === 'mc' ? lvl(id) === 0 : lvl(id) === 1));
+    L.qDone = 0; L.qTotal = L.queue.length;
+    if (!L.queue.length) { if (ph === 'mc') return startPhase('write'); return renderRoundEnd(); }
+    nextQ(true);
+  }
+  function nextQ(first) {
+    if (!first) L.qDone++;
+    if (!L.queue.length) { if (L.phase === 'mc') return startPhase('write'); return renderRoundEnd(); }
     L.cur = L.queue.shift(); L.state = 'ask'; L.hint = 0; L.choice = null; L.typed = ''; L.given = '';
     const it = BY.get(L.cur);
-    L.kind = lvl(L.cur) >= 1 ? 'write' : 'mc';
+    L.kind = L.phase === 'mc' ? 'mc' : 'write';
     if (L.kind === 'mc') L.opts = buildChoices(it);
     renderLearn();
   }
@@ -1369,15 +1379,11 @@ body.qz-open { overflow: hidden; }
     for (const x of pref.concat(pref2, cands)) { const k = norm(x.term); if (seen.has(k)) continue; seen.add(k); out.push(x.term); if (out.length === 3) break; }
     return shuffle(out.concat([it.term]));
   }
-  function requeue(id) {
-    L.tries[id] = (L.tries[id] || 0) + 1;
-    if (L.tries[id] <= 2) { const pos = Math.min(L.queue.length, 2 + Math.floor(Math.random() * 2)); L.queue.splice(pos, 0, id); }
-  }
   function setLvl(id, v) { st.m[id] = v; save(); }
   function overall() { return counts(poolItems()); }
   function renderLearn() {
     const it = BY.get(L.cur);
-    const roundDone = L.items.filter(id => lvl(id) >= 2).length;
+    const phaseName = L.phase === 'mc' ? '第 1 階段・選擇題' : '第 2 階段・拼寫';
     const c = overall();
     let body = '';
     if (L.kind === 'mc') {
@@ -1400,7 +1406,7 @@ body.qz-open { overflow: hidden; }
     if (L.state === 'ok' || L.state === 'no') actions = `<div class="qz-sub"><button class="qz-primary" type="button" id="qzNext" style="flex:0;min-width:120px">繼續</button></div>`;
     if (L.state === 'retype' && L.given) actions = `<div class="qz-sub"><button class="qz-btn" type="button" id="qzOverride">我其實答對了</button></div>`;
     root.innerHTML = `<div class="qz-wrap">${header('學習', true)}
-      <div class="qz-top"><span class="qz-count">本回合 ${roundDone} / ${L.total}</span><div class="qz-big"><i class="p" style="width:${(roundDone / L.total * 100).toFixed(1)}%"></i></div></div>
+      <div class="qz-top"><span class="qz-count">${phaseName}　${Math.min(L.qDone + 1, L.qTotal)} / ${L.qTotal}</span><div class="qz-big"><i class="p" style="width:${(L.qDone / Math.max(1, L.qTotal) * 100).toFixed(1)}%"></i></div></div>
       <div class="qz-card qz-q">
         <div class="qz-hint">${L.kind === 'mc' ? '四選一' : '拼寫'}・${esc(groupName(it.g))}</div>
         ${promptHTML(it)}
@@ -1422,29 +1428,26 @@ body.qz-open { overflow: hidden; }
       const k = $('#qzIdk'); if (k) k.onclick = () => answerWrite('');
     }
     const n = $('#qzNext'); if (n) { n.onclick = nextQ; if (!f || L.state !== 'retype') n.focus(); }
-    const o = $('#qzOverride'); if (o) o.onclick = () => { L.wrong.delete(L.cur); L.queue = L.queue.filter(x => x !== L.cur); setLvl(L.cur, 2); nextQ(); };
+    const o = $('#qzOverride'); if (o) o.onclick = () => { setLvl(L.cur, 2); nextQ(); };
   }
   function answerMC(k) {
     const it = BY.get(L.cur);
     L.choice = k;
     if (norm(L.opts[k]) === norm(it.term)) {
       L.state = 'ok'; setLvl(it.id, Math.max(lvl(it.id), 1));
-      requeueOnce(it.id);
       renderLearn(); say(it.term);
       clearTimeout(L.t); L.t = setTimeout(() => { if (mode === 'learn' && L.state === 'ok' && L.cur === it.id) nextQ(); }, 1100);
     } else {
-      L.state = 'no'; L.wrong.add(it.id); requeue(it.id); renderLearn();
+      L.state = 'no'; renderLearn();
     }
   }
-  // 選擇題答對後，同一回合稍後改考拼寫
-  function requeueOnce(id) { if (!L.queue.includes(id)) { const pos = Math.min(L.queue.length, 1 + Math.floor(Math.random() * 3)); L.queue.splice(pos, 0, id); } }
   function answerWrite(v) {
     const it = BY.get(L.cur);
     L.typed = v.trim();
     if (L.typed && isRight(it, L.typed)) {
       L.state = 'ok'; setLvl(it.id, 2); renderLearn(); say(it.term);
     } else {
-      L.state = 'retype'; L.given = L.typed; L.wrong.add(it.id); requeue(it.id); L.typed = ''; renderLearn();
+      L.state = 'retype'; L.given = L.typed; L.typed = ''; renderLearn();
     }
   }
   function retype(v) {
@@ -1453,8 +1456,9 @@ body.qz-open { overflow: hidden; }
     else { const inp = $('#qzIn'); inp.classList.add('no'); inp.value = ''; inp.placeholder = it.term; inp.focus(); }
   }
   function renderRoundEnd() {
+    st.carry = L.items.filter(id => lvl(id) < 2); save();
     const c = overall();
-    const rows = L.items.map(id => { const it = BY.get(id), v = lvl(id); return `<li><b>${esc(it.term)}</b><span>${esc(it.zh)}</span><span class="r ${v >= 2 ? 'm' : 'l'}">${v >= 2 ? '已掌握' : '學習中'}</span></li>`; }).join('');
+    const rows = L.items.map(id => { const it = BY.get(id), v = lvl(id); return `<li><b>${esc(it.term)}</b><span>${esc(it.zh)}</span><span class="r ${v >= 2 ? 'm' : 'l'}">${v >= 2 ? '已掌握' : v === 1 ? '下回合考拼寫' : '下回合考選擇題'}</span></li>`; }).join('');
     const left = c.t - c.m;
     root.innerHTML = `<div class="qz-wrap">${header('學習', true)}
       <div class="qz-card qz-done"><div class="big">💪</div><b>這回合結束</b><span class="qz-hint">整個範圍：已掌握 ${c.m} / ${c.t}</span>${bar(c, ' style="width:100%"')}</div>
