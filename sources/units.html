@@ -705,4 +705,525 @@ $('#studyBtn').onclick = () => $('#studyView').hidden ? showStudy() : showBrowse
   setCollapsed(start);
 })();
 </script>
+<style id="qz-style">
+/* ===== Quizlet 式單字卡／學習模式（共用模組） ===== */
+:root {
+  --qz-good: #2f7a47; --qz-good-bg: #dcefe0;
+  --qz-bad: #b3413a;  --qz-bad-bg: #f6dedb;
+  --qz-mid: #a8781f;  --qz-mid-bg: #f3e6cd;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --qz-good: #8fca9d; --qz-good-bg: #1e3324; --qz-bad: #ec9a92; --qz-bad-bg: #3c1f1c; --qz-mid: #e0b768; --qz-mid-bg: #3a3018;
+} }
+:root[data-theme="dark"] {
+  --qz-good: #8fca9d; --qz-good-bg: #1e3324; --qz-bad: #ec9a92; --qz-bad-bg: #3c1f1c; --qz-mid: #e0b768; --qz-mid-bg: #3a3018;
+}
+.qz-entry { margin-top: -6px; }
+.qz-entry .qz-entry-sub { font-weight: 500; font-size: 0.72rem; opacity: 0.8; }
+.qz-overlay { position: fixed; inset: 0; z-index: 200; background: var(--bg); color: var(--ink); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.qz-overlay[hidden] { display: none !important; }
+body.qz-open { overflow: hidden; }
+.qz-wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 14px 60px; display: flex; flex-direction: column; gap: 16px; }
+.qz-bar { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.qz-bar h2 { margin: 0; font-size: 1.05rem; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qz-x { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); cursor: pointer; font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
+.qz-x:hover { color: var(--accent-strong); border-color: var(--accent); }
+.qz-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 18px clamp(14px, 3vw, 24px); }
+.qz-h { font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); margin: 0 0 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.qz-tools { display: flex; gap: 12px; }
+.qz-link { font-size: 0.76rem; color: var(--accent); background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; }
+.qz-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 340px; overflow-y: auto; padding: 2px; }
+.qz-groups.compact { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
+.qz-g { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-soft); cursor: pointer; font: inherit; font-size: 0.8rem; min-width: 0; }
+.qz-groups.compact .qz-g { text-align: center; padding: 6px 4px; font-variant-numeric: tabular-nums; }
+.qz-g.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); font-weight: 700; }
+.qz-g .qz-gn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qz-mini { height: 4px; border-radius: 999px; background: var(--border); overflow: hidden; display: flex; }
+.qz-mini i { display: block; height: 100%; }
+.qz-mini .m { background: var(--qz-good); } .qz-mini .l { background: var(--qz-mid); }
+.qz-opt { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.84rem; color: var(--ink-soft); margin-top: 12px; align-items: center; }
+.qz-opt label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.qz-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+.qz-seg button { border: none; background: var(--surface-2); color: var(--ink-soft); padding: 5px 11px; font: inherit; font-size: 0.8rem; cursor: pointer; }
+.qz-seg button.on { background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; }
+.qz-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.qz-mode { text-align: left; padding: 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); cursor: pointer; font: inherit; color: var(--ink); display: flex; flex-direction: column; gap: 4px; }
+.qz-mode:hover:not(:disabled) { border-color: var(--accent); }
+.qz-mode:disabled { opacity: 0.45; cursor: not-allowed; }
+.qz-mode b { font-size: 1.05rem; }
+.qz-mode span { font-size: 0.78rem; color: var(--ink-faint); line-height: 1.5; }
+.qz-stat { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.82rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.qz-stat strong { color: var(--ink); }
+.qz-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+.qz-dot.m { background: var(--qz-good); } .qz-dot.l { background: var(--qz-mid); } .qz-dot.n { background: var(--border); }
+.qz-big { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; display: flex; }
+.qz-big i { display: block; height: 100%; transition: width 0.3s ease; }
+.qz-big .m { background: var(--qz-good); } .qz-big .l { background: var(--qz-mid); } .qz-big .p { background: var(--accent); }
+.qz-reset { font-size: 0.74rem; color: var(--ink-faint); background: none; border: none; text-decoration: underline; cursor: pointer; padding: 0; font-family: inherit; }
+.qz-top { display: flex; align-items: center; gap: 10px; }
+.qz-top .qz-big { flex: 1; }
+.qz-count { font-size: 0.8rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.qz-btn { padding: 8px 13px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); cursor: pointer; font: inherit; font-size: 0.8rem; white-space: nowrap; }
+.qz-btn:hover { border-color: var(--accent); color: var(--accent-strong); }
+.qz-btn.undo { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); }
+.qz-primary { padding: 13px 16px; border-radius: 12px; border: none; background: var(--accent-strong); color: var(--surface); font: inherit; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+.qz-primary:hover { background: var(--accent); }
+.qz-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.qz-row > * { flex: 1; min-width: 140px; }
+/* flashcard */
+.qz-tally { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.qz-tally .s { color: var(--qz-mid); } .qz-tally .k { color: var(--qz-good); }
+.qz-fc { position: relative; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 28px 22px;
+  border-radius: 18px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: pan-y; transition: transform 0.18s ease, border-color 0.18s ease; }
+.qz-fc.flip { animation: qzflip 0.22s ease; }
+@keyframes qzflip { from { transform: rotateX(70deg); opacity: 0.4; } to { transform: none; opacity: 1; } }
+.qz-fc.go-k { border-color: var(--qz-good); } .qz-fc.go-s { border-color: var(--qz-mid); }
+.qz-side { position: absolute; top: 12px; left: 16px; font-size: 0.7rem; color: var(--ink-faint); letter-spacing: 0.06em; }
+.qz-term { font-family: var(--font-serif, var(--f-display, "Noto Serif TC", serif)); font-size: clamp(1.7rem, 6vw, 2.3rem); font-weight: 700; line-height: 1.2; word-break: break-word; }
+.qz-kk { color: var(--accent); font-size: 0.95rem; }
+.qz-zh { font-size: clamp(1.1rem, 4vw, 1.35rem); font-weight: 700; line-height: 1.5; }
+.qz-pos { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); margin-right: 6px; vertical-align: 2px; }
+.qz-ex { font-style: italic; color: var(--ink-soft); font-size: 0.98rem; line-height: 1.6; max-width: 54ch; }
+.qz-ex b { font-style: normal; color: var(--accent-strong); }
+.qz-exzh { font-size: 0.84rem; color: var(--ink-faint); }
+.qz-note { font-size: 0.8rem; color: var(--ink-faint); max-width: 54ch; }
+.qz-hint { font-size: 0.74rem; color: var(--ink-faint); }
+.qz-say { border: none; background: none; color: var(--accent); cursor: pointer; font-size: 1rem; padding: 2px 6px; border-radius: 6px; }
+.qz-say:hover { background: var(--accent-soft); }
+.qz-sort { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.qz-sort button { padding: 14px; border-radius: 14px; font: inherit; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: 2px solid; background: var(--surface); }
+.qz-sort .s { border-color: var(--qz-mid); color: var(--qz-mid); } .qz-sort .s:hover { background: var(--qz-mid-bg); }
+.qz-sort .k { border-color: var(--qz-good); color: var(--qz-good); } .qz-sort .k:hover { background: var(--qz-good-bg); }
+.qz-keys { text-align: center; font-size: 0.72rem; color: var(--ink-faint); }
+/* learn */
+.qz-q { display: flex; flex-direction: column; gap: 10px; }
+.qz-qlabel { font-size: 0.74rem; color: var(--ink-faint); font-weight: 700; letter-spacing: 0.04em; }
+.qz-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.qz-choice { text-align: left; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); font: inherit; font-size: 0.98rem; cursor: pointer; display: flex; gap: 10px; align-items: baseline; min-width: 0; word-break: break-word; }
+.qz-choice:hover:not(:disabled) { border-color: var(--accent); }
+.qz-choice .n { font-size: 0.72rem; color: var(--ink-faint); font-weight: 700; flex-shrink: 0; }
+.qz-choice.ok { border-color: var(--qz-good); background: var(--qz-good-bg); color: var(--qz-good); font-weight: 700; }
+.qz-choice.no { border-color: var(--qz-bad); background: var(--qz-bad-bg); color: var(--qz-bad); }
+.qz-choice:disabled { cursor: default; }
+.qz-write { display: flex; gap: 8px; }
+.qz-write input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); font: inherit; font-size: 1.05rem; }
+.qz-write input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.qz-write input.ok { border-color: var(--qz-good); background: var(--qz-good-bg); }
+.qz-write input.no { border-color: var(--qz-bad); background: var(--qz-bad-bg); }
+.qz-write button { padding: 0 18px; border-radius: 10px; border: none; background: var(--accent-strong); color: var(--surface); font: inherit; font-weight: 700; cursor: pointer; }
+.qz-fb { border-radius: 12px; padding: 12px 14px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 6px; }
+.qz-fb.ok { background: var(--qz-good-bg); color: var(--qz-good); }
+.qz-fb.no { background: var(--qz-bad-bg); color: var(--qz-bad); }
+.qz-fb .ans { font-size: 1.15rem; font-weight: 700; color: var(--ink); }
+.qz-fb .qz-ex, .qz-fb .qz-exzh, .qz-fb .qz-note { max-width: none; }
+.qz-sub { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+.qz-hintline { font-family: var(--font-serif, serif); letter-spacing: 2px; color: var(--accent-strong); font-size: 1.05rem; }
+.qz-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.qz-list li { display: flex; gap: 10px; align-items: baseline; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); font-size: 0.86rem; color: var(--ink-soft); }
+.qz-list li b { color: var(--ink); }
+.qz-list li .r { margin-left: auto; font-size: 0.74rem; white-space: nowrap; }
+.qz-list li .r.m { color: var(--qz-good); } .qz-list li .r.l { color: var(--qz-mid); }
+.qz-done { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; padding: 24px 10px; }
+.qz-done .big { font-size: 2.4rem; }
+@media (max-width: 520px) {
+  .qz-modes, .qz-choices { grid-template-columns: 1fr; }
+  .qz-write { flex-direction: column; }
+  .qz-write button { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .qz-fc, .qz-fc.flip, .qz-big i { animation: none; transition: none; } }
+</style>
+<div class="qz-overlay" id="qzRoot" hidden></div>
+<script>
+(function () {
+  const A = (function () {
+  const el = document.getElementById('data'); if (!el) return null;
+  const UN = JSON.parse(el.textContent);
+  const groups = UN.map(U => ({ id: U.u, name: '第 ' + U.u + ' 單元', short: String(U.u) }));
+  const items = [];
+  UN.forEach(U => U.g.forEach((G, gi) => G.w.forEach((W, wi) => {
+    if (W[4]) return;
+    const zh = W[3].map(s => s[1]).filter(Boolean).join('；');
+    if (!/[一-鿿]/.test(zh)) return;
+    const E = G.e.find(E => E[4] === wi && E[2] >= 0);
+    const posList = [...new Set(W[3].map(s => s[0]).filter(Boolean))];
+    let exFront = '', exHi = W[0];
+    if (E) { exHi = E[0].substr(E[2], E[3]); exFront = E[0].slice(0, E[2]) + '_____' + E[0].slice(E[2] + E[3]); }
+    items.push({ id: U.u + '-' + gi + '-' + wi, g: U.u, term: W[0], alts: E ? [exHi] : [], zh, pos: posList.join(' '), kk: W[2] ? '[' + W[2] + ']' : '',
+      exFront, exFull: E ? E[0] : '', exHi, exZh: E ? E[1] : '', note: W[3].map(s => s[2]).filter(Boolean).map(x => '= ' + x).join('；'), head: wi === 0 });
+  })));
+  return { app: 'units', title: '單元單字庫', groupLabel: '單元', groups, items, compactGroups: true, anchor: '#studyBtn',
+    filters: [{ key: 'head', label: '只練主單字（不含衍生字）', fn: it => it.head }] };
+})();
+  if (!A || !A.items || !A.items.length) return;
+  const KEY = 'qz.' + A.app + '.v1';
+  const ROUND = 7;
+  let st = { m: {}, k: [], sel: null, front: 'zh', filt: {} };
+  try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+  if (!Array.isArray(st.sel)) st.sel = [A.groups[0].id];
+  st.sel = st.sel.filter(id => A.groups.some(g => String(g.id) === String(id)));
+  if (!st.sel.length) st.sel = [A.groups[0].id];
+  let known = new Set(st.k);
+  const BY = new Map(A.items.map(it => [it.id, it]));
+
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const root = document.getElementById('qzRoot');
+  const $ = s => root.querySelector(s);
+  const lvl = id => st.m[id] || 0;
+
+  /* ---------- speech ---------- */
+  function say(t) {
+    if (!('speechSynthesis' in window) || !t) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.9;
+      const v = speechSynthesis.getVoices().find(v => /en[-_]US/i.test(v.lang)); if (v) u.voice = v; speechSynthesis.speak(u); } catch (e) {}
+  }
+  const sayBtn = t => `<button type="button" class="qz-say" data-say="${esc(t)}" aria-label="朗讀">🔊</button>`;
+  root.addEventListener('click', e => { const b = e.target.closest('[data-say]'); if (b) { e.stopPropagation(); say(b.dataset.say); } });
+
+  /* ---------- grading ---------- */
+  const norm = s => String(s || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/[.!?。]+$/, '').replace(/\s+/g, ' ').trim();
+  const loose = s => norm(s).replace(/\b(sb|sth|someone|something|one's|oneself|somebody)\b/g, '').replace(/[()]/g, '').replace(/\s+/g, ' ').trim();
+  function answers(it) {
+    const out = new Set();
+    [it.term].concat(it.alts || []).forEach(a => { if (!a) return; String(a).split(/\s*[\/／]\s*/).forEach(p => { out.add(norm(p)); out.add(loose(p)); }); });
+    out.delete(''); return out;
+  }
+  const isRight = (it, ans) => { const set = answers(it); return set.has(norm(ans)) || set.has(loose(ans)); };
+
+  /* ---------- pools ---------- */
+  function poolItems() {
+    const sel = new Set(st.sel.map(String));
+    let p = A.items.filter(it => sel.has(String(it.g)));
+    (A.filters || []).forEach(f => { if (st.filt[f.key]) p = p.filter(f.fn); });
+    return p;
+  }
+  function counts(list) {
+    let m = 0, l = 0; list.forEach(it => { const v = lvl(it.id); if (v >= 2) m++; else if (v === 1) l++; });
+    return { m, l, n: list.length - m - l, t: list.length };
+  }
+
+  /* ---------- shared bits ---------- */
+  function promptHTML(it, opts = {}) {
+    return `<div class="qz-zh">${it.pos ? `<span class="qz-pos">${esc(it.pos)}</span>` : ''}${esc(it.zh)}</div>
+      ${it.exFront ? `<div class="qz-ex">${esc(it.exFront)}</div>` : ''}${opts.groupTag ? `<div class="qz-hint">${esc(groupName(it.g))}</div>` : ''}`;
+  }
+  function answerHTML(it) {
+    return `<div class="qz-term">${esc(it.term)} ${sayBtn(it.term)}</div>${it.kk ? `<div class="qz-kk">${esc(it.kk)}</div>` : ''}`;
+  }
+  function exFullHTML(it) {
+    if (!it.exFull) return '';
+    let html = esc(it.exFull);
+    if (it.exHi) { const i = it.exFull.toLowerCase().indexOf(String(it.exHi).toLowerCase()); if (i >= 0) html = esc(it.exFull.slice(0, i)) + '<b>' + esc(it.exFull.slice(i, i + it.exHi.length)) + '</b>' + esc(it.exFull.slice(i + it.exHi.length)); }
+    return `<div class="qz-ex">${html} ${sayBtn(it.exFull)}</div>${it.exZh ? `<div class="qz-exzh">${esc(it.exZh)}</div>` : ''}`;
+  }
+  const groupName = gid => (A.groups.find(g => String(g.id) === String(gid)) || {}).name || '';
+  function bar(c, extra) {
+    const w = x => (c.t ? (x / c.t) * 100 : 0).toFixed(1) + '%';
+    return `<div class="qz-big"${extra || ''}><i class="m" style="width:${w(c.m)}"></i><i class="l" style="width:${w(c.l)}"></i></div>`;
+  }
+
+  /* ---------- open / close ---------- */
+  let mode = 'home';
+  function open() { root.hidden = false; document.body.classList.add('qz-open'); renderHome(); root.scrollTop = 0; }
+  function close() { root.hidden = true; document.body.classList.remove('qz-open'); mode = 'home'; }
+  const header = (title, back) => `<div class="qz-bar"><h2>${esc(title)}</h2>${back ? `<button class="qz-btn" type="button" id="qzBack">回選單</button>` : ''}<button class="qz-x" type="button" id="qzClose" aria-label="關閉">✕</button></div>`;
+  function wireHeader() {
+    $('#qzClose').onclick = close;
+    const b = $('#qzBack'); if (b) b.onclick = renderHome;
+  }
+
+  /* ---------- home ---------- */
+  let resetArmed = false;
+  function renderHome() {
+    mode = 'home';
+    const pool = poolItems(), c = counts(pool);
+    const compact = !!A.compactGroups;
+    const knownN = pool.filter(it => known.has(it.id)).length;
+    root.innerHTML = `<div class="qz-wrap">${header(A.title + '・單字卡／學習')}
+      <div class="qz-card">
+        <p class="qz-h"><span>選${A.groupLabel}（已選 ${st.sel.length} 個，共 ${pool.length} 字）</span><span class="qz-tools"><button class="qz-link" type="button" id="qzAll">全選</button><button class="qz-link" type="button" id="qzNone">清除</button></span></p>
+        <div class="qz-groups${compact ? ' compact' : ''}">${A.groups.map(g => {
+          const items = A.items.filter(it => String(it.g) === String(g.id)); const gc = counts(items);
+          const on = st.sel.map(String).includes(String(g.id));
+          const w = x => (gc.t ? (x / gc.t) * 100 : 0).toFixed(0) + '%';
+          return `<button type="button" class="qz-g${on ? ' on' : ''}" data-g="${esc(g.id)}" title="${esc(g.name)}（${gc.t} 字，已掌握 ${gc.m}）"><span class="qz-gn">${esc(compact ? (g.short || g.name) : g.name)}</span><span class="qz-mini"><i class="m" style="width:${w(gc.m)}"></i><i class="l" style="width:${w(gc.l)}"></i></span></button>`;
+        }).join('')}</div>
+        ${(A.filters || []).length ? `<div class="qz-opt">${A.filters.map(f => `<label><input type="checkbox" data-filt="${f.key}" ${st.filt[f.key] ? 'checked' : ''}>${esc(f.label)}</label>`).join('')}</div>` : ''}
+      </div>
+      <div class="qz-card">
+        <p class="qz-h"><span>學習進度（已選範圍）</span></p>
+        ${bar(c)}
+        <div class="qz-stat" style="margin-top:10px"><span><i class="qz-dot m"></i>已掌握 <strong>${c.m}</strong></span><span><i class="qz-dot l"></i>學習中 <strong>${c.l}</strong></span><span><i class="qz-dot n"></i>未學 <strong>${c.n}</strong></span><span>單字卡「會了」<strong>${knownN}</strong></span></div>
+      </div>
+      <div class="qz-modes">
+        <button class="qz-mode" type="button" id="qzFlash" ${pool.length ? '' : 'disabled'}><b>單字卡</b><span>看中文和挖空例句，翻面看英文。分成「還在學／會了」，下一輪只練還在學的。</span></button>
+        <button class="qz-mode" type="button" id="qzLearn" ${pool.length ? '' : 'disabled'}><b>學習</b><span>每回合 ${ROUND} 個字：先四選一，答對後改成自己打英文；答錯會再考。</span></button>
+      </div>
+      <div class="qz-opt"><span>單字卡正面</span><span class="qz-seg"><button type="button" data-front="zh" class="${st.front === 'zh' ? 'on' : ''}">中文</button><button type="button" data-front="en" class="${st.front === 'en' ? 'on' : ''}">英文</button></span>
+        <button class="qz-reset" type="button" id="qzReset">${resetArmed ? '確定清除這個範圍的進度？再按一次' : '清除這個範圍的學習進度'}</button></div>
+    </div>`;
+    wireHeader();
+    root.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
+      const id = b.dataset.g, cur = st.sel.map(String);
+      st.sel = cur.includes(id) ? st.sel.filter(x => String(x) !== id) : st.sel.concat([A.groups.find(g => String(g.id) === id).id]);
+      save(); resetArmed = false; renderHome();
+    });
+    $('#qzAll').onclick = () => { st.sel = A.groups.map(g => g.id); save(); renderHome(); };
+    $('#qzNone').onclick = () => { st.sel = []; save(); renderHome(); };
+    root.querySelectorAll('[data-filt]').forEach(cb => cb.onchange = () => { st.filt[cb.dataset.filt] = cb.checked; save(); renderHome(); });
+    root.querySelectorAll('[data-front]').forEach(b => b.onclick = () => { st.front = b.dataset.front; save(); renderHome(); });
+    $('#qzFlash').onclick = () => startFlash();
+    $('#qzLearn').onclick = () => startLearn();
+    $('#qzReset').onclick = () => {
+      if (!resetArmed) { resetArmed = true; renderHome(); return; }
+      poolItems().forEach(it => { delete st.m[it.id]; known.delete(it.id); }); st.k = [...known]; save(); resetArmed = false; renderHome();
+    };
+  }
+
+  /* ---------- flashcards ---------- */
+  let F = null;
+  function startFlash(ids) {
+    const pool = poolItems();
+    if (!ids) {
+      const notKnown = pool.filter(it => !known.has(it.id));
+      ids = shuffle((notKnown.length ? notKnown : pool).map(it => it.id));
+    }
+    F = { deck: ids, i: 0, flipped: false, hist: [], still: [], know: [] };
+    mode = 'flash'; renderFlash();
+  }
+  function flashSort(ok) {
+    if (!F || F.i >= F.deck.length) return;
+    const id = F.deck[F.i];
+    F.hist.push({ i: F.i, id, wasKnown: known.has(id) });
+    if (ok) { known.add(id); F.know.push(id); } else { known.delete(id); F.still.push(id); }
+    st.k = [...known]; save();
+    F.i++; F.flipped = false; renderFlash(ok ? 'k' : 's');
+  }
+  function flashUndo() {
+    const h = F.hist.pop(); if (!h) return;
+    if (h.wasKnown) known.add(h.id); else known.delete(h.id);
+    st.k = [...known]; save();
+    F.still = F.still.filter(x => x !== h.id); F.know = F.know.filter(x => x !== h.id);
+    F.i = h.i; F.flipped = false; renderFlash();
+  }
+  function renderFlash(dir) {
+    if (F.i >= F.deck.length) return renderFlashEnd();
+    const it = BY.get(F.deck[F.i]);
+    const frontEn = st.front === 'en';
+    const showEn = frontEn ? !F.flipped : F.flipped;
+    const extra = `${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}`;
+    const zhOnly = `<div class="qz-zh">${it.pos ? `<span class="qz-pos">${esc(it.pos)}</span>` : ''}${esc(it.zh)}</div>`;
+    let face;
+    if (!frontEn) face = F.flipped ? answerHTML(it) + extra : promptHTML(it);
+    else face = F.flipped ? zhOnly + extra : answerHTML(it);
+    root.innerHTML = `<div class="qz-wrap">${header('單字卡', true)}
+      <div class="qz-top"><span class="qz-count">${F.i + 1} / ${F.deck.length}</span>${bar({ m: F.know.length, l: F.still.length, t: F.deck.length })}${F.hist.length ? '<button class="qz-btn undo" type="button" id="qzUndo">← 上一張</button>' : ''}</div>
+      <div class="qz-tally"><span class="s">還在學 ${F.still.length}</span><span class="k">會了 ${F.know.length}</span></div>
+      <div class="qz-fc${F.flipped ? ' flip' : ''}" id="qzCard" role="button" tabindex="0" aria-label="翻面">
+        <span class="qz-side">${showEn ? 'ENGLISH' : '中文'}</span>${face}
+        ${F.flipped ? '' : `<span class="qz-hint">點卡片翻面</span>`}
+      </div>
+      <div class="qz-sort"><button type="button" class="s" id="qzStill">✗ 還在學</button><button type="button" class="k" id="qzKnow">✓ 會了</button></div>
+      <p class="qz-keys">空白鍵翻面　←／→ 還在學／會了　手機可左右滑動</p>
+    </div>`;
+    wireHeader();
+    const card = $('#qzCard');
+    let sx = null, moved = false;
+    card.onclick = e => { if (e.target.closest('[data-say]') || moved) return; F.flipped = !F.flipped; renderFlash(); };
+    card.addEventListener('touchstart', e => { sx = e.touches[0].clientX; moved = false; }, { passive: true });
+    card.addEventListener('touchmove', e => { if (sx == null) return; const dx = e.touches[0].clientX - sx; if (Math.abs(dx) > 12) { moved = true; card.style.transform = `translateX(${dx}px) rotate(${dx / 30}deg)`; card.classList.toggle('go-k', dx > 60); card.classList.toggle('go-s', dx < -60); } }, { passive: true });
+    card.addEventListener('touchend', e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; card.style.transform = ''; if (dx > 70) flashSort(true); else if (dx < -70) flashSort(false); else setTimeout(() => moved = false, 0); });
+    $('#qzStill').onclick = () => flashSort(false);
+    $('#qzKnow').onclick = () => flashSort(true);
+    const u = $('#qzUndo'); if (u) u.onclick = flashUndo;
+    if (F.flipped && showEn) say(it.term);
+  }
+  function renderFlashEnd() {
+    const still = F.still.slice();
+    root.innerHTML = `<div class="qz-wrap">${header('單字卡', true)}
+      <div class="qz-card qz-done"><div class="big">${still.length ? '👍' : '🎉'}</div>
+        <b>這一輪：會了 ${F.know.length}　還在學 ${still.length}</b>
+        <span class="qz-hint">${still.length ? '下一輪只會出還在學的卡' : '這個範圍的卡全部都會了'}</span></div>
+      ${still.length ? `<div class="qz-card"><p class="qz-h"><span>還在學的字</span></p><ul class="qz-list">${still.map(id => { const it = BY.get(id); return `<li><b>${esc(it.term)}</b><span>${esc(it.zh)}</span></li>`; }).join('')}</ul></div>` : ''}
+      <div class="qz-row">
+        ${still.length ? `<button class="qz-primary" type="button" id="qzMore">繼續練還在學的 ${still.length} 張</button>` : ''}
+        <button class="qz-btn" type="button" id="qzAllAgain">整個範圍重新洗牌</button>
+        <button class="qz-btn" type="button" id="qzToLearn">去學習模式</button>
+      </div>
+      ${F.hist.length ? '<div class="qz-row"><button class="qz-btn undo" type="button" id="qzUndo" style="flex:0">← 回到最後一張</button></div>' : ''}
+    </div>`;
+    wireHeader();
+    const m = $('#qzMore'); if (m) m.onclick = () => startFlash(shuffle(still));
+    $('#qzAllAgain').onclick = () => startFlash(shuffle(poolItems().map(it => it.id)));
+    $('#qzToLearn').onclick = () => startLearn();
+    const u = $('#qzUndo'); if (u) u.onclick = flashUndo;
+  }
+
+  /* ---------- learn ---------- */
+  let L = null;
+  function startLearn() {
+    const pool = poolItems();
+    const learning = shuffle(pool.filter(it => lvl(it.id) === 1));
+    const fresh = shuffle(pool.filter(it => lvl(it.id) === 0));
+    const pick = learning.concat(fresh).slice(0, ROUND).map(it => it.id);
+    mode = 'learn';
+    if (!pick.length) return renderLearnDone();
+    L = { items: pick, queue: shuffle(pick), tries: {}, done: 0, total: pick.length, cur: null, state: 'ask', wrong: new Set(), hint: 0 };
+    nextQ();
+  }
+  function nextQ() {
+    if (!L.queue.length) return renderRoundEnd();
+    L.cur = L.queue.shift(); L.state = 'ask'; L.hint = 0; L.choice = null; L.typed = ''; L.given = '';
+    const it = BY.get(L.cur);
+    L.kind = lvl(L.cur) >= 1 ? 'write' : 'mc';
+    if (L.kind === 'mc') L.opts = buildChoices(it);
+    renderLearn();
+  }
+  function buildChoices(it) {
+    const key = norm(it.term), seen = new Set([key]);
+    const pk = (it.pos || '').replace(/[^a-z]/gi, '').slice(0, 1).toLowerCase();
+    const cands = shuffle(A.items.filter(x => !seen.has(norm(x.term))));
+    const pref = cands.filter(x => (x.pos || '').replace(/[^a-z]/gi, '').slice(0, 1).toLowerCase() === pk && String(x.g) === String(it.g));
+    const pref2 = cands.filter(x => (x.pos || '').replace(/[^a-z]/gi, '').slice(0, 1).toLowerCase() === pk);
+    const out = [];
+    for (const x of pref.concat(pref2, cands)) { const k = norm(x.term); if (seen.has(k)) continue; seen.add(k); out.push(x.term); if (out.length === 3) break; }
+    return shuffle(out.concat([it.term]));
+  }
+  function requeue(id) {
+    L.tries[id] = (L.tries[id] || 0) + 1;
+    if (L.tries[id] <= 2) { const pos = Math.min(L.queue.length, 2 + Math.floor(Math.random() * 2)); L.queue.splice(pos, 0, id); }
+  }
+  function setLvl(id, v) { st.m[id] = v; save(); }
+  function overall() { return counts(poolItems()); }
+  function renderLearn() {
+    const it = BY.get(L.cur);
+    const roundDone = L.items.filter(id => lvl(id) >= 2).length;
+    const c = overall();
+    let body = '';
+    if (L.kind === 'mc') {
+      body = `<div class="qz-qlabel">選出正確的英文</div>
+        <div class="qz-choices">${L.opts.map((o, k) => {
+          let cls = '';
+          if (L.state !== 'ask') { if (norm(o) === norm(it.term)) cls = ' ok'; else if (k === L.choice) cls = ' no'; }
+          return `<button type="button" class="qz-choice${cls}" data-k="${k}" ${L.state !== 'ask' ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`;
+        }).join('')}</div>`;
+    } else {
+      const hintLine = L.hint ? `<div class="qz-hintline">${esc(it.term.split('').map((ch, i) => (i < L.hint || ch === ' ') ? ch : '_').join(' '))}</div>` : '';
+      body = `<div class="qz-qlabel">${L.state === 'retype' ? '把正確答案打一次' : '用英文打出答案'}</div>${hintLine}
+        <form class="qz-write" id="qzForm" autocomplete="off"><input id="qzIn" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${L.state === 'retype' ? esc(it.term) : '輸入英文'}" aria-label="輸入英文答案" ${L.state === 'ok' || L.state === 'no' ? 'readonly' : ''} value="${esc(L.typed)}"><button type="submit">${L.state === 'ask' || L.state === 'retype' ? '送出' : '繼續'}</button></form>
+        ${L.state === 'ask' ? `<div class="qz-sub"><button class="qz-link" type="button" id="qzHint">提示字母</button><button class="qz-link" type="button" id="qzIdk">不知道</button></div>` : ''}`;
+    }
+    let fb = '';
+    if (L.state === 'ok') fb = `<div class="qz-fb ok"><b>答對了！</b>${answerHTML(it).replace('qz-term', 'ans')}${exFullHTML(it)}</div>`;
+    if (L.state === 'no' || L.state === 'retype') fb = `<div class="qz-fb no"><b>${L.kind === 'mc' ? '再想想，正確答案是' : (L.given ? '不太對，正確答案是' : '正確答案是')}</b><div class="ans">${esc(it.term)} ${sayBtn(it.term)}</div>${it.kk ? `<div class="qz-kk">${esc(it.kk)}</div>` : ''}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}${L.kind === 'write' && L.given ? `<div class="qz-hint">你的答案：${esc(L.given)}</div>` : ''}</div>`;
+    let actions = '';
+    if (L.state === 'ok' || L.state === 'no') actions = `<div class="qz-sub"><button class="qz-primary" type="button" id="qzNext" style="flex:0;min-width:120px">繼續</button></div>`;
+    if (L.state === 'retype' && L.given) actions = `<div class="qz-sub"><button class="qz-btn" type="button" id="qzOverride">我其實答對了</button></div>`;
+    root.innerHTML = `<div class="qz-wrap">${header('學習', true)}
+      <div class="qz-top"><span class="qz-count">本回合 ${roundDone} / ${L.total}</span><div class="qz-big"><i class="p" style="width:${(roundDone / L.total * 100).toFixed(1)}%"></i></div></div>
+      <div class="qz-card qz-q">
+        <div class="qz-hint">${L.kind === 'mc' ? '四選一' : '拼寫'}・${esc(groupName(it.g))}</div>
+        ${promptHTML(it)}
+        ${body}
+        ${fb}
+        ${actions}
+      </div>
+      <div class="qz-stat"><span><i class="qz-dot m"></i>已掌握 ${c.m}</span><span><i class="qz-dot l"></i>學習中 ${c.l}</span><span><i class="qz-dot n"></i>未學 ${c.n}</span></div>
+      <p class="qz-keys">${L.kind === 'mc' ? '可按 1–4 作答，Enter 繼續' : 'Enter 送出／繼續'}</p>
+    </div>`;
+    wireHeader();
+    if (L.kind === 'mc' && L.state === 'ask') root.querySelectorAll('[data-k]').forEach(b => b.onclick = () => answerMC(+b.dataset.k));
+    const f = $('#qzForm');
+    if (f) {
+      const inp = $('#qzIn');
+      f.onsubmit = e => { e.preventDefault(); if (L.state === 'ask') answerWrite(inp.value); else if (L.state === 'retype') retype(inp.value); else nextQ(); };
+      if (L.state === 'ask' || L.state === 'retype') { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+      const h = $('#qzHint'); if (h) h.onclick = () => { L.hint = Math.min(L.hint + 1, it.term.length - 1); L.typed = $('#qzIn').value; renderLearn(); };
+      const k = $('#qzIdk'); if (k) k.onclick = () => answerWrite('');
+    }
+    const n = $('#qzNext'); if (n) { n.onclick = nextQ; if (!f || L.state !== 'retype') n.focus(); }
+    const o = $('#qzOverride'); if (o) o.onclick = () => { L.wrong.delete(L.cur); L.queue = L.queue.filter(x => x !== L.cur); setLvl(L.cur, 2); nextQ(); };
+  }
+  function answerMC(k) {
+    const it = BY.get(L.cur);
+    L.choice = k;
+    if (norm(L.opts[k]) === norm(it.term)) {
+      L.state = 'ok'; setLvl(it.id, Math.max(lvl(it.id), 1));
+      requeueOnce(it.id);
+      renderLearn(); say(it.term);
+      clearTimeout(L.t); L.t = setTimeout(() => { if (mode === 'learn' && L.state === 'ok' && L.cur === it.id) nextQ(); }, 1100);
+    } else {
+      L.state = 'no'; L.wrong.add(it.id); requeue(it.id); renderLearn();
+    }
+  }
+  // 選擇題答對後，同一回合稍後改考拼寫
+  function requeueOnce(id) { if (!L.queue.includes(id)) { const pos = Math.min(L.queue.length, 1 + Math.floor(Math.random() * 3)); L.queue.splice(pos, 0, id); } }
+  function answerWrite(v) {
+    const it = BY.get(L.cur);
+    L.typed = v.trim();
+    if (L.typed && isRight(it, L.typed)) {
+      L.state = 'ok'; setLvl(it.id, 2); renderLearn(); say(it.term);
+    } else {
+      L.state = 'retype'; L.given = L.typed; L.wrong.add(it.id); requeue(it.id); L.typed = ''; renderLearn();
+    }
+  }
+  function retype(v) {
+    const it = BY.get(L.cur);
+    if (isRight(it, v)) nextQ();
+    else { const inp = $('#qzIn'); inp.classList.add('no'); inp.value = ''; inp.placeholder = it.term; inp.focus(); }
+  }
+  function renderRoundEnd() {
+    const c = overall();
+    const rows = L.items.map(id => { const it = BY.get(id), v = lvl(id); return `<li><b>${esc(it.term)}</b><span>${esc(it.zh)}</span><span class="r ${v >= 2 ? 'm' : 'l'}">${v >= 2 ? '已掌握' : '學習中'}</span></li>`; }).join('');
+    const left = c.t - c.m;
+    root.innerHTML = `<div class="qz-wrap">${header('學習', true)}
+      <div class="qz-card qz-done"><div class="big">💪</div><b>這回合結束</b><span class="qz-hint">整個範圍：已掌握 ${c.m} / ${c.t}</span>${bar(c, ' style="width:100%"')}</div>
+      <div class="qz-card"><p class="qz-h"><span>這回合的字</span></p><ul class="qz-list">${rows}</ul></div>
+      <div class="qz-row">${left ? '<button class="qz-primary" type="button" id="qzGo">下一回合</button>' : ''}<button class="qz-btn" type="button" id="qzFc">用單字卡複習</button></div>
+    </div>`;
+    wireHeader();
+    const g = $('#qzGo'); if (g) { g.onclick = startLearn; g.focus(); } else renderLearnDone();
+    $('#qzFc').onclick = () => startFlash(shuffle(L.items));
+  }
+  function renderLearnDone() {
+    const pool = poolItems();
+    root.innerHTML = `<div class="qz-wrap">${header('學習', true)}
+      <div class="qz-card qz-done"><div class="big">🎉</div><b>這個範圍的 ${pool.length} 個字全部掌握了</b><span class="qz-hint">可以換別的範圍，或重新學一次加深印象</span></div>
+      <div class="qz-row"><button class="qz-primary" type="button" id="qzAgain">重新學一次</button><button class="qz-btn" type="button" id="qzHome">換範圍</button></div>
+    </div>`;
+    wireHeader();
+    $('#qzAgain').onclick = () => { pool.forEach(it => delete st.m[it.id]); save(); startLearn(); };
+    $('#qzHome').onclick = renderHome;
+  }
+
+  /* ---------- keyboard ---------- */
+  document.addEventListener('keydown', e => {
+    if (root.hidden) return;
+    if (e.key === 'Escape') { close(); return; }
+    const typing = e.target && e.target.tagName === 'INPUT';
+    if (mode === 'flash' && F && F.i < F.deck.length && !typing) {
+      if (e.key === ' ') { e.preventDefault(); F.flipped = !F.flipped; renderFlash(); }
+      else if (e.key === 'ArrowRight') flashSort(true);
+      else if (e.key === 'ArrowLeft') flashSort(false);
+    } else if (mode === 'learn' && L && !typing) {
+      if (L.kind === 'mc' && L.state === 'ask' && /^[1-4]$/.test(e.key)) answerMC(+e.key - 1);
+      else if ((L.state === 'ok' || L.state === 'no') && e.key === 'Enter') { e.preventDefault(); nextQ(); }
+    }
+  });
+
+  /* ---------- entry button ---------- */
+  const anchor = document.querySelector(A.anchor || '.study-toggle-btn');
+  if (anchor) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = (anchor.className || '').replace(/\bactive\b/, '') + ' qz-entry'; b.id = 'qzOpen';
+    b.innerHTML = '<span>單字卡／學習</span><span class="qz-entry-sub">（Quizlet 式）</span>';
+    b.onclick = open;
+    anchor.insertAdjacentElement('afterend', b);
+  }
+  window.QZ = { open };
+})();
+</script>
+
 </body></html>
