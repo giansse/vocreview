@@ -605,12 +605,48 @@ const D = [
   { c:"life", w:"clay", p:"n", zh:"黏土", kk:"/kle/", s:"The children made animals out of ___.", a:"clay", t:"孩子們用黏土捏動物。", n:"feet of clay 致命弱點" },
   { c:"life", w:"canyon", p:"n", zh:"峽谷", kk:"/ˋkænjən/", s:"Taroko Gorge is a famous marble ___ in Taiwan.", a:"canyon", t:"太魯閣是台灣著名的大理石峽谷。", n:"the Grand Canyon 大峽谷" },
 
+  { c:"adj", w:"novel", p:"adj", zh:"新奇的、新穎的", kk:"/ˋnɑvl/", s:"Using drones to deliver pizza is a ___ idea.", a:"novel", t:"用無人機送披薩是個新奇的點子。", n:"a novel idea / approach；名詞 novelty 新奇；跟名詞「小說」同字" },
+  { c:"shift", w:"dump", p:"n", zh:"垃圾場；髒亂的地方", kk:"/dʌmp/", s:"The old quarry was turned into a garbage ___.", a:"dump", t:"那座舊採石場變成了垃圾場。", n:"動詞 dump 是「傾倒、拋棄」；This room is a dump! 這房間亂得像垃圾堆；down in the dumps 心情低落" },
+  { c:"phr", w:"drain A of B", p:"phr", zh:"耗盡 A 的 B；把 B 從 A 抽乾", kk:"/dren/", s:"The three-hour exam ___ her of all her energy.", a:"drained", t:"三小時的考試耗盡了她所有的精力。", n:"of 後面接被抽乾的東西；同句型 rob / deprive A of B；drained（形）筋疲力盡的" },
+  { c:"n2v", w:"chip", p:"v", zh:"削下碎片；碰出缺口", kk:"/tʃɪp/", s:"I ___ my tooth on a piece of hard candy.", a:"chipped", t:"我咬硬糖把牙齒咬缺了一角。", n:"chip a cup / tooth；chip in 湊錢、插話；過去式雙寫 p：chipped" },
+  { c:"life", w:"lane", p:"n", zh:"車道；小巷", kk:"/len/", s:"Stay in your ___ when driving on the highway.", a:"lane", t:"在高速公路上開車要待在自己的車道。", n:"bike lane 自行車道；fast lane 快車道；地址的「巷」也是 Lane" },
+  { c:"n2v", w:"bait", p:"v", zh:"裝誘餌；引誘、故意激怒", kk:"/bet/", s:"He ___ the hook with a worm and cast the line.", a:"baited", t:"他把蚯蚓裝上魚鉤，甩出釣線。", n:"bait a hook / trap；bait sb 故意挑釁某人；名詞 bait 誘餌（clickbait 標題黨）" },
+  { c:"life", w:"bud", p:"n", zh:"芽；花苞", kk:"/bʌd/", s:"The cherry trees are covered in ___ in early spring.", a:"buds", t:"早春時櫻花樹長滿了花苞。", n:"in bud 含苞待放；nip sth in the bud 防患於未然；口語 bud = buddy 老兄" },
+  { c:"noun", w:"bump", p:"n", zh:"（撞出來的）腫塊、腫包", kk:"/bʌmp/", s:"He has a ___ on his head from walking into the door.", a:"bump", t:"他撞到門，頭上腫了一個包。", n:"a bump on the head；動詞 bump into 撞到、巧遇" },
+  { c:"noun", w:"bump", p:"n", zh:"路面的突起；減速丘", kk:"/bʌmp/", s:"Slow down — there's a speed ___ ahead.", a:"bump", t:"慢一點，前面有減速丘。", n:"speed bump 減速丘；bumpy 顛簸的" },
+  { c:"life", w:"porcelain", p:"n", zh:"瓷器；瓷", kk:"/ˋpɔrslɪn/", s:"Grandma keeps her ___ teacups in a glass cabinet.", a:"porcelain", t:"奶奶把她的瓷茶杯收在玻璃櫃裡。", n:"= china（小寫）；pottery 陶器；ceramics 陶瓷" },
+  { c:"verb", w:"chop", p:"v", zh:"剁、切碎；砍", kk:"/tʃɑp/", s:"___ the onions finely before frying them.", a:"Chop", t:"洋蔥先切碎再下鍋炒。", n:"chop up 切碎；chop down a tree 砍樹；三態 chop–chopped–chopped", f:"三態" },
+  { c:"noun", w:"chop", p:"n", zh:"帶骨肉排", kk:"/tʃɑp/", s:"I ordered a pork ___ with rice for lunch.", a:"chop", t:"我午餐點了排骨飯。", n:"pork chop 豬排；lamb chop 羊排" },
+  { c:"life", w:"circus", p:"n", zh:"馬戲團；鬧哄哄的場面", kk:"/ˋsɝkəs/", s:"The kids laughed at the clowns in the ___.", a:"circus", t:"孩子們看馬戲團的小丑看得哈哈大笑。", n:"a media circus 媒體鬧劇" },
+  { c:"n2v", w:"clown", p:"v", zh:"耍寶、胡鬧", kk:"/klaʊn/", s:"Stop ___ around and get back to work!", a:"clowning", t:"別再胡鬧了，回去工作！", n:"clown around 耍寶；class clown 班上的開心果" },
+  { c:"noun", w:"cradle", p:"n", zh:"發源地、搖籃", kk:"/ˋkredl/", s:"Greece is often called the ___ of Western civilization.", a:"cradle", t:"希臘常被稱為西方文明的發源地。", n:"本義「嬰兒搖籃」；from the cradle to the grave 從生到死" },
+  { c:"n2v", w:"cradle", p:"v", zh:"溫柔地抱著、小心捧著", kk:"/ˋkredl/", s:"She ___ the newborn baby in her arms.", a:"cradled", t:"她把新生兒溫柔地抱在懷裡。", n:"cradle sth in one's arms / hands" },
+  { c:"phr", w:"dam up", p:"phr", zh:"築壩攔住；壓抑（情緒）", kk:"/dæm ʌp/", s:"Beavers ___ up the stream with branches and mud.", a:"dam", t:"河狸用樹枝和泥巴把小溪攔起來。", n:"dam 水壩；過去式雙寫 m：dammed；dam up one's feelings 壓抑情緒" },
+  { c:"shift", w:"dampen", p:"v", zh:"澆熄（熱情）、使掃興；弄濕", kk:"/ˋdæmpən/", s:"The heavy rain did not ___ the fans' enthusiasm.", a:"dampen", t:"大雨沒有澆熄球迷的熱情。", n:"dampen sb's spirits / enthusiasm；形容詞 damp 潮濕的" },
+  { c:"life", w:"dime", p:"n", zh:"（美、加）十分硬幣", kk:"/daɪm/", s:"A ___ is worth ten cents.", a:"dime", t:"一枚 dime 值十分錢。", n:"penny 1 分、nickel 5 分、dime 10 分、quarter 25 分；a dime a dozen 多得不稀奇" },
+  { c:"verb", w:"dip", p:"v", zh:"浸、沾一下", kk:"/dɪp/", s:"She ___ the cookie into her milk.", a:"dipped", t:"她把餅乾泡進牛奶裡。", n:"dip A in / into B；三態 dip–dipped–dipped", f:"三態" },
+  { c:"shift", w:"dip", p:"n", zh:"小幅下降；沾醬", kk:"/dɪp/", s:"There was a slight ___ in sales last month.", a:"dip", t:"上個月銷售量小幅下滑。", n:"a dip in prices / temperature；chips and dip 洋芋片配沾醬；go for a dip 去游一下泳" },
+  { c:"life", w:"ditch", p:"n", zh:"水溝、溝渠", kk:"/dɪtʃ/", s:"The car slid off the road into a ___.", a:"ditch", t:"車子滑出路面，掉進水溝。", n:"a last-ditch effort 最後一搏" },
+  { c:"n2v", w:"ditch", p:"v", zh:"（口語）甩掉、拋棄；翹（課）", kk:"/dɪtʃ/", s:"She ___ her boyfriend right before the prom.", a:"ditched", t:"她在畢業舞會前把男友甩了。", n:"ditch class 翹課；ditch a plan 放棄計畫" },
+  { c:"n2v", w:"harbor", p:"v", zh:"懷有（情緒）；窩藏", kk:"/ˋhɑrbɚ/", s:"He still ___ a grudge against his former boss.", a:"harbors", t:"他仍對前老闆懷恨在心。", n:"harbor a grudge / doubts / hope；harbor a criminal 窩藏罪犯" },
+  { c:"n2v", w:"dock", p:"v", zh:"（船）停靠碼頭；扣（薪水）", kk:"/dɑk/", s:"The cruise ship ___ in Keelung this morning.", a:"docked", t:"郵輪今天早上停靠基隆港。", n:"名詞 dock 碼頭；dock sb's pay 扣薪水" },
+  { c:"n2v", w:"fancy", p:"v", zh:"想要；想像", kk:"/ˋfænsɪ/", s:"Do you ___ a cup of tea?", a:"fancy", t:"你想喝杯茶嗎？", n:"fancy + N / V-ing 想要；Fancy meeting you here! 真巧在這裡遇到你；形容詞 fancy 花俏的、高檔的" },
+  { c:"n2v", w:"knot", p:"v", zh:"打結、綁緊", kk:"/nɑt/", s:"He ___ the rope tightly around the post.", a:"knotted", t:"他把繩子在柱子上緊緊打了結。", n:"k 不發音；過去式雙寫 t；tie the knot 結婚；My stomach is in knots. 緊張到胃揪成一團" },
+  { c:"life", w:"collar", p:"n", zh:"衣領；（狗的）項圈", kk:"/ˋkɑlɚ/", s:"The dog wears a red ___ with a name tag.", a:"collar", t:"那隻狗戴著附名牌的紅色項圈。", n:"shirt collar 襯衫領；white-collar / blue-collar 白領／藍領" },
+  { c:"life", w:"parcel", p:"n", zh:"包裹", kk:"/ˋpɑrsl/", s:"The ___ was delivered to the wrong address.", a:"parcel", t:"包裹被送錯地址了。", n:"= package；part and parcel of 不可或缺的一部分" },
+  { c:"life", w:"sack", p:"n", zh:"大布袋、麻袋", kk:"/sæk/", s:"The farmer carried a ___ of potatoes on his back.", a:"sack", t:"農夫背著一大袋馬鈴薯。", n:"a sack of rice / flour；hit the sack 上床睡覺" },
+  { c:"n2v", w:"sack", p:"v", zh:"（口語）開除、解雇", kk:"/sæk/", s:"The company ___ him for being late too often.", a:"sacked", t:"公司因為他太常遲到把他開除了。", n:"= fire；get the sack 被開除" },
+  { c:"noun", w:"slip", p:"n", zh:"小紙條", kk:"/slɪp/", s:"Write your name on a ___ of paper.", a:"slip", t:"在一張小紙條上寫下你的名字。", n:"a slip of paper；pay slip 薪資單" },
+  { c:"noun", w:"slip", p:"n", zh:"小失誤", kk:"/slɪp/", s:"It was just a ___ of the tongue — I didn't mean it.", a:"slip", t:"只是說溜嘴，我不是故意的。", n:"a slip of the tongue 口誤；a slip of the pen 筆誤" },
+  { c:"verb", w:"slip", p:"v", zh:"悄悄放入；溜走", kk:"/slɪp/", s:"She ___ a note into his pocket.", a:"slipped", t:"她偷偷把一張紙條塞進他口袋。", n:"本義滑倒；slip A into B；slip away 溜走；It slipped my mind. 我忘了；三態 slip–slipped–slipped", f:"三態" },
+  { c:"n2v", w:"spy", p:"v", zh:"監視；（突然）看見、瞥見", kk:"/spaɪ/", s:"She ___ a familiar face in the crowd.", a:"spied", t:"她在人群中瞥見一張熟悉的臉。", n:"spy on sb 監視某人；過去式 spied（y→ied）", f:"三態" },
+  { c:"life", w:"stool", p:"n", zh:"凳子（無靠背）", kk:"/stul/", s:"He sat on a bar ___ at the counter.", a:"stool", t:"他坐在吧檯的高腳凳上。", n:"有靠背的是 chair；醫學上 stool 也指糞便" },
   { c:"phr", w:"bleed sb dry", p:"phr", zh:"榨乾某人的錢財、敲竹槓", kk:"/blid ˋsʌmˌbʌdɪ draɪ/", s:"The loan sharks ___ him dry with sky-high interest.", a:"bled", t:"地下錢莊用超高利息把他榨乾。", n:"三態 bleed–bled–bled；bleed sb for money 向某人勒索錢", f:"三態" },
   { c:"phr", w:"be bound for", p:"phr", zh:"開往、前往", kk:"/baʊnd fɔr/", s:"This train is ___ for Kaohsiung.", a:"bound", t:"這班列車開往高雄。", n:"bound for + 地點" }
 ];
 
 const POS = { v:["動詞","pos-v"], n:["名詞","pos-n"], adj:["形容詞","pos-adj"], adv:["副詞","pos-adj"], phr:["片語","pos-phr"] };
-const UPDATED = "2026-10-12";
+const UPDATED = "2026-10-13";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[ch]));
 const exHTML = e => esc(e.s).replace("___", "<b>" + esc(e.a) + "</b>");
