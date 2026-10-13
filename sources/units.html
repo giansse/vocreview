@@ -294,11 +294,12 @@ const PROG_KEY = 'unitvocab.progress.v1', CFG_KEY = 'unitvocab.cfg.v1';
 let progress = {};
 try { progress = JSON.parse(localStorage.getItem(PROG_KEY) || '{}') || {}; } catch (e) { progress = {}; }
 const saveProg = () => { try { localStorage.setItem(PROG_KEY, JSON.stringify(progress)); } catch (e) {} };
-function record(key, ok) {
+function record(key, ok, ms, kind) {
   const p = progress[key] || { c: 0, w: 0 };
-  ok ? p.c++ : p.w++;
+  const cr = ok ? creditFor(ms, kind) : 0;
+  ok ? p.c += cr : p.w++;
   p.last = ok ? 1 : 0;
-  p.s = ok ? (p.s || 0) + 1 : 0;
+  p.s = ok ? (p.s || 0) + cr : 0;
   p.t = Date.now();
   progress[key] = p; saveProg();
 }
@@ -327,6 +328,25 @@ function famBuckets(list, statOf) {
 const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:700">不熟 ${b.weak + b.fresh}</span>${b.fresh ? `（含沒練過的新字 ${b.fresh}）` : ''}・普通 ${b.mid}・<span style="color:var(--qz-good);font-weight:700">熟 ${b.strong}</span>（不熟的字會比較常出現）`;
 
 // 舊紀錄沒有連續答對次數：最後一題答對就當作連續 1 次
+/* ---------- 作答時間：答得慢的字算「比較不熟」 ---------- */
+// fast 以內不扣分；fast→slow 依對數變慢＝越不熟；slow→cap 影響逐漸減小；超過 cap 或中途切走頁面就當作沒在作答，不計時間
+const TIME_RULE = {
+  quick: { fast: 3000, slow: 12000, cap: 60000 },   // 選擇題、單字卡翻面
+  type: { fast: 7000, slow: 25000, cap: 120000 },   // 拼字、填空
+  long: { fast: 15000, slow: 60000, cap: 240000 }   // 整句默寫
+};
+let famAway = false;
+document.addEventListener('visibilitychange', () => { if (document.hidden) famAway = true; });
+function famStart() { famAway = false; return Date.now(); }
+function famElapsed(t0) { return (!t0 || famAway) ? 0 : Date.now() - t0; }
+function slowFactor(ms, kind) {
+  const r = TIME_RULE[kind] || TIME_RULE.quick;
+  if (!ms || ms <= r.fast || ms >= r.cap) return 0;
+  if (ms <= r.slow) return Math.log(ms / r.fast) / Math.log(r.slow / r.fast);   // 越慢越不熟，但增幅遞減
+  return 1 - (ms - r.slow) / (r.cap - r.slow);                                  // 太久可能沒在作答：影響逐漸變小，到 cap 歸零
+}
+// 答對的「得分」：很快答對＝1，很慢才答對最低 0.4
+const creditFor = (ms, kind) => 1 - 0.6 * slowFactor(ms, kind);
 const statOf = it => { const p = progress[it.key]; if (!p) return null; return { c: p.c || 0, w: p.w || 0, s: p.s != null ? p.s : (p.last ? 1 : 0), t: p.t || 0 }; };
 
 /* ---------- speech ---------- */
@@ -574,6 +594,7 @@ function renderQ() {
   if (S.i >= S.items.length) return renderSummary();
   const it = S.items[S.i];
   S.answered = false;
+  S.t0 = famStart(); S.flipMs = 0;
   const v = $('#studyView');
   if (S.mode === 'flash') {
     v.innerHTML = `${topBar()}<div class="card q flash" id="fc" tabindex="0"><div class="q-unit">${unitTag(it)}</div><div class="q-word">${esc(it.w)} ${sayBtn(it.w)}</div>${it.ph ? `<div class="q-ph">[${esc(it.ph)}]</div>` : ''}<div class="q-hint" id="fcHint">點一下卡片或按空白鍵翻面</div><div id="fcBack" hidden>${wordBack(it)}</div></div>
@@ -613,6 +634,7 @@ function renderQ() {
 function flip() {
   const b = $('#fcBack'); if (!b || !b.hidden) return;
   b.hidden = false; $('#fcHint').hidden = true; $('#rate').hidden = false; S.answered = true;
+  if (!S.flipMs) S.flipMs = famElapsed(S.t0);
 }
 const canUndo = () => !!(S && S.mode === 'flash' && S.hist && S.hist.length);
 function undoLast() {
@@ -627,7 +649,7 @@ function rate(r) {
   const it = S.items[S.i];
   S.hist.push({ i: S.i, key: it.key, r, prev: progress[it.key] ? Object.assign({}, progress[it.key]) : null });
   S.rated[r]++;
-  record(it.key, r === 2);
+  record(it.key, r === 2, S.flipMs, 'quick');
   if (r === 2) S.ok++; else S.missed.push(it);
   next();
 }
@@ -663,7 +685,7 @@ function finish(ok, it, inpOrHtml, html, isCloze) {
   S.answered = true;
   inp.classList.add(ok ? 'ok' : 'no'); inp.readOnly = true;
   if (ok) S.ok++; else S.missed.push(it);
-  record(it.key, ok);
+  record(it.key, ok, famElapsed(S.t0), 'type');
   $('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'no'}"><span class="verdict">${ok ? '答對了' : '再記一下'}</span>${html}</div>
     <div class="row-end">${ok ? '' : '<button class="link-btn" type="button" id="override">我其實答對了</button>'}<button class="next-btn" type="button" id="nextBtn">下一題</button></div>`;
   $('#nextBtn').onclick = next;

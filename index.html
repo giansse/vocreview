@@ -768,9 +768,28 @@ try { stats = JSON.parse(localStorage.getItem(STAT_KEY) || "{}") || {}; } catch 
 weak.forEach(k => { if (!stats[k]) stats[k] = { c: 0, w: 1, s: 0, t: 0 }; });
 const saveStats = () => { try { localStorage.setItem(STAT_KEY, JSON.stringify(stats)); } catch (_) {} };
 const statOf = e => stats[wkey(e)];
-function recordStat(e, ok) {
+/* ---------- 作答時間：答得慢的字算「比較不熟」 ---------- */
+// fast 以內不扣分；fast→slow 依對數變慢＝越不熟；slow→cap 影響逐漸減小；超過 cap 或中途切走頁面就當作沒在作答，不計時間
+const TIME_RULE = {
+  quick: { fast: 3000, slow: 12000, cap: 60000 },   // 選擇題、單字卡翻面
+  type: { fast: 7000, slow: 25000, cap: 120000 },   // 拼字、填空
+  long: { fast: 15000, slow: 60000, cap: 240000 }   // 整句默寫
+};
+let famAway = false;
+document.addEventListener('visibilitychange', () => { if (document.hidden) famAway = true; });
+function famStart() { famAway = false; return Date.now(); }
+function famElapsed(t0) { return (!t0 || famAway) ? 0 : Date.now() - t0; }
+function slowFactor(ms, kind) {
+  const r = TIME_RULE[kind] || TIME_RULE.quick;
+  if (!ms || ms <= r.fast || ms >= r.cap) return 0;
+  if (ms <= r.slow) return Math.log(ms / r.fast) / Math.log(r.slow / r.fast);   // 越慢越不熟，但增幅遞減
+  return 1 - (ms - r.slow) / (r.cap - r.slow);                                  // 太久可能沒在作答：影響逐漸變小，到 cap 歸零
+}
+// 答對的「得分」：很快答對＝1，很慢才答對最低 0.4
+const creditFor = (ms, kind) => 1 - 0.6 * slowFactor(ms, kind);
+function recordStat(e, ok, ms, kind) {
   const k = wkey(e), st = stats[k] || { c: 0, w: 0, s: 0, t: 0 };
-  if (ok) { st.c++; st.s++; } else { st.w++; st.s = 0; }
+  if (ok) { const cr = creditFor(ms, kind); st.c += cr; st.s += cr; } else { st.w++; st.s = 0; }
   st.t = Date.now(); stats[k] = st; saveStats();
 }
 
@@ -798,7 +817,7 @@ function flashRate(ok) {
   fc.hist.push({ i: fc.i, key, wasWeak: weak.has(key), prevStat: stats[key] ? Object.assign({}, stats[key]) : null });
   ok ? weak.delete(key) : weak.add(key);
   saveWeak();
-  recordStat(e, ok);
+  recordStat(e, ok, fc.flipMs, 'quick');
   fc.results[fc.i] = ok; fc.i++; fc.flipped = false;
   renderFlash();
 }
@@ -828,7 +847,8 @@ function renderFlash() {
       <button class="rate-btn good" type="button" id="rGood">記得</button>
     </div>` : ""}
   </div>`;
-  if (!fc.flipped) $("#fcCard").onclick = () => { fc.flipped = true; renderFlash(); };
+  if (fc.tIdx !== fc.i) { fc.tIdx = fc.i; fc.t0 = famStart(); fc.flipMs = 0; }
+  if (!fc.flipped) $("#fcCard").onclick = () => { fc.flipMs = famElapsed(fc.t0); fc.flipped = true; renderFlash(); };
   const b = $("#rBad"); if (b) { b.onclick = () => flashRate(false); $("#rGood").onclick = () => flashRate(true); }
   const u = $("#undoBtn"); if (u) u.onclick = flashUndo;
   $("#fcEnd").onclick = () => { fc.cards = fc.cards.slice(0, fc.i); renderFlash(); };
@@ -931,6 +951,7 @@ function renderSingle() {
   const { qs, i } = sg;
   if (i >= qs.length) return renderSingleEnd();
   const it = qs[i], q = it.q, answered = it.pick !== null;
+  if (!answered && !it.t0) it.t0 = famStart();
   const parts = esc(q.s).split("___");
   const gap = answered ? esc(q.a) : "&nbsp;";
   const opts = it.opts.map((o, k) => {
@@ -947,7 +968,7 @@ function renderSingle() {
       <div class="btn-row"><button class="primary-btn" type="button" id="next">${i + 1 < qs.length ? "下一題" : "看結果"}</button></div>` : ""}
     <div class="btn-row"><button class="ghost-btn" type="button" id="toSetup">回設定</button></div>
   </div>`;
-  document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { it.pick = +b.dataset.k; recordStat(it.q, it.opts[it.pick] === it.q.a); renderSingle(); });
+  document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { it.pick = +b.dataset.k; recordStat(it.q, it.opts[it.pick] === it.q.a, famElapsed(it.t0), 'quick'); renderSingle(); });
   const nx = $("#next"); if (nx) nx.onclick = () => { sg.i++; renderSingle(); };
   $("#toSetup").onclick = renderSetup;
 }

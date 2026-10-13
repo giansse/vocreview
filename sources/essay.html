@@ -1588,12 +1588,32 @@ function famBuckets(list, statOf) {
 }
 const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:700">不熟 ${b.weak + b.fresh}</span>${b.fresh ? `（含沒練過的新字 ${b.fresh}）` : ''}・普通 ${b.mid}・<span style="color:var(--qz-good);font-weight:700">熟 ${b.strong}</span>（不熟的字會比較常出現）`;
 
-  // 把原本的熟悉度分級（box / seen / wrong / lastSeen）換算成加權用的格式
+  // 把原本的熟悉度分級（box / seen / wrong / lastSeen）換算成加權用的格式；cr＝考慮作答時間後的答對分數，lastSlow＝上次答對有多慢
   function statOf(card) {
     const p = progress[card.id];
     if (!p || !p.seen) return null;
-    return { c: Math.max(0, (p.seen || 0) - (p.wrong || 0)), w: p.wrong || 0, s: p.box || 0, t: p.lastSeen || 0 };
+    const c = p.cr != null ? p.cr : Math.max(0, (p.seen || 0) - (p.wrong || 0));
+    return { c, w: p.wrong || 0, s: Math.max(0, (p.box || 0) - (p.lastSlow || 0)), t: p.lastSeen || 0 };
   }
+  /* ---------- 作答時間：答得慢的字算「比較不熟」 ---------- */
+  // fast 以內不扣分；fast→slow 依對數變慢＝越不熟；slow→cap 影響逐漸減小；超過 cap 或中途切走頁面就當作沒在作答，不計時間
+  const TIME_RULE = {
+    quick: { fast: 3000, slow: 12000, cap: 60000 },   // 選擇題、單字卡翻面
+    type: { fast: 7000, slow: 25000, cap: 120000 },   // 拼字、填空
+    long: { fast: 15000, slow: 60000, cap: 240000 }   // 整句默寫
+  };
+  let famAway = false;
+  document.addEventListener('visibilitychange', () => { if (document.hidden) famAway = true; });
+  function famStart() { famAway = false; return Date.now(); }
+  function famElapsed(t0) { return (!t0 || famAway) ? 0 : Date.now() - t0; }
+  function slowFactor(ms, kind) {
+    const r = TIME_RULE[kind] || TIME_RULE.quick;
+    if (!ms || ms <= r.fast || ms >= r.cap) return 0;
+    if (ms <= r.slow) return Math.log(ms / r.fast) / Math.log(r.slow / r.fast);   // 越慢越不熟，但增幅遞減
+    return 1 - (ms - r.slow) / (r.cap - r.slow);                                  // 太久可能沒在作答：影響逐漸變小，到 cap 歸零
+  }
+  // 答對的「得分」：很快答對＝1，很慢才答對最低 0.4
+  const creditFor = (ms, kind) => 1 - 0.6 * slowFactor(ms, kind);
 
   // ---------- Mode switch ----------
   let inStudyMode = false;
@@ -1857,6 +1877,17 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
   }
 
   function recordResult(card, correct, box) {
+    const before = progress[card.id] ? Object.assign({}, progress[card.id]) : null;
+    const kind = session.mode === 'dictation' ? 'long' : (session.mode === 'spelling' || session.mode === 'cloze') ? 'type' : 'quick';
+    const ms = session.mode === 'flashcard' ? session.flipMs : famElapsed(session.t0);
+    const sf = correct ? slowFactor(ms, kind) : 0;
+    queueMicrotask(() => {
+      const p = progress[card.id]; if (!p) return;
+      const base = before ? (before.cr != null ? before.cr : Math.max(0, (before.seen || 0) - (before.wrong || 0))) : 0;
+      p.cr = base + (correct ? 1 - 0.6 * sf : 0);
+      p.lastSlow = sf;
+      saveProgress();
+    });
     session.results.push({ card, correct });
     setProg(card.id, box, !correct);
   }
@@ -1886,6 +1917,7 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
 
   function renderDrill() {
     const card = session.cards[session.idx];
+    session.t0 = famStart(); session.flipMs = 0;
     let body = '';
     if (session.mode === 'flashcard') body = flashcardHtml(card);
     else if (session.mode === 'mc') body = mcHtml(card);
@@ -2014,6 +2046,7 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
         if (flipped) return;
         if (e && e.target.closest('.speak-btn')) return; // tapping 🔊 shouldn't flip the card
         flipped = true;
+        session.flipMs = famElapsed(session.t0);
         document.getElementById('fcBack').classList.remove('hidden');
         document.getElementById('rateBtns').classList.remove('hidden');
         document.getElementById('fcHint').textContent = '請選擇熟悉程度';
