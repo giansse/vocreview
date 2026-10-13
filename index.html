@@ -1049,6 +1049,189 @@ function renderSingleEnd() {
   $("#toSetup").onclick = renderSetup;
 }
 
+/* ---------- 學習分析頁 ---------- */
+// cfg: { title, items, statOf(item), resolve(logKey) -> item|null, groupOf(item) -> 分類名, groups: [分類名…], wordOf(item), zhOf(item), anchor }
+function famAnalysisSetup(cfg) {
+  const css = `
+  .fa-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .fa-tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+  .fa-tile b { font-size: 1.45rem; font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1.2; }
+  .fa-tile span { font-size: 0.76rem; color: var(--ink-faint); }
+  .fa-h { margin: 0 0 4px; font-size: 0.98rem; }
+  .fa-sub { margin: 0 0 12px; font-size: 0.78rem; color: var(--ink-faint); }
+  .fa-stack { display: flex; height: 14px; border-radius: 4px; overflow: hidden; gap: 2px; background: var(--surface); }
+  .fa-stack i { display: block; height: 100%; min-width: 0; }
+  .fa-stack .w { background: var(--qz-bad); } .fa-stack .m { background: var(--qz-mid); } .fa-stack .s { background: var(--qz-good); } .fa-stack .n { background: var(--border); }
+  .fa-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.78rem; color: var(--ink-soft); margin-top: 8px; }
+  .fa-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .fa-rows { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; }
+  .fa-row { display: grid; grid-template-columns: minmax(0, 9em) 1fr auto; gap: 10px; align-items: center; font-size: 0.8rem; color: var(--ink-soft); }
+  .fa-row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fa-row .pc { font-variant-numeric: tabular-nums; color: var(--ink-faint); font-size: 0.74rem; }
+  .fa-chart { width: 100%; overflow-x: auto; }
+  .fa-chart svg { display: block; width: 100%; min-width: 300px; height: auto; }
+  .fa-chart .bar { fill: var(--accent); } .fa-chart .bar:hover { fill: var(--accent-strong); }
+  .fa-chart .axis { stroke: var(--border); stroke-width: 1; }
+  .fa-chart text { fill: var(--ink-faint); font-size: 10px; font-family: inherit; }
+  .fa-chart .val { fill: var(--ink-soft); font-size: 10px; }
+  .fa-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .fa-table th { text-align: left; font-weight: 600; color: var(--ink-faint); font-size: 0.72rem; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .fa-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); color: var(--ink-soft); vertical-align: top; }
+  .fa-table td.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .fa-table th.num { text-align: right; }
+  .fa-table td b { color: var(--ink); }
+  .fa-tw { overflow-x: auto; }
+  .fa-empty { color: var(--ink-faint); font-size: 0.85rem; padding: 6px 0; }
+  .fa-pill { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0 7px; border-radius: 999px; }
+  .fa-pill.w { color: var(--qz-bad); background: var(--qz-bad-bg); } .fa-pill.m { color: var(--qz-mid); background: var(--qz-mid-bg); } .fa-pill.s { color: var(--qz-good); background: var(--qz-good-bg); }
+  .fa-entry { margin-top: -6px; }`;
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  const root = document.createElement('div'); root.className = 'qz-overlay'; root.hidden = true; document.body.appendChild(root);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
+  const sec = ms => ms ? (ms / 1000).toFixed(1) + ' 秒' : '—';
+  const median = xs => { if (!xs.length) return 0; const a = xs.slice().sort((x, y) => x - y); return a[Math.floor(a.length / 2)]; };
+  const dayKey = t => { const d = new Date(t); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+  const level = v => v == null ? 'n' : v < 0.35 ? 'w' : v < 0.7 ? 'm' : 's';
+  const LV = { w: '不熟', m: '普通', s: '熟', n: '沒練過' };
+
+  function barChart(data, opt) {   // data: [{label, value, tip}]
+    const W = 600, H = 170, padL = 8, padR = 8, padT = 18, padB = 26;
+    const max = Math.max(1, ...data.map(d => d.value));
+    const bw = (W - padL - padR) / data.length;
+    const bars = data.map((d, i) => {
+      const h = (d.value / max) * (H - padT - padB), x = padL + i * bw + bw * 0.18, w = bw * 0.64, y = H - padB - h;
+      const r = Math.min(4, w / 2, h);
+      const path = h > 0 ? `M${x},${H - padB} V${y + r} Q${x},${y} ${x + r},${y} H${x + w - r} Q${x + w},${y} ${x + w},${y + r} V${H - padB} Z` : '';
+      return `<g><title>${esc(d.tip)}</title>${path ? `<path class="bar" d="${path}"/>` : ''}<rect x="${padL + i * bw}" y="${padT}" width="${bw}" height="${H - padT - padB}" fill="transparent"/>
+        ${opt && opt.showVal && d.value ? `<text class="val" x="${x + w / 2}" y="${y - 4}" text-anchor="middle">${esc(opt.fmt ? opt.fmt(d.value) : d.value)}</text>` : ''}
+        ${(opt && opt.everyLabel) || i % Math.ceil(data.length / 7) === 0 || i === data.length - 1 ? `<text x="${x + w / 2}" y="${H - 8}" text-anchor="middle">${esc(d.label)}</text>` : ''}</g>`;
+    }).join('');
+    return `<div class="fa-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt && opt.aria || '')}"><line class="axis" x1="${padL}" x2="${W - padR}" y1="${H - padB}" y2="${H - padB}"/>${bars}</svg></div>`;
+  }
+  const stack = c => { const t = c.w + c.m + c.s + c.n || 1; return `<div class="fa-stack" title="不熟 ${c.w}・普通 ${c.m}・熟 ${c.s}・沒練過 ${c.n}">${['w', 'm', 's', 'n'].map(k => c[k] ? `<i class="${k}" style="flex:${c[k] / t}"></i>` : '').join('')}</div>`; };
+
+  function render() {
+    const log = (typeof famLog !== 'undefined' ? famLog : []).filter(r => r && r[0]);
+    const items = cfg.items;
+    const now = Date.now();
+    // per-item aggregates from the log
+    const per = new Map();
+    log.forEach(r => {
+      const it = cfg.resolve(r[1]); if (!it) return;
+      let a = per.get(it); if (!a) { a = { n: 0, ok: 0, ms: [], last: 0, seq: [] }; per.set(it, a); }
+      a.n++; if (r[5]) { a.ok++; if (r[4] > 0) a.ms.push(r[4]); } a.last = Math.max(a.last, r[0]); a.seq.push(r);
+    });
+    // levels
+    const lvOf = it => { const s = cfg.statOf(it); return level(s ? famScore(s) : null); };
+    const total = { w: 0, m: 0, s: 0, n: 0 };
+    const byGroup = new Map(cfg.groups.map(g => [g, { w: 0, m: 0, s: 0, n: 0 }]));
+    items.forEach(it => { const l = lvOf(it); total[l]++; const g = byGroup.get(cfg.groupOf(it)); if (g) g[l]++; });
+    // overview
+    const okCount = log.filter(r => r[5]).length;
+    const days = new Set(log.map(r => dayKey(r[0])));
+    let streak = 0; for (let d = 0; d < 400; d++) { if (days.has(dayKey(now - d * 864e5))) streak++; else if (d > 0) break; }
+    const week = log.filter(r => r[0] > now - 7 * 864e5);
+    const quickMs = log.filter(r => r[5] && r[3] === 'quick' && r[4] > 0).map(r => r[4]);
+    const typeMs = log.filter(r => r[5] && r[3] === 'type' && r[4] > 0).map(r => r[4]);
+    // daily (14 days)
+    const daily = [];
+    for (let d = 13; d >= 0; d--) {
+      const k = dayKey(now - d * 864e5), rows = log.filter(r => dayKey(r[0]) === k), dt = new Date(now - d * 864e5);
+      daily.push({ label: (dt.getMonth() + 1) + '/' + dt.getDate(), value: rows.length, tip: `${dt.getMonth() + 1}/${dt.getDate()}：${rows.length} 題，正確率 ${pct(rows.filter(r => r[5]).length, rows.length)}` });
+    }
+    // forgetting: accuracy of a word vs gap since its previous answer
+    const GAPS = [['同一天', 0, 1], ['隔 1 天', 1, 2], ['隔 2–3 天', 2, 4], ['隔 4–7 天', 4, 8], ['隔 8 天以上', 8, 1e9]];
+    const gapAgg = GAPS.map(() => ({ n: 0, ok: 0 }));
+    per.forEach(a => { const s = a.seq.slice().sort((x, y) => x[0] - y[0]); for (let i = 1; i < s.length; i++) { const g = (s[i][0] - s[i - 1][0]) / 864e5; const b = GAPS.findIndex(x => g >= x[1] && g < x[2]); if (b >= 0) { gapAgg[b].n++; gapAgg[b].ok += s[i][5]; } } });
+    // time of day
+    const SLOTS = [['早上 5–11 點', 5, 12], ['下午 12–17 點', 12, 18], ['晚上 18–22 點', 18, 23], ['深夜 23–4 點', 23, 29]];
+    const slot = SLOTS.map(s => { const rows = log.filter(r => { let h = new Date(r[0]).getHours(); if (h < 5) h += 24; return h >= s[1] && h < s[2]; }); return { name: s[0], n: rows.length, acc: pct(rows.filter(r => r[5]).length, rows.length), med: median(rows.filter(r => r[5] && r[4] > 0).map(r => r[4])) }; });
+    // weakest & slowest
+    const practiced = [...per.keys()];
+    const weakest = practiced.map(it => ({ it, v: famScore(cfg.statOf(it)), a: per.get(it) })).filter(x => x.a.n - x.a.ok > 0 || (x.v != null && x.v < 0.35))
+      .sort((x, y) => (x.v ?? 0) - (y.v ?? 0) || (y.a.n - y.a.ok) - (x.a.n - x.a.ok)).slice(0, 15);
+    const slowest = practiced.map(it => ({ it, a: per.get(it) })).filter(x => x.a.ms.length >= 2).map(x => ({ ...x, m: median(x.a.ms) })).sort((x, y) => y.m - x.m).slice(0, 10);
+    const cal = typeof FAM_CAL !== 'undefined' ? FAM_CAL : {};
+
+    root.innerHTML = `<div class="qz-wrap" style="max-width:860px">
+      <div class="qz-bar"><h2>${esc(cfg.title)}・學習分析</h2><button class="qz-x" type="button" id="faClose" aria-label="關閉">✕</button></div>
+      <p class="fa-sub" style="margin:-6px 0 0">根據這台裝置上原本測驗模式的作答紀錄（${log.length} 筆）。Quizlet 式單字卡／學習不在統計內。</p>
+      <div class="fa-tiles">
+        <div class="fa-tile"><b>${items.length - total.n} / ${items.length}</b><span>練過的字</span></div>
+        <div class="fa-tile"><b>${log.length}</b><span>總作答題數（近 7 天 ${week.length}）</span></div>
+        <div class="fa-tile"><b>${pct(okCount, log.length)}</b><span>整體正確率</span></div>
+        <div class="fa-tile"><b>${streak} 天</b><span>連續練習天數（共 ${days.size} 天有練）</span></div>
+        <div class="fa-tile"><b>${sec(median(quickMs))}</b><span>選擇題／翻卡答對的中位時間</span></div>
+        <div class="fa-tile"><b>${sec(median(typeMs))}</b><span>拼字／填空答對的中位時間</span></div>
+      </div>
+
+      <div class="qz-card">
+        <h3 class="fa-h">熟練度分布</h3><p class="fa-sub">整個單字庫目前的狀態。新字算在「不熟」裡出題，這裡分開標出來。</p>
+        ${stack(total)}
+        <div class="fa-legend"><span><i style="background:var(--qz-bad)"></i>不熟 ${total.w}</span><span><i style="background:var(--qz-mid)"></i>普通 ${total.m}</span><span><i style="background:var(--qz-good)"></i>熟 ${total.s}</span><span><i style="background:var(--border)"></i>沒練過 ${total.n}</span></div>
+        <h3 class="fa-h" style="margin-top:18px">各${esc(cfg.groupLabel || '分類')}</h3>
+        <div class="fa-rows">${cfg.groups.map(g => { const c = byGroup.get(g); const t = c.w + c.m + c.s + c.n; if (!t) return ''; return `<div class="fa-row"><span class="nm" title="${esc(g)}">${esc(g)}</span>${stack(c)}<span class="pc">熟 ${pct(c.s, t)}</span></div>`; }).join('')}</div>
+      </div>
+
+      <div class="qz-card">
+        <h3 class="fa-h">近 14 天練習量</h3><p class="fa-sub">每天作答題數，滑過長條看當天正確率。</p>
+        ${log.length ? barChart(daily, { aria: '近 14 天每日作答題數' }) : '<p class="fa-empty">還沒有作答紀錄。</p>'}
+      </div>
+
+      <div class="qz-card">
+        <h3 class="fa-h">遺忘曲線</h3><p class="fa-sub">同一個字隔多久再考、答對的比例。資料累積一兩週後比較準；括號是樣本數。</p>
+        ${gapAgg.some(g => g.n) ? barChart(GAPS.map((g, i) => ({ label: g[0] + '（' + gapAgg[i].n + '）', value: gapAgg[i].n ? Math.round(gapAgg[i].ok / gapAgg[i].n * 100) : 0, tip: `${g[0]}：${gapAgg[i].n} 次，答對 ${pct(gapAgg[i].ok, gapAgg[i].n)}` })), { showVal: true, everyLabel: true, fmt: v => v + '%', aria: '依間隔天數的答對率' }) : '<p class="fa-empty">同一個字要被考過兩次以上才算得出來。</p>'}
+      </div>
+
+      <div class="qz-card">
+        <h3 class="fa-h">最需要加強的字</h3><p class="fa-sub">答錯過或目前熟練度最低的字。</p>
+        ${weakest.length ? `<div class="fa-tw"><table class="fa-table"><thead><tr><th>單字</th><th>意思</th><th>狀態</th><th class="num">對／錯</th><th class="num">答對時間</th></tr></thead><tbody>
+          ${weakest.map(x => { const l = level(x.v); return `<tr><td><b>${esc(cfg.wordOf(x.it))}</b></td><td>${esc(cfg.zhOf(x.it))}</td><td><span class="fa-pill ${l}">${LV[l]}</span></td><td class="num">${x.a.ok}／${x.a.n - x.a.ok}</td><td class="num">${sec(median(x.a.ms))}</td></tr>`; }).join('')}
+        </tbody></table></div>` : '<p class="fa-empty">目前沒有答錯過的字。</p>'}
+      </div>
+
+      <div class="qz-card">
+        <h3 class="fa-h">答得最慢的字</h3><p class="fa-sub">答對但花最久的字（至少答對 2 次）。慢代表還要想一下，常常是下一個會忘的。</p>
+        ${slowest.length ? `<div class="fa-tw"><table class="fa-table"><thead><tr><th>單字</th><th>意思</th><th class="num">答對中位時間</th><th class="num">作答次數</th></tr></thead><tbody>
+          ${slowest.map(x => `<tr><td><b>${esc(cfg.wordOf(x.it))}</b></td><td>${esc(cfg.zhOf(x.it))}</td><td class="num">${sec(x.m)}</td><td class="num">${x.a.n}</td></tr>`).join('')}
+        </tbody></table></div>` : '<p class="fa-empty">資料還不夠。</p>'}
+      </div>
+
+      <div class="qz-card">
+        <h3 class="fa-h">什麼時段練習效果比較好</h3>
+        <div class="fa-tw"><table class="fa-table"><thead><tr><th>時段</th><th class="num">題數</th><th class="num">正確率</th><th class="num">答對中位時間</th></tr></thead><tbody>
+          ${slot.map(s => `<tr><td>${s.name}</td><td class="num">${s.n}</td><td class="num">${s.acc}</td><td class="num">${sec(s.med)}</td></tr>`).join('')}
+        </tbody></table></div>
+      </div>
+
+      <div class="qz-card">
+        <h3 class="fa-h">快／慢的判斷標準</h3><p class="fa-sub">同類題目答對 60 次以上，就改用你自己的速度分布。</p>
+        <div class="fa-tw"><table class="fa-table"><thead><tr><th>題型</th><th>目前使用</th><th class="num">不扣分</th><th class="num">扣最多</th><th class="num">閘門</th></tr></thead><tbody>
+          ${[['quick', '選擇題、翻卡'], ['type', '拼字、填空'], ['long', '整句默寫']].map(([k, n]) => { const r = cal[k] || TIME_RULE[k]; return `<tr><td>${n}</td><td>${cal[k] ? `個人化（${cal[k].n} 筆）` : '預設'}</td><td class="num">${sec(r.fast)} 內</td><td class="num">${sec(r.slow)}</td><td class="num">${sec(r.cap)}</td></tr>`; }).join('')}
+        </tbody></table></div>
+        <div style="margin-top:12px">${famExportHTML()}</div>
+      </div>
+    </div>`;
+    root.querySelector('#faClose').onclick = close;
+    famWireExport();
+  }
+  function open() { render(); root.hidden = false; document.body.classList.add('qz-open'); root.scrollTop = 0; }
+  function close() { root.hidden = true; document.body.classList.remove('qz-open'); }
+  document.addEventListener('keydown', e => { if (!root.hidden && e.key === 'Escape') close(); });
+  const anchor = document.querySelector(cfg.anchor || '.study-toggle-btn');
+  if (anchor) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = (anchor.className || '').replace(/\bactive\b/, '') + ' fa-entry'; b.id = 'faOpen';
+    b.textContent = '學習分析'; b.onclick = open; anchor.insertAdjacentElement('afterend', b);
+  }
+  return { open };
+}
+
+const _faMap = new Map(D.map(e => [wkey(e), e]));
+famAnalysisSetup({ title: '4500 多義', items: D, statOf, resolve: k => _faMap.get(k) || null,
+  groupOf: e => (CATS.find(c => c.id === e.c) || {}).name, groups: CATS.map(c => c.name), groupLabel: '分類',
+  wordOf: e => e.w, zhOf: e => e.zh, anchor: '#studyToggle' });
+
 renderList();
 </script>
 <script>
