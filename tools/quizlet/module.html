@@ -388,7 +388,7 @@ body.qz-open { overflow: hidden; }
     for (const x of pref.concat(pref2, cands)) { const k = norm(x.term); if (seen.has(k)) continue; seen.add(k); out.push(x.term); if (out.length === 3) break; }
     return shuffle(out.concat([it.term]));
   }
-  function setLvl(id, v) { st.m[id] = v; save(); }
+  function setLvl(id, v) { st.m[id] = v; st.mt = st.mt || {}; st.mt[id] = Date.now(); save(); }
   function overall() { return counts(poolItems()); }
   function renderLearn() {
     const it = BY.get(L.cur);

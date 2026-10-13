@@ -398,7 +398,20 @@ function famWireExport() {
   };
 }
 
-const statOf = it => { const p = progress[it.key]; if (!p) return null; return { c: p.c || 0, w: p.w || 0, s: p.s != null ? p.s : (p.last ? 1 : 0), t: p.t || 0 }; };
+const QZ_STORE_KEY = 'qz.units.v1';
+/* ---------- 學習模式（Quizlet 式）學過的字：測驗模式的起點比較高 ---------- */
+// 只在這個字還沒有測驗紀錄時使用；學習模式選擇題答對＝像慢慢答對一次，拼寫也答對（已掌握）＝像答對一次半
+let _lq = null, _lqT = 0;
+function learnStore() {
+  if (!_lq || Date.now() - _lqT > 2000) { try { _lq = JSON.parse(localStorage.getItem(QZ_STORE_KEY) || '{}') || {}; } catch (e) { _lq = {}; } _lqT = Date.now(); }
+  return _lq;
+}
+function learnPrior(level, t) {
+  if (level >= 2) return { c: 1.5, w: 0, s: 1.5, t: t || 0, prior: 1 };
+  if (level === 1) return { c: 0.6, w: 0, s: 0.6, t: t || 0, prior: 1 };
+  return null;
+}
+const statOf = it => { const p = progress[it.key]; if (!p) { const q = learnStore(), k = it.wi != null ? `${it.u}-${it.gi}-${it.wi}` : it.key; return learnPrior(q.m && q.m[k], q.mt && q.mt[k]); } return { c: p.c || 0, w: p.w || 0, s: p.s != null ? p.s : (p.last ? 1 : 0), t: p.t || 0 }; };
 
 /* ---------- speech ---------- */
 let voices = [];
@@ -1216,7 +1229,7 @@ body.qz-open { overflow: hidden; }
     for (const x of pref.concat(pref2, cands)) { const k = norm(x.term); if (seen.has(k)) continue; seen.add(k); out.push(x.term); if (out.length === 3) break; }
     return shuffle(out.concat([it.term]));
   }
-  function setLvl(id, v) { st.m[id] = v; save(); }
+  function setLvl(id, v) { st.m[id] = v; st.mt = st.mt || {}; st.mt[id] = Date.now(); save(); }
   function overall() { return counts(poolItems()); }
   function renderLearn() {
     const it = BY.get(L.cur);
