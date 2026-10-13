@@ -1027,7 +1027,7 @@ function renderSingle() {
     <div class="progress-bar"><span style="width:${(i / qs.length) * 100}%"></span></div>
     <p class="q-sentence">${parts[0]}<span class="gap">${gap}</span>${parts[1] || ""}</p>
     <div class="q-opts">${opts}</div>
-    ${answered ? `<div class="feedback"><span class="fb-word">${esc(q.w)}</span>　${POS[q.p][0]}　${esc(q.kk)}<br>${esc(q.zh)}｜${esc(q.t)}<br>${esc(q.n)}</div>${it.opts[it.pick] !== q.a ? wdFor(it.opts[it.pick], "你選的") : ""}
+    ${answered ? `<div class="feedback"><span class="fb-word">${esc(q.w)}</span>　${POS[q.p][0]}　${esc(q.kk)}<br>${esc(q.zh)}<br><span style="color:var(--ink)">整句：${esc(q.t)}</span><br>${esc(q.n)}</div>${it.opts[it.pick] !== q.a ? wdFor(it.opts[it.pick], "你選的") : ""}
       <div class="btn-row"><button class="primary-btn" type="button" id="next">${i + 1 < qs.length ? "下一題" : "看結果"}</button></div>` : ""}
     <div class="btn-row"><button class="ghost-btn" type="button" id="toSetup">回設定</button></div>
   </div>`;

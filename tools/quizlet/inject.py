@@ -29,11 +29,11 @@ ESSAY = r"""function () {
   }
   const items = [];
   d.categories.forEach((c, i) => (c.rows || []).forEach(r => {
-    const [word, kk, pos, zh, ex, colloc] = r;
+    const [word, kk, pos, zh, ex, colloc, exZh] = r;
     if (!word || !zh) return;
     const b = blank(word, ex);
     items.push({ id: word + '|' + zh, g: 'c' + i, term: word, alts: b ? [b.hit] : [], zh, pos: pos === 'phrase' ? '片語' : pos, kk: kk && kk !== '—' ? kk : '',
-      exFront: b ? b.front : '', exFull: ex || '', exHi: b ? b.hit : word, exZh: '', note: colloc || '' });
+      exFront: b ? b.front : '', exFull: ex || '', exHi: b ? b.hit : word, exZh: exZh || '', note: colloc || '' });
   }));
   return { app: 'essay', title: '作文單字庫', groupLabel: '分類', groups, items, anchor: '#studyModeBtn' };
 }"""
