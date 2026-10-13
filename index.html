@@ -814,11 +814,13 @@ try { famLog = JSON.parse(localStorage.getItem(FAM_LOG_KEY) || '[]') || []; } ca
 let FAM_CAL = {};
 function famPct(sorted, p) { if (!sorted.length) return 0; const i = Math.min(sorted.length - 1, Math.max(0, Math.round(p * (sorted.length - 1)))); return sorted[i]; }
 // 個人化標準：同一類題目答對 60 次以上才啟用。fast＝你答對時間的第 35 百分位、slow＝第 85 百分位、閘門＝第 99 百分位的 1.5 倍（至少是預設閘門的一半）
+const FAM_BROWSE = new Set(['flash', 'flashcard']);   // 單字卡＝瀏覽：只算熟悉度，不算答對率
+const famIsQuiz = r => !FAM_BROWSE.has(r[2]);
 function famCalibrate() {
   FAM_CAL = {};
   Object.keys(TIME_RULE).forEach(kind => {
     const d = TIME_RULE[kind];
-    const xs = famLog.filter(r => r[3] === kind && r[5] === 1 && r[4] > 300 && r[4] < d.cap * 2).map(r => r[4]).sort((a, b) => a - b);
+    const xs = famLog.filter(r => famIsQuiz(r) && r[3] === kind && r[5] === 1 && r[4] > 300 && r[4] < d.cap * 2).map(r => r[4]).sort((a, b) => a - b);
     if (xs.length < 60) return;
     const fast = Math.max(1000, famPct(xs, 0.35));
     const slow = Math.max(fast * 1.8, famPct(xs, 0.85));
@@ -832,7 +834,7 @@ function famRecord(key, mode, kind, ms, ok) {
   if (famLog.length > FAM_MAX) famLog = famLog.slice(-FAM_MAX);
   try { localStorage.setItem(FAM_LOG_KEY, JSON.stringify(famLog)); } catch (e) {}
   if (famLog.length % 20 === 0) famCalibrate();
-  if (window.famCheer) { if (ok) famCheer.hit(); else famCheer.miss(); }   // 答對回饋
+  if (window.famCheer && !FAM_BROWSE.has(mode)) { if (ok) famCheer.hit(); else famCheer.miss(); }   // 答對回饋
 }
 const famExportHTML = () => `<button type="button" id="famExport" style="margin-top:10px;font:inherit;font-size:0.76rem;color:var(--accent);background:none;border:1px solid var(--border);border-radius:999px;padding:4px 12px;cursor:pointer">匯出答題紀錄給 Claude 分析（${famLog.length} 筆）</button>`;
 function famWireExport() {
@@ -1126,7 +1128,8 @@ function famAnalysisSetup(cfg) {
   const stack = c => { const t = c.w + c.m + c.s + c.n || 1; return `<div class="fa-stack" title="不熟 ${c.w}・普通 ${c.m}・熟 ${c.s}・沒練過 ${c.n}">${['w', 'm', 's', 'n'].map(k => c[k] ? `<i class="${k}" style="flex:${c[k] / t}"></i>` : '').join('')}</div>`; };
 
   function render() {
-    const log = (typeof famLog !== 'undefined' ? famLog : []).filter(r => r && r[0]);
+    const allLog = (typeof famLog !== 'undefined' ? famLog : []).filter(r => r && r[0]);
+    const log = allLog.filter(famIsQuiz), flipN = allLog.length - log.length;   // 單字卡翻閱不算作答
     const items = cfg.items;
     const now = Date.now();
     // per-item aggregates from the log
@@ -1170,13 +1173,13 @@ function famAnalysisSetup(cfg) {
 
     root.innerHTML = `<div class="qz-wrap" style="max-width:860px">
       <div class="qz-bar"><h2>${esc(cfg.title)}・學習分析</h2><button class="qz-x" type="button" id="faClose" aria-label="關閉">✕</button></div>
-      <p class="fa-sub" style="margin:-6px 0 0">根據這台裝置上原本測驗模式的作答紀錄（${log.length} 筆）。Quizlet 式單字卡／學習不在統計內。</p>
+      <p class="fa-sub" style="margin:-6px 0 0">根據這台裝置上原本測驗模式的作答紀錄（${log.length} 筆）。單字卡只算熟悉度、不算答對率${flipN ? `（翻閱過 ${flipN} 張）` : ''}；Quizlet 式單字卡／學習不在統計內。</p>
       <div class="fa-tiles">
         <div class="fa-tile"><b>${items.length - total.n} / ${items.length}</b><span>練過的字</span></div>
         <div class="fa-tile"><b>${log.length}</b><span>總作答題數（近 7 天 ${week.length}）</span></div>
         <div class="fa-tile"><b>${pct(okCount, log.length)}</b><span>整體正確率</span></div>
         <div class="fa-tile"><b>${streak} 天</b><span>連續練習天數（共 ${days.size} 天有練）</span></div>
-        <div class="fa-tile"><b>${sec(median(quickMs))}</b><span>選擇題／翻卡答對的中位時間</span></div>
+        <div class="fa-tile"><b>${sec(median(quickMs))}</b><span>選擇題答對的中位時間</span></div>
         <div class="fa-tile"><b>${sec(median(typeMs))}</b><span>拼字／填空答對的中位時間</span></div>
       </div>
 
@@ -1267,8 +1270,9 @@ function famBadgeSetup(cfg) {
     const p = Math.round(v * 100);
     let a;
     if (acc && acc.n) a = `答對率 ${Math.round(acc.ok / acc.n * 100)}%（${acc.ok}/${acc.n}）`;
+    else if (acc && acc.fl) a = `單字卡看過 ${acc.fl} 次`;
     else if (s.prior) a = '學習模式學過';
-    else { const n = (s.c || 0) + (s.w || 0); a = n ? `答對率 ${Math.round((s.c || 0) / n * 100)}%` : ''; }
+    else a = '';
     return { l, h: `<span class="fb-bar"><i style="width:${Math.max(4, p)}%"></i></span>熟悉度 <b>${p}%</b>${a ? '・' + a : ''}` };
   }
   let sig = '';
@@ -1286,7 +1290,8 @@ function famBadgeSetup(cfg) {
     const per = new Map();
     (typeof famLog !== 'undefined' ? famLog : []).forEach(r => {
       const it = r && cfg.resolve(r[1]); if (!it) return;
-      let a = per.get(it); if (!a) { a = { n: 0, ok: 0 }; per.set(it, a); }
+      let a = per.get(it); if (!a) { a = { n: 0, ok: 0, fl: 0 }; per.set(it, a); }
+      if (!famIsQuiz(r)) { a.fl++; return; }   // 單字卡翻閱不算答對率
       a.n++; if (r[5]) a.ok++;
     });
     slots.forEach(([el, item]) => {
@@ -1748,7 +1753,6 @@ body.qz-open { overflow: hidden; }
     if (ok) { known.add(id); F.know.push(id); } else { known.delete(id); F.still.push(id); }
     st.k = [...known]; save();
     F.i++; F.flipped = false; renderFlash(ok ? 'k' : 's');
-    if (ok) famCheer.hit(root.querySelector('.qz-fc')); else famCheer.miss();
   }
   function flashUndo() {
     const h = F.hist.pop(); if (!h) return;

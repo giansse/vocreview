@@ -409,7 +409,6 @@ body.qz-open { overflow: hidden; }
     if (ok) { known.add(id); F.know.push(id); } else { known.delete(id); F.still.push(id); }
     st.k = [...known]; save();
     F.i++; F.flipped = false; renderFlash(ok ? 'k' : 's');
-    if (ok) famCheer.hit(root.querySelector('.qz-fc')); else famCheer.miss();
   }
   function flashUndo() {
     const h = F.hist.pop(); if (!h) return;
