@@ -322,7 +322,7 @@ function famScore(st) {
   v *= Math.pow(0.5, days / halfLife);
   return Math.max(0, Math.min(1, v));
 }
-function famWeight(st) { const v = famScore(st); return 0.06 + Math.pow(1 - (v == null ? 0.4 : v), 1.5); }
+function famWeight(st) { const v = famScore(st); return 0.06 + Math.pow(1 - (v == null ? 0 : v), 1.5); }
 function weightedOrder(list, statOf) {
   return list.map(x => ({ x, k: Math.pow(Math.random(), 1 / famWeight(statOf(x))) }))
     .sort((a, b) => b.k - a.k).map(o => o.x);
@@ -332,7 +332,7 @@ function famBuckets(list, statOf) {
   list.forEach(x => { const v = famScore(statOf(x)); if (v == null) b.fresh++; else if (v < 0.35) b.weak++; else if (v < 0.7) b.mid++; else b.strong++; });
   return b;
 }
-const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:700">不熟 ${b.weak}</span>・普通 ${b.mid}・<span style="color:var(--qz-good);font-weight:700">熟 ${b.strong}</span>・沒練過 ${b.fresh}（不熟的字會比較常出現）`;
+const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:700">不熟 ${b.weak + b.fresh}</span>${b.fresh ? `（含沒練過的新字 ${b.fresh}）` : ''}・普通 ${b.mid}・<span style="color:var(--qz-good);font-weight:700">熟 ${b.strong}</span>（不熟的字會比較常出現）`;
 
 // 舊紀錄沒有連續答對次數：最後一題答對就當作連續 1 次
 const statOf = it => { const p = progress[it.key]; if (!p) return null; return { c: p.c || 0, w: p.w || 0, s: p.s != null ? p.s : (p.last ? 1 : 0), t: p.t || 0 }; };
