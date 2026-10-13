@@ -28,7 +28,7 @@
 
 ## 注意
 
-- 三份 artifact 都內嵌了「單字卡／學習（Quizlet 式）」模組（`<style id="qz-style">` 到 `window.QZ = { open };` 那段）。改 artifact 時保留它；要更新模組本身，改 `tools/quizlet/module.html`，再用 `python3 tools/quizlet/inject.py <4500|essay|units> <來源.html> <輸出.html>` 重新注入（會先移除舊的那段），發布 artifact 後照上面流程同步。
+- 三份 artifact 都內嵌了「單字卡／學習（Quizlet 式）」模組（`<style id="qz-style">` 到 `window.QZ = {…};` 那段）。改 artifact 時保留它；要更新模組本身，改 `tools/quizlet/module.html`，再用 `python3 tools/quizlet/inject.py <4500|essay|units> <來源.html> <輸出.html>` 重新注入（會先移除舊的那段），發布 artifact 後照上面流程同步。
 
 - `sources/*.html` 必須是完整 HTML（有 `</head>` 和 `</body>`）；用 `path: "index.html"` 讀出來的就是。`build.py` 遇到不完整的檔案會直接停下。
 - 新增 app：在 `tools/build.py` 的 `APPS` 加一筆，建立資料夾、`manifest.webmanifest` 和三個 icon（180 / 192 / 512 px），再把網址補進 README 和上表。

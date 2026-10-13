@@ -65,7 +65,7 @@ def inject(path, adapter, out):
     # remove an older injected copy if present
     a = s.find('<style id="qz-style">')
     if a >= 0:
-        b = s.find('window.QZ = { open };', a); b = s.find('</script>', b) + len('</script>')
+        b = s.find('window.QZ = {', a); b = s.find('</script>', b) + len('</script>')
         s = s[:a] + s[b:].lstrip('\n')
     i = s.rfind('</body>')
     s = (s[:i] + mod + '\n' + s[i:]) if i >= 0 else (s.rstrip() + '\n' + mod)

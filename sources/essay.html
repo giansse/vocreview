@@ -2391,8 +2391,20 @@ body.qz-open { overflow: hidden; }
   }
 
   /* ---------- shared bits ---------- */
+  // 把中文解釋裡會洩漏答案的英文（例如「（a great deal of）」）遮成 ＿＿
+  const STOP = new Set(['to', 'of', 'the', 'a', 'an', 'in', 'on', 'at', 'for', 'by', 'up', 'off', 'out', 'be', 'is', 'sb', 'sth', 'one', "one's", 'oneself', 'and', 'or', 'with', 'from', 'into', 'as', 'it', 'do']);
+  function maskZh(it) {
+    const words = new Set();
+    [it.term].concat(it.alts || []).forEach(t => String(t || '').toLowerCase().split(/[^a-z']+/).forEach(w => { if (w.length >= 3 && !STOP.has(w)) words.add(w); }));
+    let zh = String(it.zh || '');
+    words.forEach(w => {
+      const stem = w.length > 4 ? w.replace(/(e|y|ed|ing|s)$/, '') : w;
+      zh = zh.replace(new RegExp('\\b' + stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "[a-z']*", 'gi'), '＿＿');
+    });
+    return zh;
+  }
   function promptHTML(it, opts = {}) {
-    return `<div class="qz-zh">${it.pos ? `<span class="qz-pos">${esc(it.pos)}</span>` : ''}${esc(it.zh)}</div>
+    return `<div class="qz-zh">${it.pos ? `<span class="qz-pos">${esc(it.pos)}</span>` : ''}${esc(maskZh(it))}</div>
       ${it.exFront ? `<div class="qz-ex">${esc(it.exFront)}</div>` : ''}${opts.groupTag ? `<div class="qz-hint">${esc(groupName(it.g))}</div>` : ''}`;
   }
   function answerHTML(it) {
@@ -2708,7 +2720,7 @@ body.qz-open { overflow: hidden; }
     b.onclick = open;
     anchor.insertAdjacentElement('afterend', b);
   }
-  window.QZ = { open };
+  window.QZ = { open, maskZh, items: A.items };
 })();
 </script>
 
