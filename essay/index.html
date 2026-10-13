@@ -1669,6 +1669,7 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
     if (famLog.length > FAM_MAX) famLog = famLog.slice(-FAM_MAX);
     try { localStorage.setItem(FAM_LOG_KEY, JSON.stringify(famLog)); } catch (e) {}
     if (famLog.length % 20 === 0) famCalibrate();
+    if (window.famCheer) { if (ok) famCheer.hit(); else famCheer.miss(); }   // 答對回饋
   }
   const famExportHTML = () => `<button type="button" id="famExport" style="margin-top:10px;font:inherit;font-size:0.76rem;color:var(--accent);background:none;border:1px solid var(--border);border-radius:999px;padding:4px 12px;cursor:pointer">匯出答題紀錄給 Claude 分析（${famLog.length} 筆）</button>`;
   function famWireExport() {
@@ -2685,11 +2686,75 @@ body.qz-open { overflow: hidden; }
   .qz-write { flex-direction: column; }
   .qz-write button { padding: 12px; }
 }
+/* ---------- 答對回饋 ---------- */
+.fc-pop { position: fixed; left: 50%; top: 18%; z-index: 2147483000; pointer-events: none; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.fc-pop .fc-ring { width: 76px; height: 76px; border-radius: 50%; background: var(--qz-good); color: var(--surface, #fff); display: grid; place-items: center; box-shadow: 0 10px 30px -8px rgba(0,0,0,.35), 0 0 0 8px var(--qz-good-bg); animation: fcIn .42s cubic-bezier(.2,1.6,.4,1) both; }
+.fc-pop .fc-ring svg { width: 42px; height: 42px; stroke: currentColor; stroke-width: 3.4; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 40; animation: fcDraw .32s .12s ease-out forwards; }
+.fc-pop .fc-txt { font-weight: 800; font-size: 1.05rem; color: var(--qz-good); background: var(--surface, #fff); border: 1px solid var(--qz-good); padding: 4px 14px; border-radius: 999px; box-shadow: 0 6px 18px -8px rgba(0,0,0,.3); white-space: nowrap; animation: fcUp .35s .08s ease-out both; }
+.fc-pop .fc-txt small { font-weight: 700; color: var(--qz-mid); margin-left: 6px; font-size: 0.85rem; }
+.fc-pop.out { animation: fcOut .3s ease-in forwards; }
+.fc-pop i { position: absolute; left: 50%; top: 38px; width: 8px; height: 8px; border-radius: 2px; animation: fcBurst .9s ease-out forwards; }
+.fc-hit { animation: fcPulse .55s ease-out; position: relative; z-index: 1; }
+@keyframes fcIn { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fcDraw { to { stroke-dashoffset: 0; } }
+@keyframes fcUp { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fcOut { to { opacity: 0; transform: translateX(-50%) translateY(-14px); } }
+@keyframes fcBurst { from { transform: translate(-50%, -50%) rotate(0); opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)); opacity: 0; } }
+@keyframes fcPulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 var(--qz-good); } 35% { transform: scale(1.04); } 100% { transform: scale(1); box-shadow: 0 0 0 14px transparent; } }
+@media (prefers-reduced-motion: reduce) { .fc-pop .fc-ring, .fc-pop .fc-txt, .fc-hit, .fc-pop i { animation: none; } .fc-pop .fc-ring svg { animation: none; stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .qz-fc, .qz-fc.flip, .qz-big i { animation: none; transition: none; } }
 </style>
 <div class="qz-overlay" id="qzRoot" hidden></div>
 <script>
 (function () {
+  /* ---------- 答對回饋：打勾動畫＋提示音＋連對計數（三種測驗與 Quizlet 式共用） ---------- */
+  if (!window.famCheer) window.famCheer = (function () {
+    let streak = 0, pop = null, timer = 0, ac = null;
+    const PRAISE = ['答對了！', '漂亮！', '正確！', 'Nice!', '好棒！', '沒錯！'];
+    function tone(milestone) {
+      try {
+        ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+        if (ac.state === 'suspended') ac.resume();
+        const t0 = ac.currentTime, notes = milestone ? [784, 988, 1175, 1568] : [880, 1319];
+        notes.forEach((f, i) => {
+          const o = ac.createOscillator(), g = ac.createGain(), t = t0 + i * 0.085;
+          o.type = 'triangle'; o.frequency.value = f;
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+          o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.3);
+        });
+      } catch (e) {}
+    }
+    function hit(target) {
+      streak++;
+      const milestone = streak >= 5 && streak % 5 === 0;
+      tone(milestone);
+      try { if (navigator.vibrate) navigator.vibrate(milestone ? [20, 40, 20] : 18); } catch (e) {}
+      const pulse = el => { if (!el || !el.isConnected) return; el.classList.remove('fc-hit'); void el.offsetWidth; el.classList.add('fc-hit'); setTimeout(() => el.classList.remove('fc-hit'), 600); };
+      if (target && target.nodeType === 1) pulse(target);
+      else {   // 原本的測驗模式：畫面重畫後再找「正確」的那個選項／輸入框
+        const ae = document.activeElement;
+        setTimeout(() => {
+          const c = [...document.querySelectorAll('.opt.right, .q-opts .right, button.correct, input.correct, .answer-row input.ok, .blank.ok')].find(x => x.offsetParent);
+          pulse(c || (ae && ae !== document.body ? ae : null));
+        }, 30);
+      }
+      if (pop) pop.remove();
+      clearTimeout(timer);
+      pop = document.createElement('div'); pop.className = 'fc-pop'; pop.setAttribute('aria-hidden', 'true');
+      const word = milestone ? `太強了！` : PRAISE[Math.floor(Math.random() * PRAISE.length)];
+      let burst = '';
+      if (milestone) {
+        const cols = ['var(--qz-good)', 'var(--qz-mid)', 'var(--accent, #3b6ea5)', 'var(--qz-bad)'];
+        for (let i = 0; i < 22; i++) { const a = (i / 22) * Math.PI * 2, d = 70 + Math.random() * 60; burst += `<i style="background:${cols[i % 4]};--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--r:${Math.random() * 540 - 270}deg"></i>`; }
+      }
+      pop.innerHTML = `${burst}<div class="fc-ring"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div class="fc-txt">${word}${streak >= 3 ? `<small>連對 ${streak} 題${streak >= 5 ? ' 🔥' : ''}</small>` : ''}</div>`;
+      document.body.appendChild(pop);
+      const p = pop;
+      timer = setTimeout(() => { p.classList.add('out'); setTimeout(() => p.remove(), 320); if (pop === p) pop = null; }, milestone ? 1300 : 850);
+    }
+    function miss() { streak = 0; }
+    return { hit, miss, get streak() { return streak; } };
+  })();
   const A = (function () {
   const el = document.getElementById('vocab-data'); if (!el) return null;
   const d = JSON.parse(el.textContent);
@@ -2877,6 +2942,7 @@ body.qz-open { overflow: hidden; }
     if (ok) { known.add(id); F.know.push(id); } else { known.delete(id); F.still.push(id); }
     st.k = [...known]; save();
     F.i++; F.flipped = false; renderFlash(ok ? 'k' : 's');
+    if (ok) famCheer.hit(root.querySelector('.qz-fc')); else famCheer.miss();
   }
   function flashUndo() {
     const h = F.hist.pop(); if (!h) return;
@@ -3034,18 +3100,18 @@ body.qz-open { overflow: hidden; }
     L.choice = k;
     if (norm(L.opts[k]) === norm(it.term)) {
       L.state = 'ok'; setLvl(it.id, Math.max(lvl(it.id), 1));
-      renderLearn(); say(it.term);
+      renderLearn(); say(it.term); famCheer.hit(root.querySelector('.qz-choice.ok'));
     } else {
-      L.state = 'no'; renderLearn();
+      L.state = 'no'; renderLearn(); famCheer.miss();
     }
   }
   function answerWrite(v) {
     const it = BY.get(L.cur);
     L.typed = v.trim();
     if (L.typed && isRight(it, L.typed)) {
-      L.state = 'ok'; setLvl(it.id, 2); renderLearn(); say(it.term);
+      L.state = 'ok'; setLvl(it.id, 2); renderLearn(); say(it.term); famCheer.hit(root.querySelector('#qzIn'));
     } else {
-      L.state = 'retype'; L.given = L.typed; L.typed = ''; renderLearn();
+      famCheer.miss(); L.state = 'retype'; L.given = L.typed; L.typed = ''; renderLearn();
     }
   }
   function retype(v) {
