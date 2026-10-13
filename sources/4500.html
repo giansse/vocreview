@@ -711,6 +711,7 @@ function renderSetup() {
       ? (ready ? `目前範圍有 <strong>${uniq}</strong> 個不重複的填入形式，每組抽 <strong>${Math.min(10, uniq)}</strong> 格。` : "範圍太小，至少要 4 個不同的填入形式才能出一組。")
       : `目前範圍共 <strong>${p.length}</strong> 個字義${isFlash && weakN ? `，其中 <strong>${weakN}</strong> 個標成不熟` : ""}。`}</p>
     <p class="pool-hint">${famLine(famBuckets(p, statOf))}</p>
+    ${famExportHTML()}
   </div>`;
   $("#backList").onclick = () => toggleStudy(false);
   $("#allCats").onclick = () => { if (cfg.cats.size === CATS.length) cfg.cats.clear(); else CATS.forEach(c => cfg.cats.add(c.id)); renderSetup(); };
@@ -720,6 +721,7 @@ function renderSetup() {
   if (qc) qc.oninput = () => { const v = parseInt(qc.value, 10); if (v > 0) cfg.count = v; };
   const wo = $("#weakOnly");
   if (wo) wo.onclick = () => { cfg.weakOnly = !cfg.weakOnly; renderSetup(); };
+  famWireExport();
   $("#startBtn").onclick = () => isCloze ? startCloze() : (isFlash ? startFlash() : startSingle());
 }
 
@@ -772,15 +774,58 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) famAw
 function famStart() { famAway = false; return Date.now(); }
 function famElapsed(t0) { return (!t0 || famAway) ? 0 : Date.now() - t0; }
 function slowFactor(ms, kind) {
-  const r = TIME_RULE[kind] || TIME_RULE.quick;
+  const r = FAM_CAL[kind] || TIME_RULE[kind] || TIME_RULE.quick;
   if (!ms || ms <= r.fast || ms >= r.cap) return 0;
   if (ms <= r.slow) return Math.log(ms / r.fast) / Math.log(r.slow / r.fast);   // 越慢越不熟，但增幅遞減
   return 1 - (ms - r.slow) / (r.cap - r.slow);                                  // 太久可能沒在作答：影響逐漸變小，到 cap 歸零
 }
 // 答對的「得分」：很快答對＝1，很慢才答對最低 0.4
 const creditFor = (ms, kind) => 1 - 0.6 * slowFactor(ms, kind);
+const FAM_LOG_KEY = 'v4500.log.v1';
+/* ---------- 答題紀錄：累積你的作答時間，資料夠多後自動校正快／慢的標準 ---------- */
+// 每筆：[時間, 字, 題型, 速度類別, 毫秒(0=不計), 答對1/錯0]，最多保留 8000 筆
+const FAM_MAX = 8000;
+let famLog = [];
+try { famLog = JSON.parse(localStorage.getItem(FAM_LOG_KEY) || '[]') || []; } catch (e) { famLog = []; }
+let FAM_CAL = {};
+function famPct(sorted, p) { if (!sorted.length) return 0; const i = Math.min(sorted.length - 1, Math.max(0, Math.round(p * (sorted.length - 1)))); return sorted[i]; }
+// 個人化標準：同一類題目答對 60 次以上才啟用。fast＝你答對時間的第 35 百分位、slow＝第 85 百分位、閘門＝第 99 百分位的 1.5 倍（至少是預設閘門的一半）
+function famCalibrate() {
+  FAM_CAL = {};
+  Object.keys(TIME_RULE).forEach(kind => {
+    const d = TIME_RULE[kind];
+    const xs = famLog.filter(r => r[3] === kind && r[5] === 1 && r[4] > 300 && r[4] < d.cap * 2).map(r => r[4]).sort((a, b) => a - b);
+    if (xs.length < 60) return;
+    const fast = Math.max(1000, famPct(xs, 0.35));
+    const slow = Math.max(fast * 1.8, famPct(xs, 0.85));
+    const cap = Math.min(d.cap * 2, Math.max(slow * 2.5, famPct(xs, 0.99) * 1.5, d.cap * 0.5));
+    FAM_CAL[kind] = { fast, slow, cap, n: xs.length };
+  });
+}
+famCalibrate();
+function famRecord(key, mode, kind, ms, ok) {
+  famLog.push([Date.now(), String(key), mode || '', kind || '', Math.round(ms || 0), ok ? 1 : 0]);
+  if (famLog.length > FAM_MAX) famLog = famLog.slice(-FAM_MAX);
+  try { localStorage.setItem(FAM_LOG_KEY, JSON.stringify(famLog)); } catch (e) {}
+  if (famLog.length % 20 === 0) famCalibrate();
+}
+const famExportHTML = () => `<button type="button" id="famExport" style="margin-top:10px;font:inherit;font-size:0.76rem;color:var(--accent);background:none;border:1px solid var(--border);border-radius:999px;padding:4px 12px;cursor:pointer">匯出答題紀錄給 Claude 分析（${famLog.length} 筆）</button>`;
+function famWireExport() {
+  const b = document.getElementById('famExport'); if (!b) return;
+  b.onclick = () => {
+    const data = JSON.stringify({ app: FAM_LOG_KEY, exportedAt: new Date().toISOString(), defaults: TIME_RULE, personal: FAM_CAL,
+      columns: ['time', 'word', 'mode', 'speedKind', 'ms', 'correct'], log: famLog });
+    let saved = false;
+    try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' })); a.download = FAM_LOG_KEY.replace(/\W+/g, '-') + '.json'; document.body.appendChild(a); a.click(); a.remove(); saved = true; } catch (e) {}
+    const done = msg => { b.textContent = msg; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(data).then(() => done(`已複製 ${famLog.length} 筆${saved ? '並下載檔案' : ''}，直接貼給 Claude 就好`), () => done(saved ? '已下載檔案，把檔案傳給 Claude' : '無法複製，請改用電腦版'));
+    else done(saved ? '已下載檔案，把檔案傳給 Claude' : '這個瀏覽器無法匯出');
+  };
+}
+
 function recordStat(e, ok, ms, kind) {
   const k = wkey(e), st = stats[k] || { c: 0, w: 0, s: 0, t: 0 };
+  famRecord(k, cfg.mode, kind || 'set', ms, ok);
   if (ok) { const cr = creditFor(ms, kind); st.c += cr; st.s += cr; } else { st.w++; st.s = 0; }
   st.t = Date.now(); stats[k] = st; saveStats();
 }
