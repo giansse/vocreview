@@ -1177,7 +1177,7 @@ body.qz-open { overflow: hidden; }
         ${actions}
       </div>
       <div class="qz-stat"><span><i class="qz-dot m"></i>已掌握 ${c.m}</span><span><i class="qz-dot l"></i>學習中 ${c.l}</span><span><i class="qz-dot n"></i>未學 ${c.n}</span></div>
-      <p class="qz-keys">${L.kind === 'mc' ? '可按 1–4 作答，Enter 繼續' : 'Enter 送出／繼續'}</p>
+      <p class="qz-keys">${L.kind === 'mc' ? '可按 1–4 作答，Enter 或「繼續」下一題' : 'Enter 送出／繼續'}</p>
     </div>`;
     wireHeader();
     if (L.kind === 'mc' && L.state === 'ask') root.querySelectorAll('[data-k]').forEach(b => b.onclick = () => answerMC(+b.dataset.k));
@@ -1189,7 +1189,7 @@ body.qz-open { overflow: hidden; }
       const h = $('#qzHint'); if (h) h.onclick = () => { L.hint = Math.min(L.hint + 1, it.term.length - 1); L.typed = $('#qzIn').value; renderLearn(); };
       const k = $('#qzIdk'); if (k) k.onclick = () => answerWrite('');
     }
-    const n = $('#qzNext'); if (n) { n.onclick = nextQ; if (!f || L.state !== 'retype') n.focus(); }
+    const n = $('#qzNext'); if (n) { n.onclick = () => nextQ(); if (!f || L.state !== 'retype') n.focus(); }
     const o = $('#qzOverride'); if (o) o.onclick = () => { setLvl(L.cur, 2); nextQ(); };
   }
   function answerMC(k) {
@@ -1198,7 +1198,6 @@ body.qz-open { overflow: hidden; }
     if (norm(L.opts[k]) === norm(it.term)) {
       L.state = 'ok'; setLvl(it.id, Math.max(lvl(it.id), 1));
       renderLearn(); say(it.term);
-      clearTimeout(L.t); L.t = setTimeout(() => { if (mode === 'learn' && L.state === 'ok' && L.cur === it.id) nextQ(); }, 1100);
     } else {
       L.state = 'no'; renderLearn();
     }
