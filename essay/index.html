@@ -2462,6 +2462,69 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
   famAnalysisSetup({ title: '作文單字庫', items: CARDS, statOf, resolve: k => _faMap.get(k) || null,
     groupOf: c => c.category, groups: CATEGORY_NAMES.concat(['Sentence Bank（考場必背高分句型）']), groupLabel: '分類',
     wordOf: c => c.type === 'sentence' ? (c.word.length > 48 ? c.word.slice(0, 46) + '…' : c.word) : c.word, zhOf: c => c.zh, anchor: '#studyModeBtn' });
+  /* ---------- 單字表上的小標籤：每個字的熟悉度與答對率 ---------- */
+  // cfg: { statOf(item), resolve(logKey) -> item|null, slots() -> [[要放標籤的元素, item], …], inline, qzKey }
+  function famBadgeSetup(cfg) {
+    const css = `
+    .famb { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 0.7rem; font-weight: 500; color: var(--ink-faint); white-space: nowrap; font-variant-numeric: tabular-nums; line-height: 1.3; letter-spacing: 0; text-transform: none; font-style: normal; }
+    .famb.inl { display: inline-flex; margin: 0 0 0 8px; vertical-align: 1px; }
+    .famb .fb-bar { position: relative; width: 34px; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; flex: none; }
+    .famb .fb-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+    .famb.fbw .fb-bar i { background: var(--qz-bad); } .famb.fbm .fb-bar i { background: var(--qz-mid); } .famb.fbs .fb-bar i { background: var(--qz-good); }
+    .famb.fbw b { color: var(--qz-bad); } .famb.fbm b { color: var(--qz-mid); } .famb.fbs b { color: var(--qz-good); }
+    .famb b { font-weight: 700; }
+    .famb.fbn { opacity: 0.8; }
+    .famb[hidden] { display: none; }`;
+    const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+    const level = v => v == null ? 'n' : v < 0.35 ? 'w' : v < 0.7 ? 'm' : 's';
+
+    function html(item, acc) {
+      const s = cfg.statOf(item), v = s ? famScore(s) : null, l = level(v);
+      if (v == null) return { l, h: '還沒練過' };
+      const p = Math.round(v * 100);
+      let a;
+      if (acc && acc.n) a = `答對率 ${Math.round(acc.ok / acc.n * 100)}%（${acc.ok}/${acc.n}）`;
+      else if (s.prior) a = '學習模式學過';
+      else { const n = (s.c || 0) + (s.w || 0); a = n ? `答對率 ${Math.round((s.c || 0) / n * 100)}%` : ''; }
+      return { l, h: `<span class="fb-bar"><i style="width:${Math.max(4, p)}%"></i></span>熟悉度 <b>${p}%</b>${a ? '・' + a : ''}` };
+    }
+    let sig = '';
+    function signature() {
+      const log = typeof famLog !== 'undefined' ? famLog : [];
+      let q = ''; try { q = localStorage.getItem(cfg.qzKey || '') || ''; } catch (e) {}
+      return log.length + ':' + (log.length ? log[log.length - 1][0] : 0) + ':' + q.length;
+    }
+    function refresh(force) {
+      const slots = cfg.slots();
+      if (!slots.length) return;
+      const s = signature();
+      if (!force && s === sig && slots[0][0].querySelector(':scope > .famb')) return;
+      sig = s;
+      const per = new Map();
+      (typeof famLog !== 'undefined' ? famLog : []).forEach(r => {
+        const it = r && cfg.resolve(r[1]); if (!it) return;
+        let a = per.get(it); if (!a) { a = { n: 0, ok: 0 }; per.set(it, a); }
+        a.n++; if (r[5]) a.ok++;
+      });
+      slots.forEach(([el, item]) => {
+        if (!el || !item) return;
+        let b = el.querySelector(':scope > .famb');
+        if (!b) { b = document.createElement('span'); el.appendChild(b); }
+        const o = html(item, per.get(item));
+        b.className = 'famb fb' + o.l + (cfg.inline ? ' inl' : '');
+        b.hidden = cfg.inline && o.l === 'n';   // 單元庫字太多：沒練過的就不標
+        b.innerHTML = o.h;
+      });
+    }
+    let t = 0;
+    const later = () => { clearTimeout(t); t = setTimeout(() => refresh(false), 250); };
+    document.addEventListener('click', later, true);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) later(); });
+    setTimeout(() => refresh(true), 0);
+    return { refresh };
+  }
+  famBadgeSetup({ statOf, resolve: k => _faMap.get(k) || null, qzKey: QZ_STORE_KEY,
+    slots: () => [...document.querySelectorAll('#content .row')].map((r, i) => [r.matches('tr') ? r.querySelector('td.word') : r, CARDS[i]]) });
 })();
 </script>
 
