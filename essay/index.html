@@ -1572,6 +1572,37 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
     saveProgress();
   }
 
+/* ---------- 熟練度加權抽題：不熟的字比較常出現，熟的字比較少出現 ---------- */
+// st = { c: 答對次數, w: 答錯次數, s: 目前連續答對, t: 上次練習時間(ms) }
+function famScore(st) {
+  if (!st || (!st.c && !st.w)) return null;               // 沒練過
+  const acc = ((st.c || 0) + 1) / ((st.c || 0) + (st.w || 0) + 2);
+  const streak = Math.max(0, st.s || 0);
+  let v = acc * (1 - Math.pow(0.55, streak + (st.w ? 0 : 1)));
+  const halfLife = Math.min(21, Math.pow(2, streak));      // 天：連續答對越多，忘得越慢
+  const days = st.t ? (Date.now() - st.t) / 864e5 : 0;
+  v *= Math.pow(0.5, days / halfLife);
+  return Math.max(0, Math.min(1, v));
+}
+function famWeight(st) { const v = famScore(st); return 0.06 + Math.pow(1 - (v == null ? 0.4 : v), 1.5); }
+function weightedOrder(list, statOf) {
+  return list.map(x => ({ x, k: Math.pow(Math.random(), 1 / famWeight(statOf(x))) }))
+    .sort((a, b) => b.k - a.k).map(o => o.x);
+}
+function famBuckets(list, statOf) {
+  const b = { weak: 0, mid: 0, strong: 0, fresh: 0 };
+  list.forEach(x => { const v = famScore(statOf(x)); if (v == null) b.fresh++; else if (v < 0.35) b.weak++; else if (v < 0.7) b.mid++; else b.strong++; });
+  return b;
+}
+const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:700">不熟 ${b.weak}</span>・普通 ${b.mid}・<span style="color:var(--qz-good);font-weight:700">熟 ${b.strong}</span>・沒練過 ${b.fresh}（不熟的字會比較常出現）`;
+
+  // 把原本的熟悉度分級（box / seen / wrong / lastSeen）換算成加權用的格式
+  function statOf(card) {
+    const p = progress[card.id];
+    if (!p || !p.seen) return null;
+    return { c: Math.max(0, (p.seen || 0) - (p.wrong || 0)), w: p.wrong || 0, s: p.box || 0, t: p.lastSeen || 0 };
+  }
+
   // ---------- Mode switch ----------
   let inStudyMode = false;
   function setStudyMode(on) {
@@ -1727,7 +1758,7 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
         startBtn.disabled = false;
       } else {
         const useCount = cfg.scope === 'due' ? due.length : p.length;
-        hint.innerHTML = `符合條件共 <strong>${p.length}</strong> 筆，本次將練習 <strong>${cfg.count === 'all' ? useCount : Math.min(cfg.count, useCount)}</strong> 題。`;
+        hint.innerHTML = `符合條件共 <strong>${p.length}</strong> 筆，本次將練習 <strong>${cfg.count === 'all' ? useCount : Math.min(cfg.count, useCount)}</strong> 題。<br>${famLine(famBuckets(p, statOf))}`;
         startBtn.disabled = false;
       }
     }
@@ -1808,10 +1839,9 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
     let list;
     if (cfg.scope === 'due') {
       const due = pool.filter(c => getProg(c.id).dueAt <= Date.now());
-      list = due.length > 0 ? due : pool.slice();
-      list.sort((a, b) => (getProg(a.id).dueAt - getProg(b.id).dueAt) || (getProg(a.id).box - getProg(b.id).box));
+      list = weightedOrder(due.length > 0 ? due : pool.slice(), statOf);
     } else {
-      list = shuffle(pool);
+      list = weightedOrder(pool, statOf);
     }
     const n = cfg.count === 'all' ? list.length : Math.min(cfg.count, list.length);
     session = { cards: list.slice(0, n), idx: 0, mode: cfg.mode, results: [] };

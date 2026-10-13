@@ -718,6 +718,7 @@ function renderSetup() {
     <p class="pool-hint">${isCloze
       ? (ready ? `目前範圍有 <strong>${uniq}</strong> 個不重複的填入形式，每組抽 <strong>${Math.min(10, uniq)}</strong> 格。` : "範圍太小，至少要 4 個不同的填入形式才能出一組。")
       : `目前範圍共 <strong>${p.length}</strong> 個字義${isFlash && weakN ? `，其中 <strong>${weakN}</strong> 個標成不熟` : ""}。`}</p>
+    <p class="pool-hint">${famLine(famBuckets(p, statOf))}</p>
   </div>`;
   $("#backList").onclick = () => toggleStudy(false);
   $("#allCats").onclick = () => { if (cfg.cats.size === CATS.length) cfg.cats.clear(); else CATS.forEach(c => cfg.cats.add(c.id)); renderSetup(); };
@@ -737,12 +738,48 @@ let weak = new Set();
 try { weak = new Set(JSON.parse(localStorage.getItem(WEAK_KEY) || "[]")); } catch (_) {}
 const saveWeak = () => { try { localStorage.setItem(WEAK_KEY, JSON.stringify([...weak])); } catch (_) {} };
 
+/* ---------- 熟練度加權抽題：不熟的字比較常出現，熟的字比較少出現 ---------- */
+// st = { c: 答對次數, w: 答錯次數, s: 目前連續答對, t: 上次練習時間(ms) }
+function famScore(st) {
+  if (!st || (!st.c && !st.w)) return null;               // 沒練過
+  const acc = ((st.c || 0) + 1) / ((st.c || 0) + (st.w || 0) + 2);
+  const streak = Math.max(0, st.s || 0);
+  let v = acc * (1 - Math.pow(0.55, streak + (st.w ? 0 : 1)));
+  const halfLife = Math.min(21, Math.pow(2, streak));      // 天：連續答對越多，忘得越慢
+  const days = st.t ? (Date.now() - st.t) / 864e5 : 0;
+  v *= Math.pow(0.5, days / halfLife);
+  return Math.max(0, Math.min(1, v));
+}
+function famWeight(st) { const v = famScore(st); return 0.06 + Math.pow(1 - (v == null ? 0.4 : v), 1.5); }
+function weightedOrder(list, statOf) {
+  return list.map(x => ({ x, k: Math.pow(Math.random(), 1 / famWeight(statOf(x))) }))
+    .sort((a, b) => b.k - a.k).map(o => o.x);
+}
+function famBuckets(list, statOf) {
+  const b = { weak: 0, mid: 0, strong: 0, fresh: 0 };
+  list.forEach(x => { const v = famScore(statOf(x)); if (v == null) b.fresh++; else if (v < 0.35) b.weak++; else if (v < 0.7) b.mid++; else b.strong++; });
+  return b;
+}
+const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:700">不熟 ${b.weak}</span>・普通 ${b.mid}・<span style="color:var(--qz-good);font-weight:700">熟 ${b.strong}</span>・沒練過 ${b.fresh}（不熟的字會比較常出現）`;
+
+const STAT_KEY = "v4500.stat.v1";
+let stats = {};
+try { stats = JSON.parse(localStorage.getItem(STAT_KEY) || "{}") || {}; } catch (_) {}
+weak.forEach(k => { if (!stats[k]) stats[k] = { c: 0, w: 1, s: 0, t: 0 }; });
+const saveStats = () => { try { localStorage.setItem(STAT_KEY, JSON.stringify(stats)); } catch (_) {} };
+const statOf = e => stats[wkey(e)];
+function recordStat(e, ok) {
+  const k = wkey(e), st = stats[k] || { c: 0, w: 0, s: 0, t: 0 };
+  if (ok) { st.c++; st.s++; } else { st.w++; st.s = 0; }
+  st.t = Date.now(); stats[k] = st; saveStats();
+}
+
 let fc = null;
 function startFlash(cards) {
   if (!cards) {
     let p = pool();
     if (cfg.weakOnly) p = p.filter(e => weak.has(wkey(e)));
-    cards = shuffle(p).slice(0, Math.max(1, Math.min(cfg.count, p.length)));
+    cards = weightedOrder(p, statOf).slice(0, Math.max(1, Math.min(cfg.count, p.length)));
   }
   fc = { cards, i: 0, flipped: false, results: [], hist: [] };
   renderFlash();
@@ -751,14 +788,17 @@ function flashUndo() {
   const h = fc.hist.pop(); if (!h) return;
   if (h.wasWeak) weak.add(h.key); else weak.delete(h.key);
   saveWeak();
+  if (h.prevStat) stats[h.key] = h.prevStat; else delete stats[h.key];
+  saveStats();
   fc.i = h.i; fc.results.length = h.i; fc.flipped = true;
   renderFlash();
 }
 function flashRate(ok) {
   const e = fc.cards[fc.i], key = wkey(e);
-  fc.hist.push({ i: fc.i, key, wasWeak: weak.has(key) });
+  fc.hist.push({ i: fc.i, key, wasWeak: weak.has(key), prevStat: stats[key] ? Object.assign({}, stats[key]) : null });
   ok ? weak.delete(key) : weak.add(key);
   saveWeak();
+  recordStat(e, ok);
   fc.results[fc.i] = ok; fc.i++; fc.flipped = false;
   renderFlash();
 }
@@ -815,7 +855,7 @@ function renderFlashEnd() {
 /* 文意選填 */
 let cz = null;
 function startCloze() {
-  const qs = shuffle(uniqueByAnswer(shuffle(pool()))).slice(0, 10);
+  const qs = shuffle(uniqueByAnswer(weightedOrder(pool(), statOf)).slice(0, 10));
   const letters = "ABCDEFGHIJ";
   const opts = shuffle(qs.map(q => q.a)).map((a, i) => ({ a, lt: letters[i] }));
   cz = { qs, opts, fill: Array(qs.length).fill(null), active: 0, done: false };
@@ -861,7 +901,7 @@ function renderCloze() {
     cz.active = next !== -1 ? next : (any !== -1 ? any : cz.active);
     renderCloze();
   });
-  const s = $("#submit"); if (s) s.onclick = () => { cz.done = true; renderCloze(); window.scrollTo(0, 0); };
+  const s = $("#submit"); if (s) s.onclick = () => { cz.done = true; cz.qs.forEach((q, i) => recordStat(q, cz.fill[i] !== null && cz.opts[cz.fill[i]].a === q.a)); renderCloze(); window.scrollTo(0, 0); };
   const a = $("#again"); if (a) a.onclick = startCloze;
   $("#toSetup").onclick = renderSetup;
 }
@@ -883,7 +923,7 @@ function distractors(q) {
 function startSingle() {
   const p = pool();
   const n = Math.max(1, Math.min(cfg.count, p.length));
-  const qs = shuffle(p).slice(0, n).map(q => ({ q, opts: shuffle([q.a].concat(distractors(q))), pick: null }));
+  const qs = weightedOrder(p, statOf).slice(0, n).map(q => ({ q, opts: shuffle([q.a].concat(distractors(q))), pick: null }));
   sg = { qs, i: 0 };
   renderSingle();
 }
@@ -907,7 +947,7 @@ function renderSingle() {
       <div class="btn-row"><button class="primary-btn" type="button" id="next">${i + 1 < qs.length ? "下一題" : "看結果"}</button></div>` : ""}
     <div class="btn-row"><button class="ghost-btn" type="button" id="toSetup">回設定</button></div>
   </div>`;
-  document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { it.pick = +b.dataset.k; renderSingle(); });
+  document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { it.pick = +b.dataset.k; recordStat(it.q, it.opts[it.pick] === it.q.a); renderSingle(); });
   const nx = $("#next"); if (nx) nx.onclick = () => { sg.i++; renderSingle(); };
   $("#toSetup").onclick = renderSetup;
 }
