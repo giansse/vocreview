@@ -1460,16 +1460,17 @@ body.qz-open { overflow: hidden; }
   if (!window.famCheer) window.famCheer = (function () {
     let streak = 0, pop = null, timer = 0, ac = null;
     const PRAISE = ['答對了！', '漂亮！', '正確！', 'Nice!', '好棒！', '沒錯！'];
-    // 叮咚：用程式合成一段鐘聲 WAV，用 <audio> 播（iPhone 上比 Web Audio 穩、也比較大聲）
+    // 馬林巴木琴：用程式合成一段 WAV，用 <audio> 播（iPhone 上比 Web Audio 穩、也比較大聲）
     const SR = 22050;
     function bellWav(notes, len) {   // notes: [[頻率, 起始秒, 音量]]
       const n = Math.floor(SR * len), buf = new Float32Array(n);
-      const PART = [[1, 1, 2.2], [2, 0.4, 3.6], [3, 0.18, 5.5], [4.2, 0.08, 8]];   // [倍頻, 音量, 衰減]
+      const PART = [[1, 1, 4.2], [3.93, 0.32, 20], [9.2, 0.07, 55]];   // [倍頻, 音量, 衰減]：木琴音板的泛音約在 4 倍與 10 倍
       notes.forEach(([f, t0, amp]) => {
         const s0 = Math.floor(t0 * SR);
         for (let k = s0; k < n; k++) {
-          const t = (k - s0) / SR, att = Math.min(1, t / 0.004);
+          const t = (k - s0) / SR, att = Math.min(1, t / 0.0015);
           let v = 0; for (const [m, a, d] of PART) v += a * Math.exp(-d * t) * Math.sin(2 * Math.PI * f * m * t);
+          if (t < 0.012) v += 0.12 * (Math.random() * 2 - 1) * Math.exp(-t * 600);   // 琴槌敲下去的「咯」
           buf[k] += amp * att * v;
         }
       });
@@ -1484,8 +1485,8 @@ body.qz-open { overflow: hidden; }
     function sounds() {
       if (SND) return SND;
       SND = {
-        ding: bellWav([[659.3, 0, 1], [523.3, 0.22, 1]], 1.2),                                        // 叮（E5）咚（C5）
-        win: bellWav([[523.3, 0, 0.8], [659.3, 0.11, 0.85], [784, 0.22, 0.9], [1046.5, 0.36, 1]], 1.5)  // 連對 5 題：上行琶音
+        ding: bellWav([[523.3, 0, 1], [698.5, 0.13, 1]], 0.9),                                         // C5 → F5
+        win: bellWav([[523.3, 0, 0.8], [698.5, 0.09, 0.85], [880, 0.18, 0.9], [1046.5, 0.27, 1], [1046.5, 0.42, 0.7], [523.3, 0.42, 0.5]], 1.4)   // C5 F5 A5 C6 → C6＋C5  // 連對 5 題：上行琶音
       };
       SND.pool = [new Audio(), new Audio()]; SND.i = 0;
       SND.pool.forEach(a => { a.preload = 'auto'; a.volume = 1; });
@@ -1502,12 +1503,12 @@ body.qz-open { overflow: hidden; }
       try {
         ac = ac || new (window.AudioContext || window.webkitAudioContext)();
         if (ac.state === 'suspended') ac.resume();
-        const t0 = ac.currentTime + 0.02, notes = milestone ? [[523.3, 0], [659.3, 0.11], [784, 0.22], [1046.5, 0.36]] : [[659.3, 0], [523.3, 0.22]];
+        const t0 = ac.currentTime + 0.02, notes = milestone ? [[523.3, 0], [698.5, 0.09], [880, 0.18], [1046.5, 0.27]] : [[523.3, 0], [698.5, 0.13]];
         notes.forEach(([f, d]) => {
           const o = ac.createOscillator(), g = ac.createGain(), t = t0 + d;
           o.type = 'sine'; o.frequency.value = f;
-          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.6, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
-          o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.95);
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.6, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+          o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.65);
         });
       } catch (e) {}
     }
