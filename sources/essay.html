@@ -1782,7 +1782,7 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
           <div class="radio-group" id="scopeGroup">
             <label class="radio-pill ${cfg.scope === 'due' ? 'checked' : ''}" data-scope="due">
               <input type="radio" name="scope" value="due" ${cfg.scope === 'due' ? 'checked' : ''}>
-              優先複習<span class="pill-desc">還不熟／到期的優先出現</span>
+              依熟練度<span class="pill-desc">不熟的、到期該複習的較常出現</span>
             </label>
             <label class="radio-pill ${cfg.scope === 'all' ? 'checked' : ''}" data-scope="all">
               <input type="radio" name="scope" value="all" ${cfg.scope === 'all' ? 'checked' : ''}>
@@ -1828,11 +1828,11 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
         hint.innerHTML = '目前條件下沒有符合的項目，請調整內容類型或分類範圍。';
         startBtn.disabled = true;
       } else if (cfg.scope === 'due' && due.length === 0) {
-        hint.innerHTML = `符合條件共 <strong>${p.length}</strong> 筆，目前沒有到期複習項目，將改為從全部項目中練習。`;
+        hint.innerHTML = `符合條件共 <strong>${p.length}</strong> 筆，目前沒有到期該複習的，會從全部項目中依熟練度出題。<br>${famLine(famBuckets(p, statOf))}`;
         startBtn.disabled = false;
       } else {
         const useCount = cfg.scope === 'due' ? due.length : p.length;
-        hint.innerHTML = `符合條件共 <strong>${p.length}</strong> 筆，本次將練習 <strong>${cfg.count === 'all' ? useCount : Math.min(cfg.count, useCount)}</strong> 題。<br>${famLine(famBuckets(p, statOf))}`;
+        hint.innerHTML = `符合條件共 <strong>${p.length}</strong> 筆，本次將練習 <strong>${cfg.count === 'all' ? useCount : Math.min(cfg.count, useCount)}</strong> 題。<br>${famLine(famBuckets(p, statOf)).replace('（不熟的字會比較常出現）', cfg.scope === 'all' ? '（全部隨機：不看熟練度）' : '（不熟的字會比較常出現）')}`;
         startBtn.disabled = false;
       }
     }
@@ -1916,7 +1916,7 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
       const due = pool.filter(c => getProg(c.id).dueAt <= Date.now());
       list = weightedOrder(due.length > 0 ? due : pool.slice(), statOf);
     } else {
-      list = weightedOrder(pool, statOf);
+      list = shuffle(pool);
     }
     const n = cfg.count === 'all' ? list.length : Math.min(cfg.count, list.length);
     session = { cards: list.slice(0, n), idx: 0, mode: cfg.mode, results: [] };

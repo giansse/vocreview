@@ -685,7 +685,8 @@ function renderSetup() {
   const uniq = uniqueByAnswer(p).length;
   const isCloze = cfg.mode === "cloze";
   const isFlash = cfg.mode === "flash";
-  const weakN = p.filter(e => weak.has(wkey(e))).length;
+  const isWeak = e => { const v = famScore(statOf(e)); return v == null || v < 0.35; };   // 跟熟練度統計的「不熟」同一個標準
+  const weakN = p.filter(isWeak).length;
   if (!weakN) cfg.weakOnly = false;
   const fcPool = cfg.weakOnly ? weakN : p.length;
   const ready = isCloze ? uniq >= 4 : (isFlash ? fcPool >= 1 : p.length >= 1);
@@ -705,11 +706,11 @@ function renderSetup() {
     </div>
     ${!isCloze ? `<div class="study-section"><div class="study-section-title">題數</div>
       <div class="count-row"><input id="qCount" type="number" min="1" max="${isFlash ? fcPool : p.length}" value="${Math.min(cfg.count, isFlash ? fcPool : p.length) || 1}"><span class="pool-hint" style="margin:0">${isFlash ? "張" : "題"}，最多 ${isFlash ? fcPool : p.length} ${isFlash ? "張" : "題"}</span></div>
-      ${isFlash ? `<button type="button" class="chip weak ${cfg.weakOnly ? "checked" : ""}" id="weakOnly" ${weakN ? "" : "disabled"}>只練標成不熟的<span class="chip-count">${weakN}</span></button>` : ""}</div>` : ""}
+      ${isFlash ? `<button type="button" class="chip weak ${cfg.weakOnly ? "checked" : ""}" id="weakOnly" ${weakN ? "" : "disabled"}>只練不熟的<span class="chip-count">${weakN}</span></button>` : ""}</div>` : ""}
     <button class="primary-btn" type="button" id="startBtn" ${ready ? "" : "disabled"}>開始練習</button>
     <p class="pool-hint">${isCloze
       ? (ready ? `目前範圍有 <strong>${uniq}</strong> 個不重複的填入形式，每組抽 <strong>${Math.min(10, uniq)}</strong> 格。` : "範圍太小，至少要 4 個不同的填入形式才能出一組。")
-      : `目前範圍共 <strong>${p.length}</strong> 個字義${isFlash && weakN ? `，其中 <strong>${weakN}</strong> 個標成不熟` : ""}。`}</p>
+      : `目前範圍共 <strong>${p.length}</strong> 個字義。`}</p>
     <p class="pool-hint">${famLine(famBuckets(p, statOf))}</p>
     ${famExportHTML()}
   </div>`;
@@ -847,7 +848,7 @@ let fc = null;
 function startFlash(cards) {
   if (!cards) {
     let p = pool();
-    if (cfg.weakOnly) p = p.filter(e => weak.has(wkey(e)));
+    if (cfg.weakOnly) p = p.filter(e => { const v = famScore(statOf(e)); return v == null || v < 0.35; });
     cards = weightedOrder(p, statOf).slice(0, Math.max(1, Math.min(cfg.count, p.length)));
   }
   fc = { cards, i: 0, flipped: false, results: [], hist: [] };
