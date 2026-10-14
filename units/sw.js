@@ -1,6 +1,6 @@
-// 由 tools/build.py 產生 sw.js；vunits 與 20261014095103 會被替換
+// 由 tools/build.py 產生 sw.js；vunits 與 20261014200607 會被替換
 const ID = "vunits";
-const CACHE = ID + "-" + "20261014095103";
+const CACHE = ID + "-" + "20261014200607";
 const FONTS = ID + "-fonts";
 // 舊版快取名稱，清掉
 const LEGACY = { v4500: ["vocab4500-"], vessay: ["essay-"], vunits: ["units-"] }[ID] || [];

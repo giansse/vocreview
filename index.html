@@ -988,25 +988,27 @@ let cz = null;
 function startCloze() {
   const qs = shuffle(uniqueByAnswer(weightedOrder(pool(), statOf)).slice(0, 10));
   const letters = "ABCDEFGHIJ";
-  const opts = shuffle(qs.map(q => q.a)).map((a, i) => ({ a, lt: letters[i] }));
+  // 文意選填：選項保留句中的形態（時態、單複數），但大小寫不算線索：句首的字一律顯示成小寫
+  const opts = shuffle(qs.map(q => q.a)).map((a, i) => ({ a, show: a.charAt(0).toLowerCase() + a.slice(1), lt: letters[i] }));
   cz = { qs, opts, fill: Array(qs.length).fill(null), active: 0, done: false };
   renderCloze();
 }
 function renderCloze() {
   const { qs, opts, fill, active, done } = cz;
-  const right = done ? qs.filter((q, i) => fill[i] !== null && opts[fill[i]].a === q.a).length : 0;
+  const right = done ? qs.filter((q, i) => fill[i] !== null && opts[fill[i]].a.toLowerCase() === q.a.toLowerCase()).length : 0;
   const items = qs.map((q, i) => {
     const f = fill[i];
-    const label = f === null ? `(${i + 1})` : `<span class="lt">${opts[f].lt}</span> ${esc(opts[f].a)}`;
+    const atStart = /^___/.test(q.s), shown = f === null ? '' : (atStart ? opts[f].show.charAt(0).toUpperCase() + opts[f].show.slice(1) : opts[f].show);
+    const label = f === null ? `(${i + 1})` : `<span class="lt">${opts[f].lt}</span> ${esc(shown)}`;
     let cls = "blank";
-    if (done) cls += (f !== null && opts[f].a === q.a) ? " right" : " wrong";
+    if (done) cls += (f !== null && opts[f].a.toLowerCase() === q.a.toLowerCase()) ? " right" : " wrong";
     else if (i === active) cls += " active";
     const parts = esc(q.s).split("___");
-    const reveal = done ? `<div class="reveal">${(f !== null && opts[f].a === q.a) ? "" : `正解 <span class="fix">${esc(q.a)}</span>　`}${esc(q.w)}（${POS[q.p][0]}）${esc(q.zh)}｜${esc(q.t)}</div>${f !== null && opts[f].a !== q.a ? wdFor(opts[f].a, "你填的") : ""}` : "";
+    const reveal = done ? `<div class="reveal">${(f !== null && opts[f].a.toLowerCase() === q.a.toLowerCase()) ? "" : `正解 <span class="fix">${esc(q.a)}</span>　`}${esc(q.w)}（${POS[q.p][0]}）${esc(q.zh)}｜${esc(q.t)}</div>${f !== null && opts[f].a.toLowerCase() !== q.a.toLowerCase() ? wdFor(opts[f].a, "你填的") : ""}` : "";
     return `<li class="cloze-item"><span class="qn">${i + 1}.</span>${parts[0]}<button type="button" class="${cls}" data-blank="${i}" ${done ? "disabled" : ""}>${label}</button>${parts[1] || ""}${reveal}</li>`;
   }).join("");
   const usedBy = new Map(); fill.forEach((f, i) => { if (f !== null) usedBy.set(f, i); });
-  const bank = opts.map((o, k) => `<button type="button" class="opt ${usedBy.has(k) ? "used" : ""}" data-opt="${k}" ${done ? "disabled" : ""}><span class="lt">${o.lt}</span>${esc(o.a)}</button>`).join("");
+  const bank = opts.map((o, k) => `<button type="button" class="opt ${usedBy.has(k) ? "used" : ""}" data-opt="${k}" ${done ? "disabled" : ""}><span class="lt">${o.lt}</span>${esc(o.show)}</button>`).join("");
   const filled = fill.filter(f => f !== null).length;
   $("#studyView").innerHTML = `<div class="study-card">
     <div class="study-head"><h2>文意選填</h2>${done ? `<span class="score">${right}<small> / ${qs.length}</small></span>` : `<span class="progress-text">已填 ${filled} / ${qs.length}</span>`}</div>
@@ -1032,7 +1034,7 @@ function renderCloze() {
     cz.active = next !== -1 ? next : (any !== -1 ? any : cz.active);
     renderCloze();
   });
-  const s = $("#submit"); if (s) s.onclick = () => { cz.done = true; cz.qs.forEach((q, i) => recordStat(q, cz.fill[i] !== null && cz.opts[cz.fill[i]].a === q.a)); renderCloze(); window.scrollTo(0, 0); };
+  const s = $("#submit"); if (s) s.onclick = () => { cz.done = true; cz.qs.forEach((q, i) => recordStat(q, cz.fill[i] !== null && cz.opts[cz.fill[i]].a.toLowerCase() === q.a.toLowerCase())); renderCloze(); window.scrollTo(0, 0); };
   const a = $("#again"); if (a) a.onclick = startCloze;
   $("#toSetup").onclick = renderSetup;
 }
@@ -1050,14 +1052,21 @@ function wdFor(a, label) {
 
 /* 單題四選一 */
 let sg = null;
+// 選項一律用原形（單字本身 e.w），而且不能「長得一樣」：同一個字、互為開頭、或前 5 個字母相同的都不放在同一題
+const baseKey = w => String(w).toLowerCase().trim();
+function lookAlike(a, b) {
+  a = baseKey(a); b = baseKey(b);
+  if (a === b || a.startsWith(b) || b.startsWith(a)) return true;
+  const fa = a.split(" ")[0], fb = b.split(" ")[0];
+  return fa === fb || (fa.length >= 5 && fb.length >= 5 && fa.slice(0, 5) === fb.slice(0, 5));
+}
 function distractors(q) {
-  const taken = new Set([q.a.toLowerCase()]);
   const pick = [];
   const same = shuffle(D.filter(e => e.p === q.p));
   const rest = shuffle(D.filter(e => e.p !== q.p));
   for (const e of same.concat(rest)) {
-    const k = e.a.toLowerCase();
-    if (!taken.has(k)) { taken.add(k); pick.push(e.a); }
+    if (lookAlike(e.w, q.w) || pick.some(w => lookAlike(w, e.w))) continue;
+    pick.push(e.w);
     if (pick.length === 3) break;
   }
   return pick;
@@ -1065,7 +1074,7 @@ function distractors(q) {
 function startSingle() {
   const p = pool();
   const n = Math.max(1, Math.min(cfg.count, p.length));
-  const qs = weightedOrder(p, statOf).slice(0, n).map(q => ({ q, opts: shuffle([q.a].concat(distractors(q))), pick: null }));
+  const qs = weightedOrder(p, statOf).slice(0, n).map(q => ({ q, opts: shuffle([q.w].concat(distractors(q))), pick: null }));
   sg = { qs, i: 0 };
   renderSingle();
 }
@@ -1078,7 +1087,7 @@ function renderSingle() {
   const gap = answered ? esc(q.a) : "&nbsp;";
   const opts = it.opts.map((o, k) => {
     let cls = "opt";
-    if (answered) { if (o === q.a) cls += " right"; else if (k === it.pick) cls += " wrong"; }
+    if (answered) { if (o === q.w) cls += " right"; else if (k === it.pick) cls += " wrong"; }
     return `<button type="button" class="${cls}" data-k="${k}" ${answered ? "disabled" : ""}><span class="lt">${"ABCD"[k]}</span>${esc(o)}</button>`;
   }).join("");
   $("#studyView").innerHTML = `<div class="study-card">
@@ -1086,11 +1095,11 @@ function renderSingle() {
     <div class="progress-bar"><span style="width:${(i / qs.length) * 100}%"></span></div>
     <p class="q-sentence">${parts[0]}<span class="gap">${gap}</span>${parts[1] || ""}</p>
     <div class="q-opts">${opts}</div>
-    ${answered ? `<div class="feedback"><span class="fb-word">${esc(q.w)}</span>　${POS[q.p][0]}　${esc(q.kk)}<br>${esc(q.zh)}<br><span style="color:var(--ink)">整句：${esc(q.t)}</span><br>${esc(q.n)}</div>${it.opts[it.pick] !== q.a ? wdFor(it.opts[it.pick], "你選的") : ""}
+    ${answered ? `<div class="feedback"><span class="fb-word">${esc(q.w)}</span>　${POS[q.p][0]}　${esc(q.kk)}<br>${esc(q.zh)}<br><span style="color:var(--ink)">整句：${esc(q.t)}</span><br>${esc(q.n)}</div>${it.opts[it.pick] !== q.w ? wdFor(it.opts[it.pick], "你選的") : ""}
       <div class="btn-row"><button class="primary-btn" type="button" id="next">${i + 1 < qs.length ? "下一題" : "看結果"}</button></div>` : ""}
     <div class="btn-row"><button class="ghost-btn" type="button" id="toSetup">回設定</button></div>
   </div>`;
-  document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { it.pick = +b.dataset.k; recordStat(it.q, it.opts[it.pick] === it.q.a, famElapsed(it.t0), 'quick'); renderSingle(); });
+  document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { it.pick = +b.dataset.k; recordStat(it.q, it.opts[it.pick] === it.q.w, famElapsed(it.t0), 'quick'); renderSingle(); });
   const nx = $("#next"); if (nx) nx.onclick = () => { sg.i++; renderSingle(); };
   $("#toSetup").onclick = renderSetup;
 }

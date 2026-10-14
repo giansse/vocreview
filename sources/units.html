@@ -532,10 +532,11 @@ const MODES = {
   flash: { name: '單字卡', d: '看英文、翻面看中文，自評熟悉度' },
   zh: { name: '看中文拼英文', d: '給中文意思，拼出英文單字' },
   cloze: { name: '例句拼字', d: '例句挖空，給字首和中文翻譯' },
+  mc: { name: '單題四選一', d: '例句挖空，從四個原形單字選一個' },
 };
 function pool() {
   const us = new Set(cfg.units);
-  if (cfg.mode === 'cloze') {
+  if (cfg.mode === 'cloze' || cfg.mode === 'mc') {
     let p = CLOZES.filter(c => us.has(c.u));
     if (cfg.star) p = p.filter(c => (c.G.w[c.wi]?.[1] || c.G.w[0][1]) > 0);
     if (cfg.wrongOnly) p = p.filter(c => progress[c.key]?.w);
@@ -596,7 +597,7 @@ function renderSetup() {
       <div class="pills small">${[10, 20, 50, 'all', 'custom'].map(c => `<div class="pill${cfg.count === c ? ' on' : ''}" role="radio" tabindex="0" data-count="${c}">${c === 'all' ? '全部' : c === 'custom' ? '自訂' : c + ' 題'}</div>`).join('')}</div>
       ${cfg.count === 'custom' ? `<div class="custom-row"><input type="number" id="customN" min="1" value="${cfg.custom}"> 題</div>` : ''}
     </div>
-    <p class="pool-hint">題庫共 <strong>${p.length}</strong> ${cfg.mode === 'cloze' ? '句' : '字'}，這次會考 <strong>${n}</strong> 題，不熟的字優先。<br>${famLine(famBuckets(p, statOf))}</p>
+    <p class="pool-hint">題庫共 <strong>${p.length}</strong> ${cfg.mode === 'cloze' || cfg.mode === 'mc' ? '句' : '字'}，這次會考 <strong>${n}</strong> 題，不熟的字優先。<br>${famLine(famBuckets(p, statOf))}</p>
     <button class="primary-btn" type="button" id="startBtn" ${n ? '' : 'disabled'}>開始</button>
     <button class="reset-link" type="button" id="resetProg">清除答題紀錄</button>
     <div>${famExportHTML()}</div>
@@ -698,6 +699,14 @@ function renderQ() {
     S.hinted = false;
     $('#ansForm').onsubmit = e => { e.preventDefault(); S.answered ? next() : checkSpell(); };
     $('#ans').focus();
+  } else if (S.mode === 'mc') {
+    // 單題四選一：選項一律是原形單字，而且不放長得像的字（同一組衍生字、互為開頭、前 5 個字母相同）
+    const W = it.G.w[it.wi] || it.G.w[0];
+    if (!it.opts) it.opts = mcOptions(W, it);
+    v.innerHTML = `${topBar()}<div class="card q"><div class="q-unit">第 ${it.u} 單元</div><p class="cloze">${esc(it.en.slice(0, it.ts))}<span class="blank" id="blank">＿＿＿＿</span>${esc(it.en.slice(it.ts + it.tl))}</p>
+      <div class="qz-choices" id="mcOpts" style="margin-top:14px">${it.opts.map((o, k) => `<button type="button" class="qz-choice" data-k="${k}"><span class="n">${k + 1}</span>${esc(o)}</button>`).join('')}</div><div id="fb"></div></div>
+      <p class="kbd-hint">按 1–4 選答案，Enter 下一題　·　選項都是原形，空格裡要換成句中的形態</p>`;
+    v.querySelectorAll('#mcOpts [data-k]').forEach(btn => btn.onclick = () => checkMC(+btn.dataset.k));
   } else {
     const first = it.en.substr(it.ts, 1);
     const rest = it.tl - 1;
@@ -758,6 +767,48 @@ function checkCloze() {
   const W = it.G.w[it.wi] || it.G.w[0];
   finish(ok, it, `<div><strong>${esc(target)}</strong> ${sayBtn(it.en)} ← ${esc(W[0])}　${W[3].map(senseHTML).join(' ')}</div>${ok ? '' : `<div class="your">你的答案：${esc(ans)}</div>`}`.replace(/^/, ''), true);
 }
+const mcKey = w => String(w).toLowerCase().trim();
+function mcLookAlike(a, b) {
+  a = mcKey(a); b = mcKey(b);
+  if (a === b || a.startsWith(b) || b.startsWith(a)) return true;
+  return a.slice(0, 2) === b.slice(0, 2);   // 單元是照字母排的，開頭兩個字母一樣就算長得像（例如 able／abiding）
+}
+function mcOptions(W, it) {
+  const ans = W[0], pos = ((W[3][0] || [])[0] || '').replace(/[^a-z]/gi, '').toLowerCase();
+  const us = new Set(cfg.units);
+  const cands = shuffle(WORDS.filter(w => !w.bad && w.G !== it.G && !/\s/.test(w.w) === !/\s/.test(ans)));
+  const posOf = w => ((w.senses[0] || [])[0] || '').replace(/[^a-z]/gi, '').toLowerCase();
+  const tiers = [cands.filter(w => us.has(w.u) && posOf(w) === pos), cands.filter(w => posOf(w) === pos), cands];
+  const pick = [];
+  for (const w of [].concat(...tiers)) {
+    if (mcLookAlike(w.w, ans) || pick.some(x => mcLookAlike(x, w.w))) continue;
+    pick.push(w.w); if (pick.length === 3) break;
+  }
+  return shuffle(pick.concat([ans]));
+}
+function checkMC(k) {
+  if (S.answered) return;
+  const it = S.items[S.i], W = it.G.w[it.wi] || it.G.w[0], picked = it.opts[k];
+  const ok = mcKey(picked) === mcKey(W[0]);
+  const target = it.en.substr(it.ts, it.tl);
+  const bl = $('#blank'); bl.textContent = target; bl.classList.add(ok ? 'ok' : 'no');
+  document.querySelectorAll('#mcOpts [data-k]').forEach(b => { b.disabled = true; const o = it.opts[+b.dataset.k]; if (mcKey(o) === mcKey(W[0])) b.classList.add('ok'); else if (+b.dataset.k === k) b.classList.add('no'); });
+  S.answered = true;
+  if (ok) S.ok++; else S.missed.push(it);
+  record(it.key, ok, famElapsed(S.t0), 'quick');
+  let wd = '';
+  if (!ok && window.wrongDefHTML) {
+    const hits = WORDS.filter(w => mcKey(w.w) === mcKey(picked));
+    if (hits.length) {
+      const h = hits[0], E = h.G.e.find(E => E[4] === h.wi && E[2] >= 0);
+      wd = wrongDefHTML(h.w, h.senses.map((x, i) => ({ pos: x[0], zh: x[1] + (x[2] ? '（= ' + x[2] + '）' : ''), kk: i === 0 && h.ph ? '[' + h.ph + ']' : '', ex: i === 0 && E ? esc(E[0]) : '', exZh: i === 0 && E ? E[1] : '' })), '你選的');
+    }
+  }
+  $('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'no'}"><span class="verdict">${ok ? '答對了' : '再記一下'}</span><div><strong>${esc(target)}</strong> ${sayBtn(it.en)} ← ${esc(W[0])}　${W[3].map(senseHTML).join(' ')}</div><div class="ex-zh" style="margin-top:4px">${esc(it.zh)}</div>${wd}</div>
+    <div class="row-end"><button class="next-btn" type="button" id="nextBtn">下一題</button></div>`;
+  $('#nextBtn').onclick = next;
+  $('#nextBtn').focus();
+}
 function finish(ok, it, inpOrHtml, html, isCloze) {
   // normalise args: (ok, it, inp, html) for zh; (ok, it, html, true) for cloze
   let inp = inpOrHtml;
@@ -779,6 +830,11 @@ function finish(ok, it, inpOrHtml, html, isCloze) {
 }
 document.addEventListener('keydown', e => {
   if (!S || $('#studyView').hidden || S.i >= S.items.length) return;
+  if (S.mode === 'mc') {
+    if (e.target && /input|textarea/i.test(e.target.tagName)) return;
+    if (!S.answered && ['1', '2', '3', '4'].includes(e.key)) { e.preventDefault(); checkMC(+e.key - 1); }
+    return;
+  }
   if (S.mode === 'flash') {
     if (e.key === ' ' && !S.answered) { e.preventDefault(); flip(); }
     else if (S.answered && ['1', '2', '3'].includes(e.key)) rate(+e.key - 1);
