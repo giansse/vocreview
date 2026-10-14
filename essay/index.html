@@ -1462,10 +1462,50 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
   // "gulp" -> "Gulping").
   function escapeRegExpBlank(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
   const blankCache = new Map();
+  // 片語挖空：把片語裡每個字（含介系詞）都挖掉，動詞可以有時態變化；sb／sth／A／B 這類代稱的位置保留原句的字
+  // 回傳 [{ index, matched }]（依位置排序）；找不到完整片語就回傳 null
+  const IRREG = { take: 'took|taken', fall: 'fell|fallen', come: 'came', bear: 'bore|borne', sink: 'sank|sunk', strike: 'struck', lie: 'lay|lain|lying', give: 'gave|given', see: 'saw|seen', keep: 'kept', throw: 'threw|thrown', make: 'made', learn: 'learnt', seek: 'sought', undergo: 'underwent|undergone', go: 'went|gone', get: 'got|gotten', run: 'ran', shed: 'shed', burst: 'burst', put: 'put', set: 'set', cut: 'cut', hit: 'hit', let: 'let', is: 'are|was|were|be|been' };
+  const POSS = "my|your|his|her|its|our|their|one's";
+  const PLACE = /^(sb|sth|someone|something|a|b|n|v|ving|v-ing|\.\.\.|…)$/;
+  function formsRe(t) {
+    const e = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const alts = [e + "(?:s|es|ed|d|ing)?"];
+    if (/e$/.test(t)) alts.push(e.slice(0, -1) + 'ing');
+    if (/[^aeiou]y$/.test(t)) alts.push(e.slice(0, -1) + '(?:ies|ied)');
+    if (/[^aeiou][aeiou][bdglmnprt]$/.test(t)) alts.push(e + t.slice(-1) + '(?:ed|ing)');
+    if (IRREG[t]) alts.push(IRREG[t]);
+    return alts.join('|');
+  }
+  function phraseSpans(word, ex) {
+    if (!word || !ex || !/\s/.test(word.trim())) return null;
+    let raw = word.replace(/\([^)]*\)/g, ' ').split('/')[0].trim().split(/\s+/);
+    if (raw[0] && raw[0].toLowerCase() === 'be' && raw.length > 1) raw = raw.slice(1);   // be + adj／p.p.：be 留在句子裡
+    const toks = raw.map(t => (t === 'A' || t === 'B') ? { ph: true } : (PLACE.test(t.toLowerCase()) && t.length > 1 || t === '…') ? { ph: true } : { re: t.toLowerCase() === "one's" ? POSS : t.toLowerCase() === 'oneself' ? 'myself|yourself|himself|herself|itself|ourselves|themselves|oneself' : formsRe(t.toLowerCase()) });
+    const words = []; ex.replace(/[A-Za-z][A-Za-z'’-]*/g, (m, i) => { words.push({ w: m.toLowerCase().replace(/’/g, "'"), i, len: m.length }); return m; });
+    const real = toks.filter(t => !t.ph); if (!real.length) return null;
+    function go(ti, wi, acc, gapOk) {
+      if (ti === toks.length) return acc;
+      const t = toks[ti];
+      if (t.ph) return go(ti + 1, wi, acc, 5);
+      const lim = Math.min(words.length, wi + 1 + (acc.length ? gapOk : words.length));
+      for (let k = wi; k < lim; k++) {
+        if (new RegExp('^(?:' + t.re + ')$').test(words[k].w)) { const r = go(ti + 1, k + 1, acc.concat([k]), 3); if (r) return r; }
+      }
+      return null;
+    }
+    const hit = go(0, 0, [], 0);
+    if (!hit) return null;
+    const spans = [];
+    hit.forEach(k => { const w = words[k], last = spans[spans.length - 1]; if (last && last.k === k - 1) { last.end = w.i + w.len; last.k = k; } else spans.push({ start: w.i, end: w.i + w.len, k }); });
+    return spans.map(s => ({ index: s.start, matched: ex.slice(s.start, s.end) }));
+  }
+  window.phraseSpans = phraseSpans;
   function findBlank(card) {
     if (card.type === 'sentence') return null;
     if (blankCache.has(card.id)) return blankCache.get(card.id);
     let result = null;
+    const ps = phraseSpans(card.word, card.example);
+    if (ps) { result = { matched: ps[0].matched, index: ps[0].index, spans: ps }; blankCache.set(card.id, result); return result; }
     const exactRe = new RegExp('\\b' + escapeRegExpBlank(card.word) + '\\b', 'i');
     let m = card.example.match(exactRe);
     if (m) {
@@ -2074,18 +2114,23 @@ function famCalibrate() {
       </div>`;
   }
 
+  // 例句挖空：片語的每一段（含介系詞）都換成空格
+  function blankedHtml(card, m) {
+    const sp = m.spans || [{ index: m.index, matched: m.matched }];
+    let out = '', pos = 0;
+    sp.forEach(x => { out += escapeHtml(card.example.slice(pos, x.index)) + '<span class="cloze-blank">＿＿＿＿＿</span>'; pos = x.index + x.matched.length; });
+    return out + escapeHtml(card.example.slice(pos));
+  }
   // 選擇題：例句克漏字，從 4 個單字／片語選項中選出正確答案
   function mcHtml(card) {
     const m = findBlank(card);
-    const before = card.example.slice(0, m.index);
-    const after = card.example.slice(m.index + m.matched.length);
     let distractorPool = CARDS.filter(c => c.type === card.type && c.id !== card.id && c.word !== card.word);
     if (distractorPool.length < 3) distractorPool = CARDS.filter(c => c.type !== 'sentence' && c.id !== card.id && c.word !== card.word);
     const distractors = pick(distractorPool, 3).map(c => c.word);
     const options = shuffle([card.word, ...distractors]);
     return `
       <div class="cloze-question">
-        <p class="cloze-sentence">${escapeHtml(before)}<span class="cloze-blank">＿＿＿＿＿</span>${escapeHtml(after)}</p>
+        <p class="cloze-sentence">${blankedHtml(card, m)}</p>
         <p class="cloze-zh-hint">提示：${escapeHtml(card.zh)}</p>
         <div class="mc-options" id="mcOptions">
           ${options.map(o => `<button class="mc-option" data-val="${escapeHtml(o)}" type="button">${escapeHtml(o)}</button>`).join('')}
@@ -2111,11 +2156,9 @@ function famCalibrate() {
   // 克漏字：例句挖空 + 字首字母提示，自己打出正確答案
   function clozeHtml(card) {
     const m = findBlank(card);
-    const before = card.example.slice(0, m.index);
-    const after = card.example.slice(m.index + m.matched.length);
     return `
       <div class="cloze-question">
-        <p class="cloze-sentence">${escapeHtml(before)}<span class="cloze-blank">＿＿＿＿＿</span>${escapeHtml(after)}</p>
+        <p class="cloze-sentence">${blankedHtml(card, m)}</p>
         <p class="hint-pattern" id="hintPattern">${escapeHtml(hintPattern(card.word))}</p>
         <div class="spelling-input-row">
           <input type="text" id="spellInput" autocomplete="off" placeholder="請輸入完整答案…">
@@ -2857,6 +2900,8 @@ body.qz-open { overflow: hidden; }
   const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   function blank(word, ex) {
     if (!ex) return null;
+    const ps = window.phraseSpans && window.phraseSpans(word, ex);   // 片語：每一段（含介系詞）都挖空
+    if (ps) { let f = '', p = 0; ps.forEach(x => { f += ex.slice(p, x.index) + '_____'; p = x.index + x.matched.length; }); return { front: f + ex.slice(p), hit: ps[0].matched }; }
     const w = word.trim();
     let m = ex.match(new RegExp('\\b' + escRe(w) + '\\b', 'i'));
     if (!m && !/\s/.test(w) && w.length > 3) {

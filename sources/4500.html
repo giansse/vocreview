@@ -310,7 +310,7 @@ const CATS = [
 // s: 例句（___ 為空格）  a: 填入空格的形式  t: 中譯  n: 搭配與提示  f: 小標籤
 const D = [
   // 名詞也能當動詞
-  { c:"n2v", w:"jet", p:"v", zh:"搭噴射機旅行（常接 off）", kk:"/dʒɛt/", s:"She ___ off to Paris for the weekend.", a:"jetted", t:"她週末搭飛機飛去巴黎。", n:"jet off to + 地點；過去式雙寫 t：jetted" },
+  { c:"n2v", w:"jet", p:"v", zh:"搭噴射機旅行（常接 off）", kk:"/dʒɛt/", s:"She ___ to Paris for the weekend.", a:"jetted off", t:"她週末搭飛機飛去巴黎。", n:"jet off to + 地點；過去式雙寫 t：jetted" },
   { c:"n2v", w:"clothe", p:"v", zh:"給…穿衣；供給衣物", kk:"/kloð/", s:"He works two jobs to feed and ___ his family.", a:"clothe", t:"他兼兩份工作讓家人有飯吃、有衣服穿。", n:"動詞是 clothe（有 e，th 讀 /ð/），cloth 只當名詞「布」；feed and clothe；be clothed in 穿著", f:"拼字" },
   { c:"n2v", w:"nest", p:"v", zh:"築巢；（物品）層層套疊", kk:"/nɛst/", s:"Swallows ___ under our roof every spring.", a:"nest", t:"燕子每年春天在我們屋簷下築巢。", n:"nesting tables 套几；nest egg 儲蓄金" },
   { c:"n2v", w:"cart", p:"v", zh:"（費力地）運送、搬走", kk:"/kɑrt/", s:"The workers ___ the old furniture away.", a:"carted", t:"工人把舊家具搬走了。", n:"cart sth away / off；名詞 shopping cart 購物推車" },
@@ -385,8 +385,8 @@ const D = [
 
   // 片語
   { c:"phr", w:"stage fright", p:"phr", zh:"怯場", kk:"/stedʒ fraɪt/", s:"He had terrible ___ before his first speech.", a:"stage fright", t:"他第一次演講前嚴重怯場。", n:"have / get / overcome stage fright" },
-  { c:"phr", w:"dawn on", p:"phr", zh:"（某人）突然明白", kk:"/dɔn ɑn/", s:"It suddenly ___ on me that I had left my keys at home.", a:"dawned", t:"我突然想到我把鑰匙忘在家裡了。", n:"正確說法是 It dawned on me that…，不是 It's dawn on me；事情當主詞，人放在 on 後面" },
-  { c:"phr", w:"be bound to", p:"phr", zh:"必定會", kk:"/baʊnd tu/", s:"If you keep practicing, you are ___ to improve.", a:"bound", t:"只要持續練習，你一定會進步。", n:"be bound to + V 原形" },
+  { c:"phr", w:"dawn on", p:"phr", zh:"（某人）突然明白", kk:"/dɔn ɑn/", s:"It suddenly ___ me that I had left my keys at home.", a:"dawned on", t:"我突然想到我把鑰匙忘在家裡了。", n:"正確說法是 It dawned on me that…，不是 It's dawn on me；事情當主詞，人放在 on 後面" },
+  { c:"phr", w:"be bound to", p:"phr", zh:"必定會", kk:"/baʊnd tu/", s:"If you keep practicing, you are ___ improve.", a:"bound to", t:"只要持續練習，你一定會進步。", n:"be bound to + V 原形" },
   { c:"n2v", w:"condition", p:"v", zh:"使習慣於、制約；調理", kk:"/kənˋdɪʃən/", s:"Dogs can be ___ to expect food when they hear a bell.", a:"conditioned", t:"狗可以被訓練成一聽到鈴聲就期待食物。", n:"be conditioned to V / by sth；conditioner 潤髮乳" },
   { c:"n2v", w:"fund", p:"v", zh:"資助、提供資金", kk:"/fʌnd/", s:"The research project is ___ by the government.", a:"funded", t:"這個研究計畫由政府出資。", n:"be funded by；fund-raising 募款" },
   { c:"n2v", w:"nurse", p:"v", zh:"看護、照顧", kk:"/nɝs/", s:"She ___ her sick mother back to health.", a:"nursed", t:"她把生病的母親照顧到康復。", n:"nurse sb back to health" },
@@ -430,8 +430,8 @@ const D = [
   { c:"life", w:"pub", p:"n", zh:"酒吧（英式）", kk:"/pʌb/", s:"They met at a ___ after work.", a:"pub", t:"他們下班後在酒吧碰面。", n:"public house 的縮寫" },
   { c:"life", w:"informer", p:"n", zh:"告密者、線民", kk:"/ɪnˋfɔrmɚ/", s:"The police learned of the plan from an ___.", a:"informer", t:"警方從線民那裡得知這個計畫。", n:"inform on sb 告發某人" },
 
-  { c:"phr", w:"attitude toward(s)", p:"phr", zh:"對…的態度", kk:"/ˋætətjud təˋwɔrd/", s:"His ___ toward his studies has changed a lot.", a:"attitude", t:"他對課業的態度改變很多。", n:"介系詞用 toward(s)，不是 to 或 for；a positive attitude toward" },
-  { c:"phr", w:"be engaged to", p:"phr", zh:"與…訂婚", kk:"/ɪnˋgedʒd tu/", s:"Tom is ___ to his college sweetheart.", a:"engaged", t:"湯姆跟大學時的女友訂婚了。", n:"get engaged 訂婚；engagement ring 訂婚戒指；be engaged in 從事" },
+  { c:"phr", w:"attitude toward(s)", p:"phr", zh:"對…的態度", kk:"/ˋætətjud təˋwɔrd/", s:"His ___ his studies has changed a lot.", a:"attitude toward", t:"他對課業的態度改變很多。", n:"介系詞用 toward(s)，不是 to 或 for；a positive attitude toward" },
+  { c:"phr", w:"be engaged to", p:"phr", zh:"與…訂婚", kk:"/ɪnˋgedʒd tu/", s:"Tom is ___ his college sweetheart.", a:"engaged to", t:"湯姆跟大學時的女友訂婚了。", n:"get engaged 訂婚；engagement ring 訂婚戒指；be engaged in 從事" },
 
   { c:"noun", w:"pilot", p:"n", zh:"飛行員；領航員", kk:"/ˋpaɪlət/", s:"The ___ announced that we would land in ten minutes.", a:"pilot", t:"機長廣播說我們十分鐘後降落。", n:"co-pilot 副駕駛；當形容詞是「試驗性的」：a pilot program 試辦計畫" },
   { c:"noun", w:"lord", p:"n", zh:"貴族、領主；（the Lord）上帝", kk:"/lɔrd/", s:"The ___ owned all the land around the castle.", a:"lord", t:"那位領主擁有城堡周圍所有土地。", n:"landlord 房東；Good Lord! 天啊！；the House of Lords 英國上議院" },
@@ -487,7 +487,7 @@ const D = [
   { c:"verb", w:"dine", p:"v", zh:"用餐、進餐", kk:"/daɪn/", s:"We ___ at a French restaurant last night.", a:"dined", t:"我們昨晚在一家法式餐廳用餐。", n:"dine out 外食；dine in 在家（店內）吃；dining room 餐廳" },
   { c:"verb", w:"brag", p:"v", zh:"吹噓、自誇", kk:"/bræg/", s:"He keeps ___ about his new car.", a:"bragging", t:"他一直在炫耀他的新車。", n:"brag about / of；bragged、bragging 雙寫 g" },
 
-  { c:"phr", w:"for the sake of", p:"phr", zh:"為了…（的利益、緣故）", kk:"/fɔr ðə sek ɑv/", s:"He quit smoking for the ___ of his health.", a:"sake", t:"他為了健康戒菸。", n:"for sb's sake 為了某人；for God's sake 拜託；for the sake of argument 姑且假設" },
+  { c:"phr", w:"for the sake of", p:"phr", zh:"為了…（的利益、緣故）", kk:"/fɔr ðə sek ɑv/", s:"He quit smoking ___ his health.", a:"for the sake of", t:"他為了健康戒菸。", n:"for sb's sake 為了某人；for God's sake 拜託；for the sake of argument 姑且假設" },
 
   { c:"n2v", w:"bubble", p:"v", zh:"冒泡；洋溢（with）", kk:"/ˋbʌbl/", s:"The kids were ___ with excitement before the trip.", a:"bubbling", t:"出發前孩子們興奮得不得了。", n:"bubble with joy / excitement；名詞「泡泡」" },
   { c:"n2v", w:"further", p:"v", zh:"促進、增進", kk:"/ˋfɝðɚ/", s:"She studied abroad to ___ her career.", a:"further", t:"她出國念書以求事業更上一層樓。", n:"further one's career / education / interests；平常是 far 的比較級「更進一步」" },
@@ -517,9 +517,9 @@ const D = [
   { c:"life", w:"fountain", p:"n", zh:"噴泉；泉源", kk:"/ˋfaʊntn/", s:"Tourists threw coins into the ___.", a:"fountain", t:"遊客把硬幣丟進噴泉。", n:"drinking fountain 飲水機；fountain pen 鋼筆" },
   { c:"life", w:"youngster", p:"n", zh:"年輕人；小孩", kk:"/ˋjʌŋstɚ/", s:"The camp is popular with ___ aged 10 to 15.", a:"youngsters", t:"這個營隊很受十到十五歲孩子歡迎。", n:"= young person；口語用法" },
 
-  { c:"phr", w:"boot up", p:"phr", zh:"（電腦）開機、啟動", kk:"/but ʌp/", s:"It takes my old laptop five minutes to ___ up.", a:"boot", t:"我的舊筆電要五分鐘才開得了機。", n:"boot (up) a computer；reboot 重新開機；名詞 boot「靴子」" },
-  { c:"phr", w:"wander off", p:"phr", zh:"走散、離開原處；（話題）偏離", kk:"/ˋwɑndɚ ɔf/", s:"Don't let the children ___ off in the mall.", a:"wander", t:"在商場裡別讓孩子們走散。", n:"wander off the point / topic 離題" },
-  { c:"phr", w:"gang up on", p:"phr", zh:"聯合起來對付（某人）", kk:"/gæŋ ʌp ɑn/", s:"The older boys ___ up on him at recess.", a:"ganged", t:"下課時那些大男生聯手欺負他。", n:"gang up on / against sb；gang n. 幫派" },
+  { c:"phr", w:"boot up", p:"phr", zh:"（電腦）開機、啟動", kk:"/but ʌp/", s:"It takes my old laptop five minutes to ___.", a:"boot up", t:"我的舊筆電要五分鐘才開得了機。", n:"boot (up) a computer；reboot 重新開機；名詞 boot「靴子」" },
+  { c:"phr", w:"wander off", p:"phr", zh:"走散、離開原處；（話題）偏離", kk:"/ˋwɑndɚ ɔf/", s:"Don't let the children ___ in the mall.", a:"wander off", t:"在商場裡別讓孩子們走散。", n:"wander off the point / topic 離題" },
+  { c:"phr", w:"gang up on", p:"phr", zh:"聯合起來對付（某人）", kk:"/gæŋ ʌp ɑn/", s:"The older boys ___ him at recess.", a:"ganged up on", t:"下課時那些大男生聯手欺負他。", n:"gang up on / against sb；gang n. 幫派" },
 
   { c:"n2v", w:"trail", p:"v", zh:"拖曳；（在後面）拖著走", kk:"/trel/", s:"Her long wedding dress ___ along the floor.", a:"trailed", t:"她的長禮服拖在地板上。", n:"trail behind 跟在後面；也指「落後」；名詞「小徑」" },
   { c:"n2v", w:"panic", p:"v", zh:"驚慌、恐慌", kk:"/ˋpænɪk/", s:"Don't ___ — just walk calmly to the exit.", a:"panic", t:"別驚慌，冷靜走向出口。", n:"過去式 panicked、現在分詞 panicking（加 k）", f:"拼字" },
@@ -528,7 +528,7 @@ const D = [
   { c:"n2v", w:"tune", p:"v", zh:"調音；調（頻道）", kk:"/tjun/", s:"The violinist ___ her instrument before the concert.", a:"tuned", t:"小提琴手在音樂會前調音。", n:"tune in to 收聽／收看；Stay tuned! 敬請鎖定；名詞「曲調」" },
   { c:"n2v", w:"carpet", p:"v", zh:"鋪地毯；（像地毯般）覆蓋", kk:"/ˋkɑrpɪt/", s:"In autumn the path is ___ with fallen leaves.", a:"carpeted", t:"秋天小路上鋪滿落葉。", n:"be carpeted with 覆蓋著…" },
   { c:"n2v", w:"mob", p:"v", zh:"（人群）蜂擁包圍", kk:"/mɑb/", s:"The singer was ___ by fans at the airport.", a:"mobbed", t:"那位歌手在機場被粉絲團團包圍。", n:"be mobbed by；mobbed 雙寫 b" },
-  { c:"n2v", w:"major", p:"v", zh:"主修（in）", kk:"/ˋmedʒɚ/", s:"She ___ in aerospace engineering at university.", a:"majored", t:"她大學主修航太工程。", n:"major in；名詞 major 主修科目；minor in 輔修" },
+  { c:"n2v", w:"major", p:"v", zh:"主修（in）", kk:"/ˋmedʒɚ/", s:"She ___ aerospace engineering at university.", a:"majored in", t:"她大學主修航太工程。", n:"major in；名詞 major 主修科目；minor in 輔修" },
 
   { c:"noun", w:"wrap", p:"n", zh:"包裝紙；保鮮膜", kk:"/ræp/", s:"Cover the bowl with plastic ___ and put it in the fridge.", a:"wrap", t:"用保鮮膜蓋住碗再放進冰箱。", n:"plastic wrap 保鮮膜；gift wrap 禮品包裝紙；keep sth under wraps 保密" },
   { c:"noun", w:"minor", p:"n", zh:"未成年人", kk:"/ˋmaɪnɚ/", s:"Selling alcohol to ___ is against the law.", a:"minors", t:"賣酒給未成年人是違法的。", n:"= juvenile；形容詞是「次要的」；minor in 輔修" },
@@ -549,7 +549,7 @@ const D = [
   { c:"verb", w:"skip", p:"v", zh:"蹦跳；跳繩", kk:"/skɪp/", s:"The little girl ___ happily down the street.", a:"skipped", t:"小女孩開心地沿街蹦蹦跳跳。", n:"skip rope 跳繩；也指「略過、翹（課）」skip class；skipped 雙寫 p" },
   { c:"verb", w:"fold", p:"v", zh:"摺疊；交疊（雙臂）", kk:"/fold/", s:"He sat with his arms ___, saying nothing.", a:"folded", t:"他雙臂交叉坐著，一言不發。", n:"fold one's arms 雙手抱胸；fold up 摺起來" },
   { c:"verb", w:"spit", p:"v", zh:"吐（口水、食物）", kk:"/spɪt/", s:"It is rude to ___ on the street.", a:"spit", t:"在街上吐口水很沒禮貌。", n:"三態 spit–spat–spat；spit out 吐出來", f:"三態" },
-  { c:"verb", w:"drown", p:"v", zh:"淹死；（聲音）蓋過", kk:"/draʊn/", s:"The music ___ out our conversation.", a:"drowned", t:"音樂聲蓋過了我們的談話。", n:"drown out 蓋過；be drowned 溺死；drown one's sorrows 借酒澆愁" },
+  { c:"verb", w:"drown", p:"v", zh:"淹死；（聲音）蓋過", kk:"/draʊn/", s:"The music ___ our conversation.", a:"drowned out", t:"音樂聲蓋過了我們的談話。", n:"drown out 蓋過；be drowned 溺死；drown one's sorrows 借酒澆愁" },
 
   { c:"life", w:"inn", p:"n", zh:"小旅館、客棧", kk:"/ɪn/", s:"We stayed at a small ___ in the countryside.", a:"inn", t:"我們住在鄉間一家小旅館。", n:"innkeeper 旅館老闆" },
   { c:"life", w:"ribbon", p:"n", zh:"緞帶、絲帶", kk:"/ˋrɪbən/", s:"The mayor cut the ___ to open the new bridge.", a:"ribbon", t:"市長剪綵為新橋啟用。", n:"cut the ribbon 剪綵；tie a ribbon 綁緞帶" },
@@ -563,7 +563,7 @@ const D = [
   { c:"n2v", w:"fashion", p:"v", zh:"（用手）製作、塑造", kk:"/ˋfæʃən/", s:"The boy ___ a boat out of an old milk carton.", a:"fashioned", t:"男孩用舊牛奶盒做了一艘船。", n:"fashion A from / out of B；old-fashioned 老式的；名詞「時尚、方式」" },
   { c:"n2v", w:"lobby", p:"v", zh:"遊說（for / against）", kk:"/ˋlɑbɪ/", s:"Parents ___ the city council for a new playground.", a:"lobbied", t:"家長們遊說市議會蓋新的遊樂場。", n:"lobby for / against；lobbyist 說客；名詞「大廳」" },
   { c:"n2v", w:"spray", p:"v", zh:"噴灑、噴（漆、水）", kk:"/spre/", s:"Someone ___ graffiti on the school wall.", a:"sprayed", t:"有人在學校牆上噴塗鴉。", n:"spray A on B / spray B with A；名詞「噴霧」" },
-  { c:"n2v", w:"cave", p:"v", zh:"塌陷；屈服（cave in）", kk:"/kev/", s:"The manager finally ___ in to the workers' demands.", a:"caved", t:"經理最後屈服於工人的要求。", n:"cave in (to) 屈服；The roof caved in. 屋頂塌了；名詞「洞穴」" },
+  { c:"n2v", w:"cave", p:"v", zh:"塌陷；屈服（cave in）", kk:"/kev/", s:"The manager finally ___ to the workers' demands.", a:"caved in", t:"經理最後屈服於工人的要求。", n:"cave in (to) 屈服；The roof caved in. 屋頂塌了；名詞「洞穴」" },
   { c:"n2v", w:"crown", p:"v", zh:"加冕；為…畫下完美句點", kk:"/kraʊn/", s:"She was ___ world champion at the age of nineteen.", a:"crowned", t:"她十九歲就登上世界冠軍寶座。", n:"be crowned (as) + 頭銜；to crown it all 更糟（好）的是" },
   { c:"n2v", w:"zone", p:"v", zh:"劃分區域；（zone out）恍神", kk:"/zon/", s:"This area is ___ for residential use only.", a:"zoned", t:"這一區只能作住宅用途。", n:"be zoned for 劃為…用地；zone out 發呆、放空" },
   { c:"n2v", w:"chill", p:"v", zh:"冷藏；使發冷；（chill out）放鬆", kk:"/tʃɪl/", s:"___ the dessert in the fridge for two hours.", a:"Chill", t:"把甜點放冰箱冷藏兩小時。", n:"chill out 放輕鬆；send a chill down one's spine 令人不寒而慄" },
@@ -588,7 +588,7 @@ const D = [
   { c:"verb", w:"rid", p:"v", zh:"使擺脫、清除", kk:"/rɪd/", s:"It took months to ___ the house of mice.", a:"rid", t:"花了好幾個月才清除屋裡的老鼠。", n:"rid A of B；get rid of 擺脫；三態 rid–rid–rid", f:"三態" },
   { c:"verb", w:"crash", p:"v", zh:"（電腦）當機", kk:"/kræʃ/", s:"My computer ___ and I lost all my work.", a:"crashed", t:"我的電腦當機，做的東西全沒了。", n:"也指「撞車」「（股市）崩盤」；crash a party 不請自來" },
   { c:"verb", w:"whip", p:"v", zh:"鞭打；打發（奶油、蛋）", kk:"/hwɪp/", s:"___ the cream until it forms soft peaks.", a:"Whip", t:"把鮮奶油打到能拉出軟尖。", n:"whipped cream 鮮奶油；名詞「鞭子」；whipped 雙寫 p" },
-  { c:"verb", w:"screw", p:"v", zh:"旋緊；（screw up）搞砸", kk:"/skru/", s:"I really ___ up the interview yesterday.", a:"screwed", t:"我昨天面試真的搞砸了。", n:"screw on / in 旋上；名詞「螺絲」screwdriver 螺絲起子" },
+  { c:"verb", w:"screw", p:"v", zh:"旋緊；（screw up）搞砸", kk:"/skru/", s:"I really ___ the interview yesterday.", a:"screwed up", t:"我昨天面試真的搞砸了。", n:"screw on / in 旋上；名詞「螺絲」screwdriver 螺絲起子" },
 
   { c:"life", w:"mist", p:"n", zh:"薄霧", kk:"/mɪst/", s:"The mountains were hidden in ___.", a:"mist", t:"群山隱沒在薄霧中。", n:"misty adj.；fog 是較濃的霧" },
   { c:"life", w:"wrist", p:"n", zh:"手腕", kk:"/rɪst/", s:"She wears a silver watch on her left ___.", a:"wrist", t:"她左手腕戴著一支銀錶。", n:"w 不發音；wristwatch 手錶；sprain one's wrist 扭到手腕" },
@@ -599,7 +599,7 @@ const D = [
 
   { c:"adj", w:"novel", p:"adj", zh:"新奇的、新穎的", kk:"/ˋnɑvl/", s:"Using drones to deliver pizza is a ___ idea.", a:"novel", t:"用無人機送披薩是個新奇的點子。", n:"a novel idea / approach；名詞 novelty 新奇；跟名詞「小說」同字" },
   { c:"shift", w:"dump", p:"n", zh:"垃圾場；髒亂的地方", kk:"/dʌmp/", s:"The old quarry was turned into a garbage ___.", a:"dump", t:"那座舊採石場變成了垃圾場。", n:"動詞 dump 是「傾倒、拋棄」；This room is a dump! 這房間亂得像垃圾堆；down in the dumps 心情低落" },
-  { c:"phr", w:"drain A of B", p:"phr", zh:"耗盡 A 的 B；把 B 從 A 抽乾", kk:"/dren/", s:"The three-hour exam ___ her of all her energy.", a:"drained", t:"三小時的考試耗盡了她所有的精力。", n:"of 後面接被抽乾的東西；同句型 rob / deprive A of B；drained（形）筋疲力盡的" },
+  { c:"phr", w:"drain A of B", p:"phr", zh:"耗盡 A 的 B；把 B 從 A 抽乾", kk:"/dren/", s:"The three-hour exam ___ her ___ all her energy.", a:"drained … of", t:"三小時的考試耗盡了她所有的精力。", n:"of 後面接被抽乾的東西；同句型 rob / deprive A of B；drained（形）筋疲力盡的" },
   { c:"n2v", w:"chip", p:"v", zh:"削下碎片；碰出缺口", kk:"/tʃɪp/", s:"I ___ my tooth on a piece of hard candy.", a:"chipped", t:"我咬硬糖把牙齒咬缺了一角。", n:"chip a cup / tooth；chip in 湊錢、插話；過去式雙寫 p：chipped" },
   { c:"life", w:"lane", p:"n", zh:"車道；小巷", kk:"/len/", s:"Stay in your ___ when driving on the highway.", a:"lane", t:"在高速公路上開車要待在自己的車道。", n:"bike lane 自行車道；fast lane 快車道；地址的「巷」也是 Lane" },
   { c:"n2v", w:"bait", p:"v", zh:"裝誘餌；引誘、故意激怒", kk:"/bet/", s:"He ___ the hook with a worm and cast the line.", a:"baited", t:"他把蚯蚓裝上魚鉤，甩出釣線。", n:"bait a hook / trap；bait sb 故意挑釁某人；名詞 bait 誘餌（clickbait 標題黨）" },
@@ -610,10 +610,10 @@ const D = [
   { c:"verb", w:"chop", p:"v", zh:"剁、切碎；砍", kk:"/tʃɑp/", s:"___ the onions finely before frying them.", a:"Chop", t:"洋蔥先切碎再下鍋炒。", n:"chop up 切碎；chop down a tree 砍樹；三態 chop–chopped–chopped", f:"三態" },
   { c:"noun", w:"chop", p:"n", zh:"帶骨肉排", kk:"/tʃɑp/", s:"I ordered a pork ___ with rice for lunch.", a:"chop", t:"我午餐點了排骨飯。", n:"pork chop 豬排；lamb chop 羊排" },
   { c:"life", w:"circus", p:"n", zh:"馬戲團；鬧哄哄的場面", kk:"/ˋsɝkəs/", s:"The kids laughed at the clowns in the ___.", a:"circus", t:"孩子們看馬戲團的小丑看得哈哈大笑。", n:"a media circus 媒體鬧劇" },
-  { c:"n2v", w:"clown", p:"v", zh:"耍寶、胡鬧", kk:"/klaʊn/", s:"Stop ___ around and get back to work!", a:"clowning", t:"別再胡鬧了，回去工作！", n:"clown around 耍寶；class clown 班上的開心果" },
+  { c:"n2v", w:"clown", p:"v", zh:"耍寶、胡鬧", kk:"/klaʊn/", s:"Stop ___ and get back to work!", a:"clowning around", t:"別再胡鬧了，回去工作！", n:"clown around 耍寶；class clown 班上的開心果" },
   { c:"noun", w:"cradle", p:"n", zh:"發源地、搖籃", kk:"/ˋkredl/", s:"Greece is often called the ___ of Western civilization.", a:"cradle", t:"希臘常被稱為西方文明的發源地。", n:"本義「嬰兒搖籃」；from the cradle to the grave 從生到死" },
   { c:"n2v", w:"cradle", p:"v", zh:"溫柔地抱著、小心捧著", kk:"/ˋkredl/", s:"She ___ the newborn baby in her arms.", a:"cradled", t:"她把新生兒溫柔地抱在懷裡。", n:"cradle sth in one's arms / hands" },
-  { c:"phr", w:"dam up", p:"phr", zh:"築壩攔住；壓抑（情緒）", kk:"/dæm ʌp/", s:"Beavers ___ up the stream with branches and mud.", a:"dam", t:"河狸用樹枝和泥巴把小溪攔起來。", n:"dam 水壩；過去式雙寫 m：dammed；dam up one's feelings 壓抑情緒" },
+  { c:"phr", w:"dam up", p:"phr", zh:"築壩攔住；壓抑（情緒）", kk:"/dæm ʌp/", s:"Beavers ___ the stream with branches and mud.", a:"dam up", t:"河狸用樹枝和泥巴把小溪攔起來。", n:"dam 水壩；過去式雙寫 m：dammed；dam up one's feelings 壓抑情緒" },
   { c:"shift", w:"dampen", p:"v", zh:"澆熄（熱情）、使掃興；弄濕", kk:"/ˋdæmpən/", s:"The heavy rain did not ___ the fans' enthusiasm.", a:"dampen", t:"大雨沒有澆熄球迷的熱情。", n:"dampen sb's spirits / enthusiasm；形容詞 damp 潮濕的" },
   { c:"life", w:"dime", p:"n", zh:"（美、加）十分硬幣", kk:"/daɪm/", s:"A ___ is worth ten cents.", a:"dime", t:"一枚 dime 值十分錢。", n:"penny 1 分、nickel 5 分、dime 10 分、quarter 25 分；a dime a dozen 多得不稀奇" },
   { c:"verb", w:"dip", p:"v", zh:"浸、沾一下", kk:"/dɪp/", s:"She ___ the cookie into her milk.", a:"dipped", t:"她把餅乾泡進牛奶裡。", n:"dip A in / into B；三態 dip–dipped–dipped", f:"三態" },
@@ -633,15 +633,18 @@ const D = [
   { c:"verb", w:"slip", p:"v", zh:"悄悄放入；溜走", kk:"/slɪp/", s:"She ___ a note into his pocket.", a:"slipped", t:"她偷偷把一張紙條塞進他口袋。", n:"本義滑倒；slip A into B；slip away 溜走；It slipped my mind. 我忘了；三態 slip–slipped–slipped", f:"三態" },
   { c:"n2v", w:"spy", p:"v", zh:"監視；（突然）看見、瞥見", kk:"/spaɪ/", s:"She ___ a familiar face in the crowd.", a:"spied", t:"她在人群中瞥見一張熟悉的臉。", n:"spy on sb 監視某人；過去式 spied（y→ied）", f:"三態" },
   { c:"life", w:"stool", p:"n", zh:"凳子（無靠背）", kk:"/stul/", s:"He sat on a bar ___ at the counter.", a:"stool", t:"他坐在吧檯的高腳凳上。", n:"有靠背的是 chair；醫學上 stool 也指糞便" },
-  { c:"phr", w:"bleed sb dry", p:"phr", zh:"榨乾某人的錢財、敲竹槓", kk:"/blid ˋsʌmˌbʌdɪ draɪ/", s:"The loan sharks ___ him dry with sky-high interest.", a:"bled", t:"地下錢莊用超高利息把他榨乾。", n:"三態 bleed–bled–bled；bleed sb for money 向某人勒索錢", f:"三態" },
-  { c:"phr", w:"be bound for", p:"phr", zh:"開往、前往", kk:"/baʊnd fɔr/", s:"This train is ___ for Kaohsiung.", a:"bound", t:"這班列車開往高雄。", n:"bound for + 地點" }
+  { c:"phr", w:"bleed sb dry", p:"phr", zh:"榨乾某人的錢財、敲竹槓", kk:"/blid ˋsʌmˌbʌdɪ draɪ/", s:"The loan sharks ___ him ___ with sky-high interest.", a:"bled … dry", t:"地下錢莊用超高利息把他榨乾。", n:"三態 bleed–bled–bled；bleed sb for money 向某人勒索錢", f:"三態" },
+  { c:"phr", w:"be bound for", p:"phr", zh:"開往、前往", kk:"/baʊnd fɔr/", s:"This train is ___ Kaohsiung.", a:"bound for", t:"這班列車開往高雄。", n:"bound for + 地點" }
 ];
 
 const POS = { v:["動詞","pos-v"], n:["名詞","pos-n"], adj:["形容詞","pos-adj"], adv:["副詞","pos-adj"], phr:["片語","pos-phr"] };
 const UPDATED = "2026-10-13";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[ch]));
-const exHTML = e => esc(e.s).replace("___", "<b>" + esc(e.a) + "</b>");
+// 片語可能有好幾個空格（例如 drain ___ her ___ all），a 用「 … 」分開每一格要填的字
+const aParts = a => String(a).split(" … ");
+const fillBlanks = (s, a, wrap) => { const p = aParts(a); let i = 0; return esc(s).replace(/___/g, () => wrap(esc(p[Math.min(i++, p.length - 1)] || ""))); };
+const exHTML = e => fillBlanks(e.s, e.a, x => "<b>" + x + "</b>");
 const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 D.forEach((e, i) => e.id = i);
 
@@ -990,14 +993,16 @@ function renderCloze() {
   const right = done ? qs.filter((q, i) => fill[i] !== null && opts[fill[i]].a.toLowerCase() === q.a.toLowerCase()).length : 0;
   const items = qs.map((q, i) => {
     const f = fill[i];
+    const parts = esc(q.s).split("___");
     const atStart = /^___/.test(q.s), shown = f === null ? '' : (atStart ? opts[f].show.charAt(0).toUpperCase() + opts[f].show.slice(1) : opts[f].show);
-    const label = f === null ? `(${i + 1})` : `<span class="lt">${opts[f].lt}</span> ${esc(shown)}`;
+    const label = f === null ? `(${i + 1})` : `<span class="lt">${opts[f].lt}</span> ${esc(parts.length > 2 ? aParts(shown)[0] : shown)}`;
     let cls = "blank";
     if (done) cls += (f !== null && opts[f].a.toLowerCase() === q.a.toLowerCase()) ? " right" : " wrong";
     else if (i === active) cls += " active";
-    const parts = esc(q.s).split("___");
     const reveal = done ? `<div class="reveal">${(f !== null && opts[f].a.toLowerCase() === q.a.toLowerCase()) ? "" : `正解 <span class="fix">${esc(q.a)}</span>　`}${esc(q.w)}（${POS[q.p][0]}）${esc(q.zh)}｜${esc(q.t)}</div>${f !== null && opts[f].a.toLowerCase() !== q.a.toLowerCase() ? wdFor(opts[f].a, "你填的") : ""}` : "";
-    return `<li class="cloze-item"><span class="qn">${i + 1}.</span>${parts[0]}<button type="button" class="${cls}" data-blank="${i}" ${done ? "disabled" : ""}>${label}</button>${parts[1] || ""}${reveal}</li>`;
+    // 有兩格的片語：第一格是可以點的空格，後面的格子跟著顯示同一個選項的後半段
+    const extra = j => { const op = f === null ? null : aParts(opts[f].show); return `<span class="${cls}" style="cursor:default">${op ? esc(op[Math.min(j, op.length - 1)]) : "…"}</span>`; };
+    return `<li class="cloze-item"><span class="qn">${i + 1}.</span>${parts[0]}<button type="button" class="${cls}" data-blank="${i}" ${done ? "disabled" : ""}>${label}</button>${parts.slice(1).map((x, j) => (j ? extra(j) : "") + x).join("")}${reveal}</li>`;
   }).join("");
   const usedBy = new Map(); fill.forEach((f, i) => { if (f !== null) usedBy.set(f, i); });
   const bank = opts.map((o, k) => `<button type="button" class="opt ${usedBy.has(k) ? "used" : ""}" data-opt="${k}" ${done ? "disabled" : ""}><span class="lt">${o.lt}</span>${esc(o.show)}</button>`).join("");
@@ -1085,7 +1090,7 @@ function renderSingle() {
   $("#studyView").innerHTML = `<div class="study-card">
     <div class="study-head"><h2>單題四選一</h2><span class="progress-text">${i + 1} / ${qs.length}</span></div>
     <div class="progress-bar"><span style="width:${(i / qs.length) * 100}%"></span></div>
-    <p class="q-sentence">${parts[0]}<span class="gap">${gap}</span>${parts[1] || ""}</p>
+    <p class="q-sentence">${parts.map((x, j) => j ? `<span class="gap">${answered ? esc(aParts(q.a)[Math.min(j - 1, aParts(q.a).length - 1)]) : "&nbsp;"}</span>${x}` : x).join("")}</p>
     <div class="q-opts">${opts}</div>
     ${answered ? `<div class="feedback"><span class="fb-word">${esc(q.w)}</span>　${POS[q.p][0]}　${esc(q.kk)}<br>${esc(q.zh)}<br><span style="color:var(--ink)">整句：${esc(q.t)}</span><br>${esc(q.n)}</div>${it.opts[it.pick] !== q.w ? wdFor(it.opts[it.pick], "你選的") : ""}
       <div class="btn-row"><button class="primary-btn" type="button" id="next">${i + 1 < qs.length ? "下一題" : "看結果"}</button></div>` : ""}
@@ -1631,8 +1636,8 @@ body.qz-open { overflow: hidden; }
   const A = (function () {
   const groups = CATS.map(c => ({ id: c.id, name: c.name }));
   const items = D.map(e => ({
-    id: e.w + '|' + e.zh, g: e.c, term: e.w, alts: [e.a], zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk,
-    exFront: e.s.replace('___', '_____'), exFull: e.s.replace('___', e.a), exHi: e.a, exZh: e.t, note: e.n
+    id: e.w + '|' + e.zh, g: e.c, term: e.w, alts: e.a.includes('…') ? [] : [e.a], zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk,
+    exFront: e.s.replace(/___/g, '_____'), exFull: (() => { const p = e.a.split(' … '); let i = 0; return e.s.replace(/___/g, () => p[Math.min(i++, p.length - 1)]); })(), exHi: e.a.split(' … ')[0], exZh: e.t, note: e.n
   }));
   return { app: '4500', title: '4500 多義', groupLabel: '分類', groups, items };
 })();

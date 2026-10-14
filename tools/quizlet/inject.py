@@ -1,8 +1,8 @@
 A4500 = r"""function () {
   const groups = CATS.map(c => ({ id: c.id, name: c.name }));
   const items = D.map(e => ({
-    id: e.w + '|' + e.zh, g: e.c, term: e.w, alts: [e.a], zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk,
-    exFront: e.s.replace('___', '_____'), exFull: e.s.replace('___', e.a), exHi: e.a, exZh: e.t, note: e.n
+    id: e.w + '|' + e.zh, g: e.c, term: e.w, alts: e.a.includes('…') ? [] : [e.a], zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk,
+    exFront: e.s.replace(/___/g, '_____'), exFull: (() => { const p = e.a.split(' … '); let i = 0; return e.s.replace(/___/g, () => p[Math.min(i++, p.length - 1)]); })(), exHi: e.a.split(' … ')[0], exZh: e.t, note: e.n
   }));
   return { app: '4500', title: '4500 多義', groupLabel: '分類', groups, items };
 }"""
@@ -17,6 +17,8 @@ ESSAY = r"""function () {
   const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   function blank(word, ex) {
     if (!ex) return null;
+    const ps = window.phraseSpans && window.phraseSpans(word, ex);   // 片語：每一段（含介系詞）都挖空
+    if (ps) { let f = '', p = 0; ps.forEach(x => { f += ex.slice(p, x.index) + '_____'; p = x.index + x.matched.length; }); return { front: f + ex.slice(p), hit: ps[0].matched }; }
     const w = word.trim();
     let m = ex.match(new RegExp('\\b' + escRe(w) + '\\b', 'i'));
     if (!m && !/\s/.test(w) && w.length > 3) {
