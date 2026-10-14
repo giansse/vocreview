@@ -821,7 +821,18 @@ function learnPrior(level, t) {
   if (level === 1) return { c: 0.6, w: 0, s: 0.6, t: t || 0, prior: 1 };
   return null;
 }
-const statOf = e => { const k = wkey(e); if (stats[k]) return stats[k]; const q = learnStore(); return learnPrior(q.m && q.m[k], q.mt && q.mt[k]); };
+// 學習模式（Quizlet 式）每次作答都算進熟悉度：選擇題答對 +0.5、拼字答對 +0.8，答錯則連對打五折
+// st：測驗模式的紀錄（可能沒有）；evs：學習模式作答 [[時間, 分數]]；只採計 st 最後一次作答之後的學習紀錄（之前的已併入）
+function learnMerge(st, evs, lv, lt) {
+  if (!evs || !evs.length) return st || learnPrior(lv, lt);
+  const base = st ? st.t || 0 : 0;
+  const r = st ? { c: st.c || 0, w: st.w || 0, s: st.s || 0, t: st.t || 0 } : { c: 0, w: 0, s: 0, t: 0, prior: 1 };
+  evs.forEach(([t, x]) => { if (t <= base) return; if (x > 0) { r.c += x; r.s += x; } else { r.w += 0.5; r.s *= 0.5; } r.t = Math.max(r.t, t); });
+  return r;
+}
+const statOf = e => { const k = wkey(e), q = learnStore(); return learnMerge(stats[k] || null, q.ev && q.ev[k], q.m && q.m[k], q.mt && q.mt[k]); };
+// 記錄測驗作答前，先把之前的學習模式紀錄併進來（之後就不會重複算）
+const learnFold = k => { const r = statOf({ w: k.split('|')[0], zh: k.slice(k.indexOf('|') + 1) }); return r ? { c: r.c || 0, w: r.w || 0, s: r.s || 0, t: r.t || 0 } : { c: 0, w: 0, s: 0, t: 0 }; };
 /* ---------- 作答時間：答得慢的字算「比較不熟」 ---------- */
 // fast 以內不扣分；fast→slow 依對數變慢＝越不熟；slow→cap 影響逐漸減小；超過 cap 或中途切走頁面就當作沒在作答，不計時間
 const TIME_RULE = {
@@ -887,7 +898,7 @@ function famWireExport() {
 }
 
 function recordStat(e, ok, ms, kind) {
-  const k = wkey(e), st = stats[k] || { c: 0, w: 0, s: 0, t: 0 };
+  const k = wkey(e), st = learnFold(k);
   famRecord(k, cfg.mode, kind || 'set', ms, ok);
   if (ok) { const cr = creditFor(ms, kind); st.c += cr; st.s += cr; } else { st.w++; st.s = 0; }
   st.t = Date.now(); stats[k] = st; saveStats();
@@ -1891,6 +1902,11 @@ body.qz-open { overflow: hidden; }
     return shuffle(out.concat([it.term]));
   }
   function setLvl(id, v) { st.m[id] = v; st.mt = st.mt || {}; st.mt[id] = Date.now(); save(); }
+  // 每次學習模式的作答都記下來，讓原本測驗模式的熟悉度也跟著調整：選擇題答對 +0.5、拼字答對 +0.8、答錯記 -1（各字最多留 12 筆）
+  function learnEvent(id, credit) {
+    st.ev = st.ev || {}; const a = st.ev[id] = st.ev[id] || [];
+    a.push([Date.now(), credit]); if (a.length > 12) a.splice(0, a.length - 12); save();
+  }
   function overall() { return counts(poolItems()); }
   function renderLearn() {
     const it = BY.get(L.cur);
@@ -1939,25 +1955,25 @@ body.qz-open { overflow: hidden; }
       const k = $('#qzIdk'); if (k) k.onclick = () => answerWrite('');
     }
     const n = $('#qzNext'); if (n) { n.onclick = () => nextQ(); if (!f || L.state !== 'retype') n.focus(); }
-    const o = $('#qzOverride'); if (o) o.onclick = () => { setLvl(L.cur, 2); nextQ(); };
+    const o = $('#qzOverride'); if (o) o.onclick = () => { const e = st.ev && st.ev[L.cur]; if (e && e.length && e[e.length - 1][1] < 0) e.pop(); setLvl(L.cur, 2); learnEvent(L.cur, 0.8); nextQ(); };
   }
   function answerMC(k) {
     const it = BY.get(L.cur);
     L.choice = k;
     if (norm(L.opts[k]) === norm(it.term)) {
-      L.state = 'ok'; setLvl(it.id, Math.max(lvl(it.id), 1));
+      L.state = 'ok'; setLvl(it.id, Math.max(lvl(it.id), 1)); learnEvent(it.id, 0.5);
       renderLearn(); famCheer.hit(root.querySelector('.qz-choice.ok')); setTimeout(() => say(it.term), 700);
     } else {
-      L.state = 'no'; renderLearn(); famCheer.miss();
+      L.state = 'no'; learnEvent(it.id, -1); renderLearn(); famCheer.miss();
     }
   }
   function answerWrite(v) {
     const it = BY.get(L.cur);
     L.typed = v.trim();
     if (L.typed && isRight(it, L.typed)) {
-      L.state = 'ok'; setLvl(it.id, 2); renderLearn(); famCheer.hit(root.querySelector('#qzIn')); setTimeout(() => say(it.term), 700);
+      L.state = 'ok'; setLvl(it.id, 2); learnEvent(it.id, 0.8); renderLearn(); famCheer.hit(root.querySelector('#qzIn')); setTimeout(() => say(it.term), 700);
     } else {
-      famCheer.miss(); L.state = 'retype'; L.given = L.typed; L.typed = ''; renderLearn();
+      famCheer.miss(); learnEvent(it.id, -1); L.state = 'retype'; L.given = L.typed; L.typed = ''; renderLearn();
     }
   }
   function retype(v) {

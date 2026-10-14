@@ -511,6 +511,11 @@ body.qz-open { overflow: hidden; }
     return shuffle(out.concat([it.term]));
   }
   function setLvl(id, v) { st.m[id] = v; st.mt = st.mt || {}; st.mt[id] = Date.now(); save(); }
+  // 每次學習模式的作答都記下來，讓原本測驗模式的熟悉度也跟著調整：選擇題答對 +0.5、拼字答對 +0.8、答錯記 -1（各字最多留 12 筆）
+  function learnEvent(id, credit) {
+    st.ev = st.ev || {}; const a = st.ev[id] = st.ev[id] || [];
+    a.push([Date.now(), credit]); if (a.length > 12) a.splice(0, a.length - 12); save();
+  }
   function overall() { return counts(poolItems()); }
   function renderLearn() {
     const it = BY.get(L.cur);
@@ -559,25 +564,25 @@ body.qz-open { overflow: hidden; }
       const k = $('#qzIdk'); if (k) k.onclick = () => answerWrite('');
     }
     const n = $('#qzNext'); if (n) { n.onclick = () => nextQ(); if (!f || L.state !== 'retype') n.focus(); }
-    const o = $('#qzOverride'); if (o) o.onclick = () => { setLvl(L.cur, 2); nextQ(); };
+    const o = $('#qzOverride'); if (o) o.onclick = () => { const e = st.ev && st.ev[L.cur]; if (e && e.length && e[e.length - 1][1] < 0) e.pop(); setLvl(L.cur, 2); learnEvent(L.cur, 0.8); nextQ(); };
   }
   function answerMC(k) {
     const it = BY.get(L.cur);
     L.choice = k;
     if (norm(L.opts[k]) === norm(it.term)) {
-      L.state = 'ok'; setLvl(it.id, Math.max(lvl(it.id), 1));
+      L.state = 'ok'; setLvl(it.id, Math.max(lvl(it.id), 1)); learnEvent(it.id, 0.5);
       renderLearn(); famCheer.hit(root.querySelector('.qz-choice.ok')); setTimeout(() => say(it.term), 700);
     } else {
-      L.state = 'no'; renderLearn(); famCheer.miss();
+      L.state = 'no'; learnEvent(it.id, -1); renderLearn(); famCheer.miss();
     }
   }
   function answerWrite(v) {
     const it = BY.get(L.cur);
     L.typed = v.trim();
     if (L.typed && isRight(it, L.typed)) {
-      L.state = 'ok'; setLvl(it.id, 2); renderLearn(); famCheer.hit(root.querySelector('#qzIn')); setTimeout(() => say(it.term), 700);
+      L.state = 'ok'; setLvl(it.id, 2); learnEvent(it.id, 0.8); renderLearn(); famCheer.hit(root.querySelector('#qzIn')); setTimeout(() => say(it.term), 700);
     } else {
-      famCheer.miss(); L.state = 'retype'; L.given = L.typed; L.typed = ''; renderLearn();
+      famCheer.miss(); learnEvent(it.id, -1); L.state = 'retype'; L.given = L.typed; L.typed = ''; renderLearn();
     }
   }
   function retype(v) {
