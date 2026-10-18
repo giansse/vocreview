@@ -781,16 +781,21 @@ function mcLookAlike(a, b) {
   if (a === b || a.startsWith(b) || b.startsWith(a)) return true;
   return a.slice(0, 2) === b.slice(0, 2);   // 單元是照字母排的，開頭兩個字母一樣就算長得像（例如 able／abiding）
 }
+// 中文意思重疊檢查：兩個字的中文解釋只要有相同的兩字詞（例如「水槽」「很棒」），就不放在同一題當選項
+const zhBigrams = z => { const out = new Set(); String(z || '').replace(/（[^）]*）|\([^)]*\)/g, '').replace(/[的地得了一個某些著]/g, '').split(/[；、，,／\/\s;=]+/).forEach(seg => { const c = seg.replace(/[^一-鿿]/g, ''); for (let i = 0; i + 1 < c.length; i++) out.add(c.slice(i, i + 2)); if (c.length === 1) out.add(c); }); return out; };
+const zhOverlap = (a, b) => { const A = zhBigrams(a); for (const x of zhBigrams(b)) if (A.has(x)) return true; return false; };
 function mcOptions(W, it) {
   const ans = W[0], pos = ((W[3][0] || [])[0] || '').replace(/[^a-z]/gi, '').toLowerCase();
   const us = new Set(cfg.units);
   const cands = shuffle(WORDS.filter(w => !w.bad && w.G !== it.G && !/\s/.test(w.w) === !/\s/.test(ans)));
   const posOf = w => ((w.senses[0] || [])[0] || '').replace(/[^a-z]/gi, '').toLowerCase();
   const tiers = [cands.filter(w => us.has(w.u) && posOf(w) === pos), cands.filter(w => posOf(w) === pos), cands];
-  const pick = [];
+  const pick = [], pickZh = [], ansZh = W[3].map(x => x[1]).join('；');
   for (const w of [].concat(...tiers)) {
+    const wz = w.senses.map(x => x[1]).join('；');
     if (mcLookAlike(w.w, ans) || pick.some(x => mcLookAlike(x, w.w))) continue;
-    pick.push(w.w); if (pick.length === 3) break;
+    if (zhOverlap(wz, ansZh) || pickZh.some(z => zhOverlap(z, wz))) continue;   // 意思重疊的不同題
+    pick.push(w.w); pickZh.push(wz); if (pick.length === 3) break;
   }
   return shuffle(pick.concat([ans]));
 }
@@ -1668,6 +1673,9 @@ body.qz-open { overflow: hidden; }
     if (L.kind === 'mc') L.opts = buildChoices(it);
     renderLearn();
   }
+  // 中文意思重疊檢查：兩個字的中文解釋只要有相同的兩字詞（例如「水槽」「很棒」），就不放在同一題當選項
+  const zhBigrams = z => { const out = new Set(); String(z || '').replace(/（[^）]*）|\([^)]*\)/g, '').replace(/[的地得了一個某些著]/g, '').split(/[；、，,／\/\s;=]+/).forEach(seg => { const c = seg.replace(/[^一-鿿]/g, ''); for (let i = 0; i + 1 < c.length; i++) out.add(c.slice(i, i + 2)); if (c.length === 1) out.add(c); }); return out; };
+  const zhOverlap = (a, b) => { const A = zhBigrams(a); for (const x of zhBigrams(b)) if (A.has(x)) return true; return false; };
   function buildChoices(it) {
     const key = norm(it.term), seen = new Set([key]);
     const pk = (it.pos || '').replace(/[^a-z]/gi, '').slice(0, 1).toLowerCase();
@@ -1675,7 +1683,15 @@ body.qz-open { overflow: hidden; }
     const pref = cands.filter(x => (x.pos || '').replace(/[^a-z]/gi, '').slice(0, 1).toLowerCase() === pk && String(x.g) === String(it.g));
     const pref2 = cands.filter(x => (x.pos || '').replace(/[^a-z]/gi, '').slice(0, 1).toLowerCase() === pk);
     const out = [];
-    for (const x of pref.concat(pref2, cands)) { const k = norm(x.term); if (seen.has(k)) continue; seen.add(k); out.push(x.term); if (out.length === 3) break; }
+    const zs = [it.zh], ft = t => norm(t).split(' ')[0];
+    for (const x of pref.concat(pref2, cands)) {
+      const k = norm(x.term); if (seen.has(k)) continue;
+      // 不放意思重疊（例如兩個都是「追捕」）或長得像（pursue／pursuit）的選項，免得答對卻被判錯
+      if (zs.some(z => zhOverlap(z, x.zh))) continue;
+      if ([it.term].concat(out).some(t => ft(t) === ft(x.term) || (ft(t).length >= 5 && ft(x.term).length >= 5 && ft(t).slice(0, 5) === ft(x.term).slice(0, 5)))) continue;
+      seen.add(k); out.push(x.term); zs.push(x.zh); if (out.length === 3) break;
+    }
+    if (out.length < 3) for (const x of cands) { const k = norm(x.term); if (seen.has(k)) continue; seen.add(k); out.push(x.term); if (out.length === 3) break; }
     return shuffle(out.concat([it.term]));
   }
   function setLvl(id, v) { st.m[id] = v; st.mt = st.mt || {}; st.mt[id] = Date.now(); save(); }

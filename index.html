@@ -1157,7 +1157,13 @@ function renderFlashEnd() {
 /* 文意選填 */
 let cz = null;
 function startCloze() {
-  const qs = shuffle(uniqueByAnswer(weightedOrder(pool(), statOf)).slice(0, 10));
+  // 同一組文意選填裡，不放意思重疊或長得像的字，免得兩格都填得進去
+  const picked = [];
+  for (const e of uniqueByAnswer(weightedOrder(pool(), statOf))) {
+    if (picked.some(x => zhOverlap(x.zh, e.zh) || lookAlike(x.w, e.w))) continue;
+    picked.push(e); if (picked.length === 10) break;
+  }
+  const qs = shuffle(picked);
   const letters = "ABCDEFGHIJ";
   // 文意選填：選項保留句中的形態（時態、單複數），但大小寫不算線索：句首的字一律顯示成小寫
   const opts = shuffle(qs.map(q => q.a)).map((a, i) => ({ a, show: a.charAt(0).toLowerCase() + a.slice(1), lt: letters[i] }));
@@ -1233,13 +1239,17 @@ function lookAlike(a, b) {
   const fa = a.split(" ")[0], fb = b.split(" ")[0];
   return fa === fb || (fa.length >= 5 && fb.length >= 5 && fa.slice(0, 5) === fb.slice(0, 5));
 }
+// 中文意思重疊檢查：兩個字的中文解釋只要有相同的兩字詞（例如「水槽」「很棒」），就不放在同一題當選項
+const zhBigrams = z => { const out = new Set(); String(z || '').replace(/（[^）]*）|\([^)]*\)/g, '').replace(/[的地得了一個某些著]/g, '').split(/[；、，,／\/\s;=]+/).forEach(seg => { const c = seg.replace(/[^一-鿿]/g, ''); for (let i = 0; i + 1 < c.length; i++) out.add(c.slice(i, i + 2)); if (c.length === 1) out.add(c); }); return out; };
+const zhOverlap = (a, b) => { const A = zhBigrams(a); for (const x of zhBigrams(b)) if (A.has(x)) return true; return false; };
 function distractors(q) {
-  const pick = [];
+  const pick = [], pickZh = [];
   const same = shuffle(D.filter(e => e.p === q.p));
   const rest = shuffle(D.filter(e => e.p !== q.p));
   for (const e of same.concat(rest)) {
     if (lookAlike(e.w, q.w) || pick.some(w => lookAlike(w, e.w))) continue;
-    pick.push(e.w);
+    if (D.some(x => x.w === e.w && zhOverlap(x.zh, q.zh)) || pickZh.some(z => zhOverlap(z, e.zh))) continue;   // 意思重疊的不同題
+    pick.push(e.w); pickZh.push(e.zh);
     if (pick.length === 3) break;
   }
   return pick;
@@ -2073,6 +2083,9 @@ body.qz-open { overflow: hidden; }
     if (L.kind === 'mc') L.opts = buildChoices(it);
     renderLearn();
   }
+  // 中文意思重疊檢查：兩個字的中文解釋只要有相同的兩字詞（例如「水槽」「很棒」），就不放在同一題當選項
+  const zhBigrams = z => { const out = new Set(); String(z || '').replace(/（[^）]*）|\([^)]*\)/g, '').replace(/[的地得了一個某些著]/g, '').split(/[；、，,／\/\s;=]+/).forEach(seg => { const c = seg.replace(/[^一-鿿]/g, ''); for (let i = 0; i + 1 < c.length; i++) out.add(c.slice(i, i + 2)); if (c.length === 1) out.add(c); }); return out; };
+  const zhOverlap = (a, b) => { const A = zhBigrams(a); for (const x of zhBigrams(b)) if (A.has(x)) return true; return false; };
   function buildChoices(it) {
     const key = norm(it.term), seen = new Set([key]);
     const pk = (it.pos || '').replace(/[^a-z]/gi, '').slice(0, 1).toLowerCase();
@@ -2080,7 +2093,15 @@ body.qz-open { overflow: hidden; }
     const pref = cands.filter(x => (x.pos || '').replace(/[^a-z]/gi, '').slice(0, 1).toLowerCase() === pk && String(x.g) === String(it.g));
     const pref2 = cands.filter(x => (x.pos || '').replace(/[^a-z]/gi, '').slice(0, 1).toLowerCase() === pk);
     const out = [];
-    for (const x of pref.concat(pref2, cands)) { const k = norm(x.term); if (seen.has(k)) continue; seen.add(k); out.push(x.term); if (out.length === 3) break; }
+    const zs = [it.zh], ft = t => norm(t).split(' ')[0];
+    for (const x of pref.concat(pref2, cands)) {
+      const k = norm(x.term); if (seen.has(k)) continue;
+      // 不放意思重疊（例如兩個都是「追捕」）或長得像（pursue／pursuit）的選項，免得答對卻被判錯
+      if (zs.some(z => zhOverlap(z, x.zh))) continue;
+      if ([it.term].concat(out).some(t => ft(t) === ft(x.term) || (ft(t).length >= 5 && ft(x.term).length >= 5 && ft(t).slice(0, 5) === ft(x.term).slice(0, 5)))) continue;
+      seen.add(k); out.push(x.term); zs.push(x.zh); if (out.length === 3) break;
+    }
+    if (out.length < 3) for (const x of cands) { const k = norm(x.term); if (seen.has(k)) continue; seen.add(k); out.push(x.term); if (out.length === 3) break; }
     return shuffle(out.concat([it.term]));
   }
   function setLvl(id, v) { st.m[id] = v; st.mt = st.mt || {}; st.mt[id] = Date.now(); save(); }
