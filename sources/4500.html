@@ -1279,7 +1279,7 @@ function renderSingle() {
   $("#toSetup").onclick = renderSetup;
 }
 function renderSingleEnd() {
-  const wrong = sg.qs.filter(it => it.opts[it.pick] !== it.q.a);
+  const wrong = sg.qs.filter(it => it.opts[it.pick] !== it.q.w);   // 選項是原形，所以要跟原形比
   const right = sg.qs.length - wrong.length;
   $("#studyView").innerHTML = `<div class="study-card">
     <div class="study-head"><h2>練習結果</h2><span class="score">${right}<small> / ${sg.qs.length}</small></span></div>
@@ -1291,7 +1291,7 @@ function renderSingleEnd() {
     </div>
   </div>`;
   const rw = $("#retryWrong");
-  if (rw) rw.onclick = () => { sg = { qs: shuffle(wrong).map(it => ({ q: it.q, opts: shuffle([it.q.a].concat(distractors(it.q))), pick: null })), i: 0 }; renderSingle(); };
+  if (rw) rw.onclick = () => { sg = { qs: shuffle(wrong).map(it => ({ q: it.q, opts: shuffle([it.q.w].concat(distractors(it.q))), pick: null })), i: 0 }; renderSingle(); };
   $("#again").onclick = startSingle;
   $("#toSetup").onclick = renderSetup;
 }
