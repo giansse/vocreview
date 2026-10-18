@@ -14,8 +14,9 @@
 
 1. 讀取剛發布的 artifact 完整 HTML：Artifact 工具 `action: "read"`、`url` 用上表的網址、`path: "index.html"`。結果會告訴你檔案存在哪裡。
 2. 把那個檔案覆蓋到 `sources/<app>.html`。
-3. 執行 `python3 tools/build.py <app>`（`4500`、`essay`、`units` 或 `all`）。會重新產生該 app 的 `index.html` 和 `sw.js`，`sw.js` 的版本號一變，使用者手機連網時就會自動換新版。
-4. 提交並推送到 `main`：
+3. 先跑全模式測試：`NODE_PATH=$(npm root -g) node tools/test/suite.js sources`，要顯示 ALL PASS 才能繼續（有 FAIL 就先修 artifact，不要推）。
+4. 執行 `python3 tools/build.py <app>`（`4500`、`essay`、`units` 或 `all`）。會重新產生該 app 的 `index.html` 和 `sw.js`，`sw.js` 的版本號一變，使用者手機連網時就會自動換新版。
+5. 提交並推送到 `main`：
    ```sh
    git config user.name Claude
    git config user.email noreply@anthropic.com
@@ -24,7 +25,7 @@
    git fetch origin main && git rebase origin/main
    git push origin HEAD:main
    ```
-5. 跟使用者回報一句：已推上 GitHub，手機連網打開 app 會自動更新。
+6. 跟使用者回報一句：已推上 GitHub，手機連網打開 app 會自動更新。
 
 ## 注意
 

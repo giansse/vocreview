@@ -1124,18 +1124,15 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
   const totalWords = data.categories.reduce((s, c) => s + c.rows.length, 0);
   document.getElementById('entryCount').textContent = (totalWords + data.sentenceBank.length) + ' 個條目';
 
+  // 頁首資訊：只顯示實際的條目數、最後更新日期和目標（舊 Word 檔的「姓名」「Table Row」等欄位已不適用）
   const metaEl = document.getElementById('heroMeta');
-  data.meta.slice(0, 3).forEach(m => {
-    const parts = m.split('：');
-    const span = document.createElement('span');
-    if (parts.length > 1) {
-      span.innerHTML = '<strong>' + parts[0] + '：</strong>' + parts.slice(1).join('：');
-    } else {
-      span.textContent = m;
-    }
-    metaEl.appendChild(span);
-  });
-  document.getElementById('heroNote').textContent = data.meta[3] || '';
+  const nPhrase = data.categories.filter(c => /phrase/i.test(c.name)).reduce((s, c) => s + c.rows.length, 0);
+  const goal = (data.meta || []).find(m => /^目標/.test(m));
+  [['單字', (totalWords - nPhrase) + ' 個'], ['片語', nPhrase + ' 個'], ['佳句', data.sentenceBank.length + ' 句'], ['最後更新', String(data.lastUpdated || '').split('（')[0]]]
+    .forEach(([k, v]) => { const span = document.createElement('span'); span.innerHTML = '<strong>' + k + '：</strong>' + escapeHtml(v); metaEl.appendChild(span); });
+  if (goal) { const span = document.createElement('span'); span.innerHTML = '<strong>目標：</strong>' + escapeHtml(goal.split('：').slice(1).join('：').trim()); metaEl.appendChild(span); }
+  document.getElementById('heroNote').textContent = '';
+  document.getElementById('heroNote').hidden = true;
 
   function posClass(pos) {
     const p = (pos || '').toLowerCase();
@@ -1533,6 +1530,23 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
     }
     return out;
   }
+  // 一個答案的各種可接受寫法：括號內可省略（provided (that)、toward(s)），斜線是替換最後一個字（storm out / into → storm into）
+  function answerVariants(term) {
+    const out = new Set();
+    const parts = String(term || '').split(/\s*[\/／]\s*/).map(x => x.trim()).filter(Boolean);
+    const bases = [];
+    parts.forEach((p, i) => {
+      if (i === 0 || /\s/.test(p) || !/\s/.test(parts[0])) bases.push(p);
+      else bases.push(parts[0].replace(/\S+$/, p));   // 替換第一個寫法的最後一個字
+    });
+    bases.forEach(b => {
+      out.add(b.replace(/\s*\(([^)]*)\)\s*/g, ' ').replace(/\s+/g, ' ').trim());      // 省略括號內容
+      out.add(b.replace(/\(([^)]*)\)/g, '$1').replace(/\s+/g, ' ').trim());           // 包含括號內容
+    });
+    [...out].forEach(x => { if (/^be\s/i.test(x)) out.add(x.replace(/^be\s+/i, '')); });   // be + adj 的片語，省略 be 也算對
+    out.delete('');
+    return [...out];
+  }
   function normAnswer(s) { return s.trim().toLowerCase().replace(/[.,!?;:'"’‘`]/g, '').replace(/\s+/g, ' '); }
 
   // ---------- Sentence dictation (默寫) helpers ----------
@@ -1734,17 +1748,30 @@ function famCalibrate() {
     if (famLog.length % 20 === 0) famCalibrate();
     if (window.famCheer && !FAM_BROWSE.has(mode)) { if (ok) famCheer.hit(); else famCheer.miss(); }   // 答對回饋
   }
+  // 「上一張」重選時，把剛剛那筆紀錄拿掉，免得同一張卡記兩次
+  function famUnrecord(key) {
+    for (let i = famLog.length - 1; i >= 0; i--) if (famLog[i][1] === String(key)) { famLog.splice(i, 1); break; }
+    try { localStorage.setItem(FAM_LOG_KEY, JSON.stringify(famLog)); } catch (e) {}
+  }
   const famExportHTML = () => `<button type="button" id="famExport" style="margin-top:10px;font:inherit;font-size:0.76rem;color:var(--accent);background:none;border:1px solid var(--border);border-radius:999px;padding:4px 12px;cursor:pointer">匯出答題紀錄給 Claude 分析（${famLog.length} 筆）</button>`;
   function famWireExport() {
     const b = document.getElementById('famExport'); if (!b) return;
     b.onclick = () => {
       const data = JSON.stringify({ app: FAM_LOG_KEY, exportedAt: new Date().toISOString(), defaults: TIME_RULE, personal: FAM_CAL,
         columns: ['time', 'word', 'mode', 'speedKind', 'ms', 'correct'], log: famLog });
+      // 在 Claude 的 artifact 裡（內嵌框架）不能下載檔案，只複製；在 GitHub 版才同時下載
+      const inFrame = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
       let saved = false;
-      try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' })); a.download = FAM_LOG_KEY.replace(/\W+/g, '-') + '.json'; document.body.appendChild(a); a.click(); a.remove(); saved = true; } catch (e) {}
+      if (!inFrame) { try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' })); a.download = FAM_LOG_KEY.replace(/\W+/g, '-') + '.json'; document.body.appendChild(a); a.click(); a.remove(); saved = true; } catch (e) {} }
       const done = msg => { b.textContent = msg; };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(data).then(() => done(`已複製 ${famLog.length} 筆${saved ? '並下載檔案' : ''}，直接貼給 Claude 就好`), () => done(saved ? '已下載檔案，把檔案傳給 Claude' : '無法複製，請改用電腦版'));
-      else done(saved ? '已下載檔案，把檔案傳給 Claude' : '這個瀏覽器無法匯出');
+      const manual = () => {   // 複製失敗：把紀錄放進文字框，讓你自己全選複製
+        let t = document.getElementById('famExportBox');
+        if (!t) { t = document.createElement('textarea'); t.id = 'famExportBox'; t.readOnly = true; t.style.cssText = 'display:block;width:100%;height:120px;margin-top:8px;font-size:0.7rem'; b.insertAdjacentElement('afterend', t); }
+        t.value = data; t.focus(); t.select();
+        done(saved ? '已下載檔案；下面也有紀錄文字可以複製' : '請長按下面的文字框全選、複製，再貼給 Claude');
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(data).then(() => done(`已複製 ${famLog.length} 筆${saved ? '並下載檔案' : ''}，直接貼給 Claude 就好`), manual);
+      else manual();
     };
   }
 
@@ -2036,6 +2063,7 @@ function famCalibrate() {
   function undoLast() {
     if (!canUndo()) return;
     const u = session.undo.pop();
+    famUnrecord(u.id);
     session.results.pop();
     if (u.prev) progress[u.id] = u.prev; else delete progress[u.id];
     saveProgress();
@@ -2245,7 +2273,7 @@ function famCalibrate() {
       input.focus();
       function doSubmit() {
         if (input.disabled) return;
-        const correct = normAnswer(input.value) === normAnswer(card.word);
+        const correct = answerVariants(card.word).some(v => normAnswer(input.value) === normAnswer(v));
         input.disabled = true;
         submit.disabled = true;
         input.classList.add(correct ? 'correct' : 'wrong');
@@ -2270,7 +2298,7 @@ function famCalibrate() {
       input.focus();
       function doSubmit() {
         if (input.disabled) return;
-        const correct = normAnswer(input.value) === normAnswer(card.word);
+        const correct = answerVariants(card.word).some(v => normAnswer(input.value) === normAnswer(v));
         input.disabled = true;
         submit.disabled = true;
         input.classList.add(correct ? 'correct' : 'wrong');
@@ -2540,6 +2568,7 @@ function famCalibrate() {
     }
     return { open };
   }
+  window.__essay = { get session() { return session; }, get progress() { return progress; }, get famLog() { return famLog; }, CARDS };   // 自動測試用（唯讀）
   const _faMap = new Map(CARDS.map(c => [c.id, c]));
   famAnalysisSetup({ title: '作文單字庫', items: CARDS, statOf, resolve: k => _faMap.get(k) || null,
     groupOf: c => c.category, groups: CATEGORY_NAMES.concat(['Sentence Bank（考場必背高分句型）']), groupLabel: '分類',
@@ -2950,9 +2979,26 @@ body.qz-open { overflow: hidden; }
   /* ---------- grading ---------- */
   const norm = s => String(s || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/[.!?。]+$/, '').replace(/\s+/g, ' ').trim();
   const loose = s => norm(s).replace(/\b(sb|sth|someone|something|one's|oneself|somebody)\b/g, '').replace(/[()]/g, '').replace(/\s+/g, ' ').trim();
+  // 一個答案的各種可接受寫法：括號內可省略（provided (that)、toward(s)），斜線是替換最後一個字（storm out / into → storm into）
+  function answerVariants(term) {
+    const out = new Set();
+    const parts = String(term || '').split(/\s*[\/／]\s*/).map(x => x.trim()).filter(Boolean);
+    const bases = [];
+    parts.forEach((p, i) => {
+      if (i === 0 || /\s/.test(p) || !/\s/.test(parts[0])) bases.push(p);
+      else bases.push(parts[0].replace(/\S+$/, p));   // 替換第一個寫法的最後一個字
+    });
+    bases.forEach(b => {
+      out.add(b.replace(/\s*\(([^)]*)\)\s*/g, ' ').replace(/\s+/g, ' ').trim());      // 省略括號內容
+      out.add(b.replace(/\(([^)]*)\)/g, '$1').replace(/\s+/g, ' ').trim());           // 包含括號內容
+    });
+    [...out].forEach(x => { if (/^be\s/i.test(x)) out.add(x.replace(/^be\s+/i, '')); });   // be + adj 的片語，省略 be 也算對
+    out.delete('');
+    return [...out];
+  }
   function answers(it) {
     const out = new Set();
-    [it.term].concat(it.alts || []).forEach(a => { if (!a) return; String(a).split(/\s*[\/／]\s*/).forEach(p => { out.add(norm(p)); out.add(loose(p)); }); });
+    answerVariants(it.term).concat(it.alts || []).forEach(p => { if (!p) return; out.add(norm(p)); out.add(loose(p)); });
     out.delete(''); return out;
   }
   const isRight = (it, ans) => { const set = answers(it); return set.has(norm(ans)) || set.has(loose(ans)); };
@@ -3326,7 +3372,7 @@ body.qz-open { overflow: hidden; }
     b.onclick = open;
     anchor.insertAdjacentElement('afterend', b);
   }
-  window.QZ = { open, maskZh, items: A.items };
+  window.QZ = { open, maskZh, items: A.items, dbg: () => ({ L, F, st, BY }) };   // dbg：自動測試用（唯讀）
 })();
 </script>
 

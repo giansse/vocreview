@@ -274,9 +274,26 @@ body.qz-open { overflow: hidden; }
   /* ---------- grading ---------- */
   const norm = s => String(s || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/[.!?。]+$/, '').replace(/\s+/g, ' ').trim();
   const loose = s => norm(s).replace(/\b(sb|sth|someone|something|one's|oneself|somebody)\b/g, '').replace(/[()]/g, '').replace(/\s+/g, ' ').trim();
+  // 一個答案的各種可接受寫法：括號內可省略（provided (that)、toward(s)），斜線是替換最後一個字（storm out / into → storm into）
+  function answerVariants(term) {
+    const out = new Set();
+    const parts = String(term || '').split(/\s*[\/／]\s*/).map(x => x.trim()).filter(Boolean);
+    const bases = [];
+    parts.forEach((p, i) => {
+      if (i === 0 || /\s/.test(p) || !/\s/.test(parts[0])) bases.push(p);
+      else bases.push(parts[0].replace(/\S+$/, p));   // 替換第一個寫法的最後一個字
+    });
+    bases.forEach(b => {
+      out.add(b.replace(/\s*\(([^)]*)\)\s*/g, ' ').replace(/\s+/g, ' ').trim());      // 省略括號內容
+      out.add(b.replace(/\(([^)]*)\)/g, '$1').replace(/\s+/g, ' ').trim());           // 包含括號內容
+    });
+    [...out].forEach(x => { if (/^be\s/i.test(x)) out.add(x.replace(/^be\s+/i, '')); });   // be + adj 的片語，省略 be 也算對
+    out.delete('');
+    return [...out];
+  }
   function answers(it) {
     const out = new Set();
-    [it.term].concat(it.alts || []).forEach(a => { if (!a) return; String(a).split(/\s*[\/／]\s*/).forEach(p => { out.add(norm(p)); out.add(loose(p)); }); });
+    answerVariants(it.term).concat(it.alts || []).forEach(p => { if (!p) return; out.add(norm(p)); out.add(loose(p)); });
     out.delete(''); return out;
   }
   const isRight = (it, ans) => { const set = answers(it); return set.has(norm(ans)) || set.has(loose(ans)); };
@@ -650,6 +667,6 @@ body.qz-open { overflow: hidden; }
     b.onclick = open;
     anchor.insertAdjacentElement('afterend', b);
   }
-  window.QZ = { open, maskZh, items: A.items };
+  window.QZ = { open, maskZh, items: A.items, dbg: () => ({ L, F, st, BY }) };   // dbg：自動測試用（唯讀）
 })();
 </script>
