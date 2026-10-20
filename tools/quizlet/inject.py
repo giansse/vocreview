@@ -2,7 +2,7 @@ A4500 = r"""function () {
   const groups = CATS.map(c => ({ id: c.id, name: c.name }));
   const items = D.map(e => ({
     id: e.w + '|' + e.zh, g: e.c, term: e.w, alts: e.a.includes('…') ? [] : [e.a], zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk,
-    exFront: e.s.replace(/___/g, '_____'), exFull: (() => { const p = e.a.split(' … '); let i = 0; return e.s.replace(/___/g, () => p[Math.min(i++, p.length - 1)]); })(), exHi: e.a.split(' … ')[0], exZh: e.t, note: e.n
+    exFront: e.s.replace(/___/g, '_____'), exFull: (() => { const p = e.a.split(' … '); let i = 0; return e.s.replace(/___/g, () => p[Math.min(i++, p.length - 1)]); })(), exHi: e.a.split(' … ')[0], exZh: e.t, note: e.n, img: e.img || ''
   }));
   return { app: '4500', title: '4500 多義', groupLabel: '分類', groups, items };
 }"""

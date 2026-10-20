@@ -80,6 +80,10 @@ body.qz-open { overflow: hidden; }
 .qz-ex { font-style: italic; color: var(--ink-soft); font-size: 0.98rem; line-height: 1.6; max-width: 54ch; }
 .qz-ex b { font-style: normal; color: var(--accent-strong); }
 .qz-exzh { font-size: 0.84rem; color: var(--ink-faint); }
+.qz-img { display: block; width: 72px; height: 72px; margin: 2px auto 6px; }
+.qz-img svg { width: 100%; height: 100%; display: block; }
+.qz-fb:has(> .qz-img) { position: relative; padding-right: 80px; }
+.qz-fb > .qz-img { position: absolute; top: 12px; right: 14px; width: 56px; height: 56px; margin: 0; }
 .qz-note { font-size: 0.8rem; color: var(--ink-faint); max-width: 54ch; }
 .qz-hint { font-size: 0.74rem; color: var(--ink-faint); }
 .qz-say { border: none; background: none; color: var(--accent); cursor: pointer; font-size: 1rem; padding: 2px 6px; border-radius: 6px; }
@@ -434,12 +438,14 @@ body.qz-open { overflow: hidden; }
     F.still = F.still.filter(x => x !== h.id); F.know = F.know.filter(x => x !== h.id);
     F.i = h.i; F.flipped = false; renderFlash();
   }
+  // 配圖（item.img，可省略）：只在翻面或作答後顯示
+  function imgQ(it) { return it && it.img ? `<span class="qz-img" aria-hidden="true">${it.img}</span>` : ''; }
   function renderFlash(dir) {
     if (F.i >= F.deck.length) return renderFlashEnd();
     const it = BY.get(F.deck[F.i]);
     const frontEn = st.front === 'en';
     const showEn = frontEn ? !F.flipped : F.flipped;
-    const extra = `${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}`;
+    const extra = `${imgQ(it)}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}`;
     const zhOnly = `<div class="qz-zh">${it.pos ? `<span class="qz-pos">${esc(it.pos)}</span>` : ''}${esc(it.zh)}</div>`;
     let face;
     if (!frontEn) face = F.flipped ? answerHTML(it) + extra : promptHTML(it);
@@ -564,8 +570,8 @@ body.qz-open { overflow: hidden; }
         ${L.state === 'ask' ? `<div class="qz-sub"><button class="qz-link" type="button" id="qzHint">提示字母</button><button class="qz-link" type="button" id="qzIdk">不知道</button></div>` : ''}`;
     }
     let fb = '';
-    if (L.state === 'ok') fb = `<div class="qz-fb ok"><b>答對了！</b>${answerHTML(it).replace('qz-term', 'ans')}${exFullHTML(it)}</div>`;
-    if (L.state === 'no' || L.state === 'retype') fb = `<div class="qz-fb no"><b>${L.kind === 'mc' ? '再想想，正確答案是' : (L.given ? '不太對，正確答案是' : '正確答案是')}</b><div class="ans">${esc(it.term)} ${sayBtn(it.term)}</div>${it.kk ? `<div class="qz-kk">${esc(it.kk)}</div>` : ''}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}${L.kind === 'write' && L.given ? `<div class="qz-hint">你的答案：${esc(L.given)}</div>` : ''}${wrongDef(it)}</div>`;
+    if (L.state === 'ok') fb = `<div class="qz-fb ok">${imgQ(it)}<b>答對了！</b>${answerHTML(it).replace('qz-term', 'ans')}${exFullHTML(it)}</div>`;
+    if (L.state === 'no' || L.state === 'retype') fb = `<div class="qz-fb no">${imgQ(it)}<b>${L.kind === 'mc' ? '再想想，正確答案是' : (L.given ? '不太對，正確答案是' : '正確答案是')}</b><div class="ans">${esc(it.term)} ${sayBtn(it.term)}</div>${it.kk ? `<div class="qz-kk">${esc(it.kk)}</div>` : ''}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}${L.kind === 'write' && L.given ? `<div class="qz-hint">你的答案：${esc(L.given)}</div>` : ''}${wrongDef(it)}</div>`;
     let actions = '';
     if (L.state === 'ok' || L.state === 'no') actions = `<div class="qz-sub"><button class="qz-primary" type="button" id="qzNext" style="flex:0;min-width:120px">繼續</button></div>`;
     if (L.state === 'retype' && L.given) actions = `<div class="qz-sub"><button class="qz-btn" type="button" id="qzOverride">我其實答對了</button></div>`;
