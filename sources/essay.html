@@ -1753,9 +1753,99 @@ function famCalibrate() {
     for (let i = famLog.length - 1; i >= 0; i--) if (famLog[i][1] === String(key)) { famLog.splice(i, 1); break; }
     try { localStorage.setItem(FAM_LOG_KEY, JSON.stringify(famLog)); } catch (e) {}
   }
-  const famExportHTML = () => `<button type="button" id="famExport" style="margin-top:10px;font:inherit;font-size:0.76rem;color:var(--accent);background:none;border:1px solid var(--border);border-radius:999px;padding:4px 12px;cursor:pointer">匯出答題紀錄給 Claude 分析（${famLog.length} 筆）</button>`;
+/*BK-START*/
+/* ---------- 備份與還原：學習紀錄存在這台裝置的瀏覽器裡；備份成檔案或文字，就不怕被清掉 ---------- */
+const FAM_BK = { app: 'essay', re: /^(vocabStudyProgress|qz\.essay\.|essay\.)/ };
+const FAM_BK_NAME = { '4500': '4500 單字多義複習', essay: '學測作文單字庫', units: '單元單字庫' };
+const famBkAtKey = 'bk.' + FAM_BK.app + '.at';
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}   // 請瀏覽器不要自動清掉這個網站的資料
+function famBkCollect() {
+  const data = {};
+  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && FAM_BK.re.test(k)) data[k] = localStorage.getItem(k); } } catch (e) {}
+  return data;
+}
+function famBkLogCount(data) { try { const v = JSON.parse(data[FAM_LOG_KEY] || '[]'); return Array.isArray(v) ? v.length : 0; } catch (e) { return 0; } }
+function famBackupHTML() {
+  let t = 0; try { t = +localStorage.getItem(famBkAtKey) || 0; } catch (e) {}
+  const d = t ? Math.floor((Date.now() - t) / 864e5) : null;
+  const n = typeof famLog !== 'undefined' ? famLog.length : 0;
+  const warn = n > 0 && (d == null || d >= 7);
+  const st = 'margin:10px 6px 0 0;font:inherit;font-size:0.76rem;background:none;border:1px solid var(--border);border-radius:999px;padding:4px 12px;cursor:pointer;';
+  const when = d == null ? (n ? '（還沒備份過）' : '') : `（上次：${d === 0 ? '今天' : d + ' 天前'}）`;
+  return `<div class="fam-bk"><button type="button" id="famBkSave" style="${st}color:${warn ? 'var(--qz-bad, #c0392b)' : 'var(--accent)'}">${warn ? '⚠ ' : ''}備份學習紀錄${when}</button><button type="button" id="famBkLoad" style="${st}color:var(--ink-faint)">從備份還原</button><div id="famBkPanel"></div></div>`;
+}
+function famWireBackup() {
+  const s = document.getElementById('famBkSave'), l = document.getElementById('famBkLoad'), P = document.getElementById('famBkPanel');
+  if (!s || !l || !P) return;
+  const esc2 = x => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const note = h => { P.innerHTML = `<p style="font-size:0.76rem;line-height:1.6;color:var(--ink-faint);margin:6px 0">${h}</p>`; };
+  const mark = () => { try { localStorage.setItem(famBkAtKey, String(Date.now())); } catch (e) {} s.textContent = '備份學習紀錄（上次：今天）'; s.style.color = 'var(--accent)'; };
+  const btn = 'font:inherit;font-size:0.76rem;border-radius:999px;padding:4px 12px;cursor:pointer;margin:6px 6px 0 0;border:1px solid var(--border);background:none;color:var(--ink)';
+  s.onclick = () => {
+    const data = famBkCollect();
+    const txt = JSON.stringify({ kind: 'vocab-backup', app: FAM_BK.app, savedAt: new Date().toISOString(), data });
+    const inFrame = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+    let saved = false;
+    if (!inFrame) {   // 在 Claude 的 artifact 裡不能下載檔案，只能複製；GitHub 版才下載
+      try {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' }));
+        a.download = `單字備份-${FAM_BK.app}-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a); a.click(); a.remove(); saved = true;
+      } catch (e) {}
+    }
+    const n = famBkLogCount(data);
+    const box = () => {
+      note(`${saved ? '已下載備份檔。' : ''}請長按下面的文字框、全選並複製，貼到備忘錄或傳給自己存起來（共 ${n} 筆作答紀錄）。`);
+      const t = document.createElement('textarea'); t.readOnly = true; t.value = txt; t.style.cssText = 'display:block;width:100%;height:90px;font-size:0.7rem';
+      t.addEventListener('copy', mark); P.appendChild(t); t.focus(); t.select();
+      if (saved) mark();
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => {
+      mark();
+      note(saved ? `已下載備份檔（iPhone 在「檔案」App 的「下載項目」），也複製了備份文字，共 ${n} 筆作答紀錄。` : `已複製備份文字（共 ${n} 筆作答紀錄）。貼到備忘錄或傳給自己存起來，需要時再按「從備份還原」貼回來。`);
+    }, box);
+    else box();
+  };
+  l.onclick = () => {
+    P.innerHTML = `<div style="margin-top:8px;font-size:0.76rem;color:var(--ink-faint)">
+      <label style="display:block;margin-bottom:6px">選擇備份檔：<input type="file" id="famBkFile" accept=".json,application/json,text/plain" style="font-size:0.76rem"></label>
+      <textarea id="famBkText" placeholder="或把備份文字貼在這裡" style="display:block;width:100%;height:80px;font-size:0.7rem"></textarea>
+      <button type="button" id="famBkCheck" style="${btn}">檢查這份備份</button><button type="button" id="famBkCancel" style="${btn}">取消</button>
+      <div id="famBkMsg"></div></div>`;
+    const M = document.getElementById('famBkMsg');
+    const msg = h => { M.innerHTML = `<p style="margin:8px 0 0;line-height:1.6">${h}</p>`; };
+    document.getElementById('famBkCancel').onclick = () => { P.innerHTML = ''; };
+    const check = raw => {
+      let o; try { o = JSON.parse(String(raw || '').trim()); } catch (e) { return msg('讀不懂這段內容，請確認是完整的備份（從 { 開頭、} 結尾）。'); }
+      if (!o || o.kind !== 'vocab-backup' || !o.data || typeof o.data !== 'object') return msg('這不是單字 app 的備份。');
+      if (o.app !== FAM_BK.app) return msg(`這是「${esc2(FAM_BK_NAME[o.app] || o.app)}」的備份，請到那個 app 還原。`);
+      const keys = Object.keys(o.data).filter(k => FAM_BK.re.test(k) && typeof o.data[k] === 'string');
+      if (!keys.length) return msg('這份備份是空的。');
+      const nb = famBkLogCount(o.data), nc = famBkLogCount(famBkCollect());
+      const at = o.savedAt ? new Date(o.savedAt).toLocaleString('zh-TW', { hour12: false }) : '不明';
+      msg(`備份時間：${esc2(at)}，裡面有 <b>${nb}</b> 筆作答紀錄；這台裝置目前有 <b>${nc}</b> 筆。<br>還原會用備份<b>取代</b>這台裝置目前的紀錄。${nc > nb ? '<br><b style="color:var(--qz-bad, #c0392b)">注意：目前的紀錄比備份多，還原會少掉 ' + (nc - nb) + ' 筆。</b>' : ''}<br><button type="button" id="famBkGo" style="${btn};color:var(--accent);border-color:var(--accent)">確定還原</button>`);
+      document.getElementById('famBkGo').onclick = () => {
+        try {
+          Object.keys(famBkCollect()).forEach(k => localStorage.removeItem(k));
+          keys.forEach(k => localStorage.setItem(k, o.data[k]));
+          localStorage.setItem(famBkAtKey, String(Date.now()));
+        } catch (e) { return msg('寫入失敗（可能是無痕模式或空間不足），紀錄沒有改變。'); }
+        msg('已還原，重新載入中…');
+        setTimeout(() => { try { location.reload(); } catch (e) { msg('已還原，請關掉再重新打開這個 app。'); } }, 700);
+      };
+    };
+    document.getElementById('famBkCheck').onclick = () => check(document.getElementById('famBkText').value);
+    document.getElementById('famBkFile').onchange = ev => {
+      const f = ev.target.files && ev.target.files[0]; if (!f) return;
+      const r = new FileReader(); r.onload = () => check(r.result); r.onerror = () => msg('讀取檔案失敗。'); r.readAsText(f);
+    };
+  };
+}
+/*BK-END*/
+  const famExportHTML = () => `<button type="button" id="famExport" style="margin-top:10px;font:inherit;font-size:0.76rem;color:var(--accent);background:none;border:1px solid var(--border);border-radius:999px;padding:4px 12px;cursor:pointer">匯出答題紀錄給 Claude 分析（${famLog.length} 筆）</button>` + famBackupHTML();
   function famWireExport() {
-    const b = document.getElementById('famExport'); if (!b) return;
+    famWireBackup();
+  const b = document.getElementById('famExport'); if (!b) return;
     b.onclick = () => {
       const data = JSON.stringify({ app: FAM_LOG_KEY, exportedAt: new Date().toISOString(), defaults: TIME_RULE, personal: FAM_CAL,
         columns: ['time', 'word', 'mode', 'speedKind', 'ms', 'correct'], log: famLog });
