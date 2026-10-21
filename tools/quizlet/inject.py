@@ -1,9 +1,12 @@
 A4500 = r"""function () {
   const groups = CATS.map(c => ({ id: c.id, name: c.name }));
-  const items = D.map(e => ({
-    id: e.w + '|' + e.zh, g: e.c, term: e.w, alts: e.a.includes('…') ? [] : [e.a], zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk,
-    exFront: e.s.replace(/___/g, '_____'), exFull: (() => { const p = e.a.split(' … '); let i = 0; return e.s.replace(/___/g, () => p[Math.min(i++, p.length - 1)]); })(), exHi: e.a.split(' … ')[0], exZh: e.t, note: e.n, img: e.img || ''
-  }));
+  const exOf = (s, a, t) => ({ exFront: s.replace(/___/g, '_____'), exFull: (() => { const p = a.split(' … '); let i = 0; return s.replace(/___/g, () => p[Math.min(i++, p.length - 1)]); })(), exHi: a.split(' … ')[0], exZh: t });
+  const items = D.map(e => {
+    // 原本的例句＋隱藏例句（EXS）：每次出題時隨機換一句
+    const vs = [[e.s, e.a, e.t]].concat((typeof EXS !== 'undefined' && EXS[e.w + '|' + e.zh]) || []);
+    const alts = e.a.includes('…') ? [] : [...new Set(vs.map(v => v[1]).filter(a => !a.includes('…')))];
+    return Object.assign({ id: e.w + '|' + e.zh, g: e.c, term: e.w, alts, zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk, note: e.n, img: e.img || '', vars: vs.map(v => exOf(...v)) }, exOf(e.s, e.a, e.t));
+  });
   return { app: '4500', title: '4500 多義', groupLabel: '分類', groups, items };
 }"""
 

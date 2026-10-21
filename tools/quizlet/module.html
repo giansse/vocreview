@@ -439,10 +439,13 @@ body.qz-open { overflow: hidden; }
     F.i = h.i; F.flipped = false; renderFlash();
   }
   // 配圖（item.img，可省略）：只在翻面或作答後顯示
+  // 例句變體（item.vars，可省略）：每換一題就隨機抽一句，免得看到句子就背出答案
+  function rollEx(it) { if (it && it.vars && it.vars.length > 1) Object.assign(it, it.vars[Math.floor(Math.random() * it.vars.length)]); }
   function imgQ(it) { return it && it.img ? `<span class="qz-img" aria-hidden="true">${it.img}</span>` : ''; }
   function renderFlash(dir) {
     if (F.i >= F.deck.length) return renderFlashEnd();
     const it = BY.get(F.deck[F.i]);
+    if (F.rolled !== F.deck[F.i] + '#' + F.i) { F.rolled = F.deck[F.i] + '#' + F.i; rollEx(it); }
     const frontEn = st.front === 'en';
     const showEn = frontEn ? !F.flipped : F.flipped;
     const extra = `${imgQ(it)}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}`;
@@ -519,6 +522,7 @@ body.qz-open { overflow: hidden; }
     if (!L.queue.length) { if (L.phase === 'mc') return startPhase('write'); return renderRoundEnd(); }
     L.cur = L.queue.shift(); L.state = 'ask'; L.hint = 0; L.choice = null; L.typed = ''; L.given = '';
     const it = BY.get(L.cur);
+    rollEx(it);
     L.kind = L.phase === 'mc' ? 'mc' : 'write';
     if (L.kind === 'mc') L.opts = buildChoices(it);
     renderLearn();

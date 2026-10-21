@@ -1715,8 +1715,8 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
     if (ms <= r.slow) return Math.log(ms / r.fast) / Math.log(r.slow / r.fast);   // 越慢越不熟，但增幅遞減
     return 1 - (ms - r.slow) / (r.cap - r.slow);                                  // 太久可能沒在作答：影響逐漸變小，到 cap 歸零
   }
-  // 答對的「得分」：很快答對＝1，很慢才答對最低 0.4
-  const creditFor = (ms, kind) => 1 - 0.6 * slowFactor(ms, kind);
+  // 答對的「得分」：很快答對＝1，很慢才答對最低 0.7（時間只是小幅參考，答對與否才是主要依據）
+  const creditFor = (ms, kind) => 1 - 0.3 * slowFactor(ms, kind);
   const FAM_LOG_KEY = 'essay.log.v1';
   /* ---------- 答題紀錄：累積你的作答時間，資料夠多後自動校正快／慢的標準 ---------- */
   // 每筆：[時間, 字, 題型, 速度類別, 毫秒(0=不計), 答對1/錯0]，最多保留 8000 筆
@@ -2047,8 +2047,8 @@ function famCalibrate() {
     queueMicrotask(() => {
       const p = progress[card.id]; if (!p) return;
       const base = before ? (before.cr != null ? before.cr : Math.max(0, (before.seen || 0) - (before.wrong || 0))) : 0;
-      p.cr = base + (correct ? 1 - 0.6 * sf : 0);
-      p.lastSlow = sf;
+      p.cr = base + (correct ? creditFor(ms, kind) : 0);
+      p.lastSlow = 0.3 * sf;   // 和 creditFor 同比例：慢答只小幅影響
       saveProgress();
     });
     const lf = learnFold(card);
