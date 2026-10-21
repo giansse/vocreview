@@ -835,6 +835,7 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
 .mc-option.correct { background: var(--pos-adj-bg); border-color: var(--pos-adj); color: var(--pos-adj); font-weight: 700; }
 .mc-option.wrong { background: #f6dede; border-color: #c96a6a; color: #9c3b3b; }
 .mc-option:disabled { cursor: default; }
+.mc-option.peek { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 
 .cloze-sentence {
   font-family: "Source Serif 4", "Noto Serif TC", serif;
@@ -1188,6 +1189,7 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
   // word/phrase text is read slightly slower, longer sentence text is read
   // at a natural pace.
   function speakEn(text) {
+    if (window.famSpeak) return window.famSpeak(text);
     try {
       if (!('speechSynthesis' in window) || !text) return;
       window.speechSynthesis.cancel();
@@ -2336,9 +2338,23 @@ function famWireBackup() {
     } else if (session.mode === 'mc') {
       // 選擇題：例句克漏字，點選正確的單字／片語選項
       const opts = document.querySelectorAll('#mcOptions .mc-option');
+      // 某個字的完整釋義（答錯時「你選的」、作答後點其他選項時「選項」）
+      const defOf = (w, label, peek) => {
+        if (!window.wrongDefHTML) return '';
+        const hits = CARDS.filter(c => c.type !== 'sentence' && c.word.toLowerCase() === String(w).toLowerCase());
+        return hits.length ? wrongDefHTML(hits[0].word, hits.map(c => ({ pos: c.pos, kk: c.kk && c.kk !== '—' ? c.kk : '', zh: c.zh, ex: escapeHtml(c.example), exZh: c.exZh, note: c.colloc ? '常見搭配：' + c.colloc : '' })), label, peek) : '';
+      };
+      let pickedBtn = null, peekBtn = null;
       opts.forEach(btn => {
         btn.addEventListener('click', () => {
-          opts.forEach(b => b.disabled = true);
+          if (pickedBtn) {   // 已作答：點其他選項展開它的釋義，再點一次收起
+            if (btn.dataset.val === card.word || btn === pickedBtn) return;
+            peekBtn = peekBtn === btn ? null : btn;
+            opts.forEach(b => b.classList.toggle('peek', b === peekBtn));
+            const P = document.getElementById('mcPeek'); if (P) P.innerHTML = peekBtn ? defOf(peekBtn.dataset.val, '選項', true) : '';
+            return;
+          }
+          pickedBtn = btn;
           const correct = btn.dataset.val === card.word;
           opts.forEach(b => {
             if (b.dataset.val === card.word) b.classList.add('correct');
@@ -2349,10 +2365,8 @@ function famWireBackup() {
           const nextRow = document.getElementById('nextRow');
           nextRow.insertAdjacentHTML('beforebegin',
             `<p class="cloze-zh-hint">${speakBtnHtml(card.example)} ${escapeHtml(card.example)}</p>${!correct && card.exZh ? `<p class="cloze-zh-hint ex-tr">${escapeHtml(card.exZh)}</p>` : ''}`);
-          if (!correct && window.wrongDefHTML) {   // 答錯：列出選錯的那個字的完整釋義
-            const picked = btn.dataset.val, hits = CARDS.filter(c => c.type !== 'sentence' && c.word.toLowerCase() === String(picked).toLowerCase());
-            if (hits.length) nextRow.insertAdjacentHTML('beforebegin', wrongDefHTML(hits[0].word, hits.map(c => ({ pos: c.pos, kk: c.kk && c.kk !== '—' ? c.kk : '', zh: c.zh, ex: escapeHtml(c.example), exZh: c.exZh, note: c.colloc ? '常見搭配：' + c.colloc : '' })), '你選的'));
-          }
+          if (!correct) nextRow.insertAdjacentHTML('beforebegin', defOf(btn.dataset.val, '你選的'));   // 答錯：列出選錯的那個字的完整釋義
+          nextRow.insertAdjacentHTML('beforebegin', '<p class="peek-hint">點其他選項可以看它的意思</p><div id="mcPeek"></div>');
           nextRow.classList.remove('hidden');
           document.getElementById('nextBtn').addEventListener('click', advance);
         });
@@ -2460,7 +2474,7 @@ function famWireBackup() {
         ${missed.length > 0 ? `
           <p class="study-section-title">還需加強（${missed.length}）</p>
           <ul class="missed-list">
-            ${missed.map(r => `<li><strong>${escapeHtml(r.card.word)}</strong><span>${escapeHtml(r.card.zh)}</span></li>`).join('')}
+            ${missed.map(r => `<li><strong>${escapeHtml(r.card.word)} ${speakBtnHtml(r.card.word)}</strong><span>${escapeHtml(r.card.zh)}</span></li>`).join('')}
           </ul>` : '<p class="study-pool-hint">🎉 全部答對，太棒了！</p>'}
         <div class="summary-btn-row">
           ${missed.length > 0 ? '<button class="summary-btn" id="retryMissedBtn" type="button">只複習剛剛還不熟的</button>' : ''}
@@ -2844,6 +2858,10 @@ body.qz-open { overflow: hidden; }
 .qz-ex { font-style: italic; color: var(--ink-soft); font-size: 0.98rem; line-height: 1.6; max-width: 54ch; }
 .qz-ex b { font-style: normal; color: var(--accent-strong); }
 .qz-exzh { font-size: 0.84rem; color: var(--ink-faint); }
+.qz-img { display: block; width: 72px; height: 72px; margin: 2px auto 6px; }
+.qz-img svg { width: 100%; height: 100%; display: block; }
+.qz-fb:has(> .qz-img) { position: relative; padding-right: 80px; }
+.qz-fb > .qz-img { position: absolute; top: 12px; right: 14px; width: 56px; height: 56px; margin: 0; }
 .qz-note { font-size: 0.8rem; color: var(--ink-faint); max-width: 54ch; }
 .qz-hint { font-size: 0.74rem; color: var(--ink-faint); }
 .qz-say { border: none; background: none; color: var(--accent); cursor: pointer; font-size: 1rem; padding: 2px 6px; border-radius: 6px; }
@@ -2916,6 +2934,13 @@ body.qz-open { overflow: hidden; }
 .wd-box .wd-exzh, .wd-box .wd-note { color: var(--ink-faint); font-size: 0.8rem; }
 .qz-fb .wd-box { background: var(--surface); }
 .wd-box .wd-sense + .wd-sense { border-top: 1px dashed var(--qz-bad); padding-top: 6px; margin-top: 4px; }
+.wd-box.wd-peek { border-left-color: var(--accent); background: var(--surface-2); }
+.wd-box.wd-peek .wd-h { color: var(--accent); }
+.wd-box.wd-peek .wd-pos { border-color: var(--accent); color: var(--accent); }
+.wd-box.wd-peek .wd-sense + .wd-sense { border-top-color: var(--border); }
+.wd-box .qz-say { font-size: 0.9rem; padding: 0 4px; vertical-align: 0; }
+.peek-hint { font-size: 0.74rem; color: var(--ink-faint); margin: 8px 0 0; }
+.qz-choice.peek, .opt.peek { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 @media (prefers-reduced-motion: reduce) { .qz-fc, .qz-fc.flip, .qz-big i { animation: none; transition: none; } }
 </style>
 <div class="qz-overlay" id="qzRoot" hidden></div>
@@ -2923,12 +2948,33 @@ body.qz-open { overflow: hidden; }
 (function () {
   /* ---------- 答錯時：把你選的那個字的完整釋義列出來（三種測驗與 Quizlet 式共用） ---------- */
   // senses: [{ pos, kk, zh, ex(可含 <b> 的 HTML), exZh, note }]
-  if (!window.wrongDefHTML) window.wrongDefHTML = function (word, senses, label) {
+  // peek＝true：作答後點其他選項看到的釋義（藍色、不是答錯的紅色）
+  window.wrongDefHTML = function (word, senses, label, peek) {
     const e = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const say = t => `<button type="button" class="qz-say" data-say="${e(t)}" aria-label="朗讀">🔊</button>`;
+    const plain = h => String(h || '').replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
     if (!senses || !senses.length) return '';
-    return `<div class="wd-box"><div class="wd-h">${e(label || '你選的')}「${e(word)}」是：</div>${senses.slice(0, 3).map(x =>
-      `<div class="wd-sense"><div>${x.pos ? `<span class="wd-pos">${e(x.pos)}</span>` : ''}<span class="wd-zh">${e(x.zh)}</span>${x.kk ? `<span class="wd-kk">${e(x.kk)}</span>` : ''}</div>${x.ex ? `<div class="wd-ex">${x.ex}</div>` : ''}${x.exZh ? `<div class="wd-exzh">${e(x.exZh)}</div>` : ''}${x.note ? `<div class="wd-note">${e(x.note)}</div>` : ''}</div>`).join('')}</div>`;
+    return `<div class="wd-box${peek ? ' wd-peek' : ''}"><div class="wd-h">${e(label || '你選的')}「${e(word)}」是：${say(word)}</div>${senses.slice(0, 4).map(x =>
+      `<div class="wd-sense"><div>${x.pos ? `<span class="wd-pos">${e(x.pos)}</span>` : ''}<span class="wd-zh">${e(x.zh)}</span>${x.kk ? `<span class="wd-kk">${e(x.kk)}</span>` : ''}</div>${x.ex ? `<div class="wd-ex">${x.ex} ${say(plain(x.ex))}</div>` : ''}${x.exZh ? `<div class="wd-exzh">${e(x.exZh)}</div>` : ''}${x.note ? `<div class="wd-note">${e(x.note)}</div>` : ''}</div>`).join('')}</div>`;
   };
+  /* ---------- 朗讀（三個 app 共用）---------- */
+  // iPhone：朗讀前把音訊類型切成 transient（短暫壓低背景音樂、不受提示音用的 ambient 設定影響）；
+  // 正在念的時候先停掉、稍等一下再念，避免 iOS 在 cancel() 之後把下一句吞掉
+  window.famSpeak = function (t, rate) {
+    if (!('speechSynthesis' in window) || !t) return;
+    const ss = window.speechSynthesis;
+    try { if (navigator.audioSession) navigator.audioSession.type = 'transient'; } catch (e) {}
+    const go = () => {
+      try {
+        const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US';
+        u.rate = rate || (String(t).trim().split(/\s+/).length <= 4 ? 0.88 : 1);
+        const v = (ss.getVoices() || []).find(v => /en[-_]US/i.test(v.lang)); if (v) u.voice = v;
+        ss.speak(u); if (ss.paused) ss.resume();
+      } catch (e) {}
+    };
+    if (ss.speaking || ss.pending) { ss.cancel(); setTimeout(go, 80); } else go();
+  };
+  document.addEventListener('click', ev => { const b = ev.target.closest && ev.target.closest('.qz-say[data-say]'); if (b) { ev.stopPropagation(); ev.preventDefault(); window.famSpeak(b.dataset.say); } });
   /* ---------- 答對回饋：打勾動畫＋提示音＋連對計數（三種測驗與 Quizlet 式共用） ---------- */
   if (!window.famCheer) window.famCheer = (function () {
     let streak = 0, pop = null, timer = 0, ac = null;
@@ -3058,13 +3104,8 @@ body.qz-open { overflow: hidden; }
   const lvl = id => st.m[id] || 0;
 
   /* ---------- speech ---------- */
-  function say(t) {
-    if (!('speechSynthesis' in window) || !t) return;
-    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.9;
-      const v = speechSynthesis.getVoices().find(v => /en[-_]US/i.test(v.lang)); if (v) u.voice = v; speechSynthesis.speak(u); } catch (e) {}
-  }
+  function say(t) { window.famSpeak(t); }
   const sayBtn = t => `<button type="button" class="qz-say" data-say="${esc(t)}" aria-label="朗讀">🔊</button>`;
-  root.addEventListener('click', e => { const b = e.target.closest('[data-say]'); if (b) { e.stopPropagation(); say(b.dataset.say); } });
 
   /* ---------- grading ---------- */
   const norm = s => String(s || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/[.!?。]+$/, '').replace(/\s+/g, ' ').trim();
@@ -3128,10 +3169,17 @@ body.qz-open { overflow: hidden; }
   function wrongDef(it) {   // 選錯（或拼成另一個字）時，列出那個字的完整釋義
     const w = L.kind === 'mc' ? (L.opts && L.opts[L.choice]) : L.given;
     if (!w || norm(w) === norm(it.term)) return '';
+    return defOf(w, L.kind === 'mc' ? '你選的' : '你拼的');
+  }
+  function peekDef(it) {   // 作答後點其他選項：顯示那個選項的釋義（一次一個）
+    if (L.kind !== 'mc' || L.state === 'ask' || L.peek == null) return '';
+    return defOf(L.opts[L.peek], `選項 ${L.peek + 1}`, true);
+  }
+  function defOf(w, label, peek) {
     const hits = A.items.filter(x => norm(x.term) === norm(w));
     if (!hits.length) return '';
     const exH = x => { if (!x.exFull) return ''; let h = esc(x.exFull); if (x.exHi) { const i = x.exFull.toLowerCase().indexOf(String(x.exHi).toLowerCase()); if (i >= 0) h = esc(x.exFull.slice(0, i)) + '<b>' + esc(x.exFull.slice(i, i + x.exHi.length)) + '</b>' + esc(x.exFull.slice(i + x.exHi.length)); } return h; };
-    return wrongDefHTML(hits[0].term, hits.map(x => ({ pos: x.pos, kk: x.kk, zh: x.zh, ex: exH(x), exZh: x.exZh, note: x.note })), L.kind === 'mc' ? '你選的' : '你拼的');
+    return wrongDefHTML(hits[0].term, hits.map(x => ({ pos: x.pos, kk: x.kk, zh: x.zh, ex: exH(x), exZh: x.exZh, note: x.note })), label, peek);
   }
   function exFullHTML(it) {
     if (!it.exFull) return '';
@@ -3229,12 +3277,17 @@ body.qz-open { overflow: hidden; }
     F.still = F.still.filter(x => x !== h.id); F.know = F.know.filter(x => x !== h.id);
     F.i = h.i; F.flipped = false; renderFlash();
   }
+  // 配圖（item.img，可省略）：只在翻面或作答後顯示
+  // 例句變體（item.vars，可省略）：每換一題就隨機抽一句，免得看到句子就背出答案
+  function rollEx(it) { if (it && it.vars && it.vars.length > 1) Object.assign(it, it.vars[Math.floor(Math.random() * it.vars.length)]); }
+  function imgQ(it) { return it && it.img ? `<span class="qz-img" aria-hidden="true">${it.img}</span>` : ''; }
   function renderFlash(dir) {
     if (F.i >= F.deck.length) return renderFlashEnd();
     const it = BY.get(F.deck[F.i]);
+    if (F.rolled !== F.deck[F.i] + '#' + F.i) { F.rolled = F.deck[F.i] + '#' + F.i; rollEx(it); }
     const frontEn = st.front === 'en';
     const showEn = frontEn ? !F.flipped : F.flipped;
-    const extra = `${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}`;
+    const extra = `${imgQ(it)}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}`;
     const zhOnly = `<div class="qz-zh">${it.pos ? `<span class="qz-pos">${esc(it.pos)}</span>` : ''}${esc(it.zh)}</div>`;
     let face;
     if (!frontEn) face = F.flipped ? answerHTML(it) + extra : promptHTML(it);
@@ -3306,8 +3359,9 @@ body.qz-open { overflow: hidden; }
   function nextQ(first) {
     if (!first) L.qDone++;
     if (!L.queue.length) { if (L.phase === 'mc') return startPhase('write'); return renderRoundEnd(); }
-    L.cur = L.queue.shift(); L.state = 'ask'; L.hint = 0; L.choice = null; L.typed = ''; L.given = '';
+    L.cur = L.queue.shift(); L.state = 'ask'; L.hint = 0; L.choice = null; L.peek = null; L.typed = ''; L.given = '';
     const it = BY.get(L.cur);
+    rollEx(it);
     L.kind = L.phase === 'mc' ? 'mc' : 'write';
     if (L.kind === 'mc') L.opts = buildChoices(it);
     renderLearn();
@@ -3349,9 +3403,9 @@ body.qz-open { overflow: hidden; }
       body = `<div class="qz-qlabel">選出正確的英文</div>
         <div class="qz-choices">${L.opts.map((o, k) => {
           let cls = '';
-          if (L.state !== 'ask') { if (norm(o) === norm(it.term)) cls = ' ok'; else if (k === L.choice) cls = ' no'; }
-          return `<button type="button" class="qz-choice${cls}" data-k="${k}" ${L.state !== 'ask' ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`;
-        }).join('')}</div>`;
+          if (L.state !== 'ask') { if (norm(o) === norm(it.term)) cls = ' ok'; else if (k === L.choice) cls = ' no'; else if (k === L.peek) cls = ' peek'; }
+          return `<button type="button" class="qz-choice${cls}" data-k="${k}"><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`;
+        }).join('')}</div>${L.state !== 'ask' ? '<p class="peek-hint">點其他選項可以看它的意思</p>' : ''}`;
     } else {
       const hintLine = L.hint ? `<div class="qz-hintline">${esc(it.term.split('').map((ch, i) => (i < L.hint || ch === ' ') ? ch : '_').join(' '))}</div>` : '';
       body = `<div class="qz-qlabel">${L.state === 'retype' ? '把正確答案打一次' : '用英文打出答案'}</div>${hintLine}
@@ -3359,8 +3413,9 @@ body.qz-open { overflow: hidden; }
         ${L.state === 'ask' ? `<div class="qz-sub"><button class="qz-link" type="button" id="qzHint">提示字母</button><button class="qz-link" type="button" id="qzIdk">不知道</button></div>` : ''}`;
     }
     let fb = '';
-    if (L.state === 'ok') fb = `<div class="qz-fb ok"><b>答對了！</b>${answerHTML(it).replace('qz-term', 'ans')}${exFullHTML(it)}</div>`;
-    if (L.state === 'no' || L.state === 'retype') fb = `<div class="qz-fb no"><b>${L.kind === 'mc' ? '再想想，正確答案是' : (L.given ? '不太對，正確答案是' : '正確答案是')}</b><div class="ans">${esc(it.term)} ${sayBtn(it.term)}</div>${it.kk ? `<div class="qz-kk">${esc(it.kk)}</div>` : ''}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}${L.kind === 'write' && L.given ? `<div class="qz-hint">你的答案：${esc(L.given)}</div>` : ''}${wrongDef(it)}</div>`;
+    if (L.state === 'ok') fb = `<div class="qz-fb ok">${imgQ(it)}<b>答對了！</b>${answerHTML(it).replace('qz-term', 'ans')}${exFullHTML(it)}</div>`;
+    if (L.state === 'no' || L.state === 'retype') fb = `<div class="qz-fb no">${imgQ(it)}<b>${L.kind === 'mc' ? '再想想，正確答案是' : (L.given ? '不太對，正確答案是' : '正確答案是')}</b><div class="ans">${esc(it.term)} ${sayBtn(it.term)}</div>${it.kk ? `<div class="qz-kk">${esc(it.kk)}</div>` : ''}${exFullHTML(it)}${it.note ? `<div class="qz-note">${esc(it.note)}</div>` : ''}${L.kind === 'write' && L.given ? `<div class="qz-hint">你的答案：${esc(L.given)}</div>` : ''}${wrongDef(it)}</div>`;
+    fb += peekDef(it);
     let actions = '';
     if (L.state === 'ok' || L.state === 'no') actions = `<div class="qz-sub"><button class="qz-primary" type="button" id="qzNext" style="flex:0;min-width:120px">繼續</button></div>`;
     if (L.state === 'retype' && L.given) actions = `<div class="qz-sub"><button class="qz-btn" type="button" id="qzOverride">我其實答對了</button></div>`;
@@ -3377,7 +3432,12 @@ body.qz-open { overflow: hidden; }
       <p class="qz-keys">${L.kind === 'mc' ? '可按 1–4 作答，Enter 或「繼續」下一題' : 'Enter 送出／繼續'}</p>
     </div>`;
     wireHeader();
-    if (L.kind === 'mc' && L.state === 'ask') root.querySelectorAll('[data-k]').forEach(b => b.onclick = () => answerMC(+b.dataset.k));
+    if (L.kind === 'mc') root.querySelectorAll('[data-k]').forEach(b => b.onclick = () => {
+      const k = +b.dataset.k;
+      if (L.state === 'ask') return answerMC(k);
+      if (norm(L.opts[k]) === norm(it.term) || k === L.choice) return;   // 正解和你選的已經顯示了
+      L.peek = L.peek === k ? null : k; renderLearn();
+    });
     const f = $('#qzForm');
     if (f) {
       const inp = $('#qzIn');
