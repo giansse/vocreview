@@ -1554,6 +1554,7 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
       out.add(b.replace(/\(([^)]*)\)/g, '$1').replace(/\s+/g, ' ').trim());           // 包含括號內容
     });
     [...out].forEach(x => { if (/^be\s/i.test(x)) out.add(x.replace(/^be\s+/i, '')); });   // be + adj 的片語，省略 be 也算對
+    out.add(String(term || '').replace(/\s+/g, ' ').trim());   // 照抄原本的寫法（含括號）也算對
     out.delete('');
     return [...out];
   }
@@ -3132,6 +3133,7 @@ body.qz-open { overflow: hidden; }
       out.add(b.replace(/\(([^)]*)\)/g, '$1').replace(/\s+/g, ' ').trim());           // 包含括號內容
     });
     [...out].forEach(x => { if (/^be\s/i.test(x)) out.add(x.replace(/^be\s+/i, '')); });   // be + adj 的片語，省略 be 也算對
+    out.add(String(term || '').replace(/\s+/g, ' ').trim());   // 照抄原本的寫法（含括號）也算對
     out.delete('');
     return [...out];
   }
