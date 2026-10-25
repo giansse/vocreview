@@ -5,7 +5,7 @@ A4500 = r"""function () {
     // 原本的例句＋隱藏例句（EXS）：每次出題時隨機換一句
     const vs = [[e.s, e.a, e.t]].concat((typeof EXS !== 'undefined' && EXS[e.w + '|' + e.zh]) || []);
     const alts = e.a.includes('…') ? [] : [...new Set(vs.map(v => v[1]).filter(a => !a.includes('…')))];
-    return Object.assign({ id: e.w + '|' + e.zh, g: e.c, term: e.w, alts, zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk, note: e.n, img: e.img || '', vars: vs.map(v => exOf(...v)) }, exOf(e.s, e.a, e.t));
+    return Object.assign({ id: e.w + '|' + e.zh, g: e.c, term: e.w, alts, zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk, note: e.n, img: e.img || '', excl: e.grp || '', vars: vs.map(v => exOf(...v)) }, exOf(e.s, e.a, e.t));
   });
   return { app: '4500', title: '4500 多義', groupLabel: '分類', groups, items };
 }"""

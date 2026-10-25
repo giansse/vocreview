@@ -573,6 +573,7 @@ body.qz-open { overflow: hidden; }
       const k = norm(x.term); if (seen.has(k)) continue;
       // 不放意思重疊（例如兩個都是「追捕」）或長得像（pursue／pursuit）的選項，免得答對卻被判錯
       if (zs.some(z => zhOverlap(z, x.zh))) continue;
+      if (it.excl && x.excl === it.excl) continue;   // 同一組近義用法不互相當錯誤選項
       if ([it.term].concat(out).some(t => ft(t) === ft(x.term) || (ft(t).length >= 5 && ft(x.term).length >= 5 && ft(t).slice(0, 5) === ft(x.term).slice(0, 5)))) continue;
       seen.add(k); out.push(x.term); zs.push(x.zh); if (out.length === 3) break;
     }
