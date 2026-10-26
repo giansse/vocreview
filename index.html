@@ -116,6 +116,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .category-count { font-size: 0.72rem; color: var(--ink-faint); background: var(--surface-2); border-radius: 999px; padding: 2px 9px; font-variant-numeric: tabular-nums; }
 .category-desc { font-size: 0.82rem; color: var(--ink-faint); margin: 0 0 12px; }
 .cat-guide { margin-bottom: 14px; }
+.known-btn { display: block; margin-top: 6px; font: inherit; font-size: 0.68rem; font-weight: 500; color: var(--ink-faint); background: none; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; cursor: pointer; white-space: nowrap; }
+.known-btn:hover { color: var(--accent); border-color: var(--accent); }
+tr.is-known td { opacity: 0.45; }
+tr.is-known td.word { opacity: 1; }
+tr.is-known td.word > :not(.known-btn) { opacity: 0.45; }
+tr.is-known .known-btn { color: var(--good); border-color: var(--good); }
 .cat-guide table { min-width: 0; }
 .cat-guide td, .cat-guide th { font-size: 0.82rem; padding: 8px 10px; vertical-align: top; }
 .cat-guide td.word { white-space: normal; }
@@ -168,6 +174,7 @@ td.colloc { color: var(--ink-soft); font-size: 0.82rem; min-width: 200px; }
 .count-row input { width: 90px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); font-size: 0.9rem; font-family: inherit; }
 .pool-hint { font-size: 0.8rem; color: var(--ink-faint); margin: 8px 0 0; }
 .pool-hint strong { color: var(--accent-strong); }
+.link-like { font: inherit; font-size: inherit; color: var(--accent); background: none; border: none; padding: 0 0 0 6px; cursor: pointer; text-decoration: underline; }
 .primary-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: var(--accent-strong); color: var(--surface); font-size: 0.95rem; font-weight: 700; cursor: pointer; }
 .primary-btn:hover { background: var(--accent); }
 .primary-btn:disabled { background: var(--border); color: var(--ink-faint); cursor: not-allowed; }
@@ -1271,8 +1278,8 @@ function renderList() {
     const rows = D.filter(e => e.c === c.id).map(e => {
       const [pl, pc] = POS[e.p];
       const q = [e.w, e.zh, e.s, e.a, e.t, e.n].join(" ").toLowerCase();
-      return `<tr data-q="${esc(q)}" data-id="${e.id}">
-        <td class="word">${esc(e.w)}${e.f ? `<span class="flag">${esc(e.f)}</span>` : ""}${imgHTML(e)}</td>
+      return `<tr data-q="${esc(q)}" data-id="${e.id}"${isKnown(e) ? ' class="is-known"' : ""}>
+        <td class="word">${esc(e.w)}${e.f ? `<span class="flag">${esc(e.f)}</span>` : ""}${imgHTML(e)}<button type="button" class="known-btn" data-known="${e.id}">${isKnown(e) ? "✓ 已會，不出題" : "這個意思我會了"}</button></td>
         <td><span class="pos-tag ${pc}">${pl}</span></td>
         <td class="zh">${esc(e.zh)}</td>
         <td class="kk">${esc(e.kk)}</td>
@@ -1291,6 +1298,14 @@ function renderList() {
   }).join("");
   applySearch();
 }
+$("#categories").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-known]"); if (!b) return;
+  const e = D[+b.dataset.known], k = e.w + "|" + e.zh;
+  known.has(k) ? known.delete(k) : known.add(k); saveKnown();
+  const on = known.has(k);
+  b.textContent = on ? "✓ 已會，不出題" : "這個意思我會了";
+  b.closest("tr").classList.toggle("is-known", on);
+});
 
 function applySearch() {
   const q = $("#search").value.trim().toLowerCase();
@@ -1329,7 +1344,13 @@ function toggleStudy(force) {
 $("#studyToggle").addEventListener("click", () => toggleStudy());
 $("#nav").addEventListener("click", () => { if (studyOn) toggleStudy(false); });
 
-const pool = () => D.filter(e => cfg.cats.has(e.c));
+/* 「這個意思我會了」：標記後不再出題（單字表仍顯示，可隨時取消） */
+const KNOWN_KEY = "v4500.known.v1";
+let known = new Set(); try { known = new Set(JSON.parse(localStorage.getItem(KNOWN_KEY) || "[]")); } catch (_) {}
+const saveKnown = () => { try { localStorage.setItem(KNOWN_KEY, JSON.stringify([...known])); } catch (_) {} };
+const isKnown = e => known.has(e.w + "|" + e.zh);
+window.__known4500 = known;   // 給 Quizlet 式學習模式用
+const pool = () => D.filter(e => cfg.cats.has(e.c) && !isKnown(e));
 const uniqueByAnswer = list => { const seen = new Set(); return list.filter(e => { const k = e.a.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); };
 
 function renderSetup() {
@@ -1363,10 +1384,12 @@ function renderSetup() {
     <p class="pool-hint">${isCloze
       ? (ready ? `目前範圍有 <strong>${uniq}</strong> 個不重複的填入形式，每組抽 <strong>${Math.min(10, uniq)}</strong> 格。` : "範圍太小，至少要 4 個不同的填入形式才能出一組。")
       : `目前範圍共 <strong>${p.length}</strong> 個字義。`}</p>
+    ${known.size ? `<p class="pool-hint">已標記「我會了」的字義 <strong>${known.size}</strong> 個，不會出題。<button type="button" class="link-like" id="knownReset">全部取消標記</button></p>` : ""}
     <p class="pool-hint">${famLine(famBuckets(p, statOf))}</p>
     ${famExportHTML()}
   </div>`;
   $("#backList").onclick = () => toggleStudy(false);
+  const kr = $("#knownReset"); if (kr) kr.onclick = () => { if (kr.dataset.sure) { known.clear(); saveKnown(); renderList(); renderSetup(); } else { kr.dataset.sure = 1; kr.textContent = "再按一次確定取消全部"; } };
   $("#allCats").onclick = () => { if (cfg.cats.size === CATS.length) cfg.cats.clear(); else CATS.forEach(c => cfg.cats.add(c.id)); renderSetup(); };
   document.querySelectorAll("[data-cat].chip").forEach(b => b.onclick = () => { const id = b.dataset.cat; cfg.cats.has(id) ? cfg.cats.delete(id) : cfg.cats.add(id); renderSetup(); });
   document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { cfg.mode = b.dataset.mode; renderSetup(); });
@@ -2412,7 +2435,7 @@ body.qz-open { overflow: hidden; }
     const alts = e.a.includes('…') ? [] : [...new Set(vs.map(v => v[1]).filter(a => !a.includes('…')))];
     return Object.assign({ id: e.w + '|' + e.zh, g: e.c, term: e.w, alts, zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk, note: e.n, img: e.img || '', excl: e.grp || '', vars: vs.map(v => exOf(...v)) }, exOf(e.s, e.a, e.t));
   });
-  return { app: '4500', title: '4500 多義', groupLabel: '分類', groups, items };
+  return { app: '4500', title: '4500 多義', groupLabel: '分類', groups, items, skip: it => !!(window.__known4500 && window.__known4500.has(it.id)) };
 })();
   if (!A || !A.items || !A.items.length) return;
   const KEY = 'qz.' + A.app + '.v1';
@@ -2468,6 +2491,7 @@ body.qz-open { overflow: hidden; }
   function poolItems() {
     const sel = new Set(st.sel.map(String));
     let p = A.items.filter(it => sel.has(String(it.g)));
+    if (A.skip) p = p.filter(it => !A.skip(it));   // app 可以排除某些項目（例如 4500 標記「我會了」的字義）
     (A.filters || []).forEach(f => { if (st.filt[f.key]) p = p.filter(f.fn); });
     return p;
   }
