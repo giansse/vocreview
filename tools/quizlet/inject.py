@@ -7,7 +7,7 @@ A4500 = r"""function () {
     const alts = e.a.includes('…') ? [] : [...new Set(vs.map(v => v[1]).filter(a => !a.includes('…')))];
     return Object.assign({ id: e.w + '|' + e.zh, g: e.c, term: e.w, alts, zh: e.zh, pos: (POS[e.p] || [''])[0], kk: e.kk, note: e.n, img: e.img || '', excl: e.grp || '', vars: vs.map(v => exOf(...v)) }, exOf(e.s, e.a, e.t));
   });
-  return { app: '4500', title: '4500 多義', groupLabel: '分類', groups, items, skip: it => !!(window.__known4500 && window.__known4500.has(it.id)) };
+  return { app: '4500', title: '4500 多義', groupLabel: '分類', groups, items };
 }"""
 
 ESSAY = r"""function () {

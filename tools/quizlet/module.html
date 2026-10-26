@@ -330,7 +330,6 @@ body.qz-open { overflow: hidden; }
   function poolItems() {
     const sel = new Set(st.sel.map(String));
     let p = A.items.filter(it => sel.has(String(it.g)));
-    if (A.skip) p = p.filter(it => !A.skip(it));   // app 可以排除某些項目（例如 4500 標記「我會了」的字義）
     (A.filters || []).forEach(f => { if (st.filt[f.key]) p = p.filter(f.fn); });
     return p;
   }
