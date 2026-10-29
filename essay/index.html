@@ -1565,7 +1565,10 @@ td.colloc:empty::after { content: "—"; color: var(--border); font-style: norma
     out.delete('');
     return [...out];
   }
-  function normAnswer(s) { return s.trim().toLowerCase().replace(/[.,!?;:'"’‘`]/g, '').replace(/\s+/g, ' '); }
+  function normAnswer(s) { return String(s).replace(/…|\.\.\./g, ' ').trim().toLowerCase().replace(/[.,!?;:'"’‘`]/g, '').replace(/\s+/g, ' ').trim(); }
+  // 寬鬆比對：拿掉 sb／sth／one's 和所有格代名詞（keep my fingers crossed＝keep one's fingers crossed）
+  function looseAnswer(s) { return normAnswer(s).replace(/\b(sb|sth|someone|something|somebody|ones|oneself|my|your|his|her|its|our|their|myself|yourself|himself|herself|itself|ourselves|themselves)\b/g, ' ').replace(/[()]/g, '').replace(/\s+/g, ' ').trim(); }
+  function ansMatch(input, word) { return answerVariants(word).some(v => normAnswer(input) === normAnswer(v) || looseAnswer(input) === looseAnswer(v)); }
 
   // ---------- Sentence dictation (默寫) helpers ----------
   // Per-word hint used for whole-sentence dictation: short/common words (<=3
@@ -2393,7 +2396,7 @@ function famWireBackup() {
       input.focus();
       function doSubmit() {
         if (input.disabled) return;
-        const correct = answerVariants(card.word).some(v => normAnswer(input.value) === normAnswer(v));
+        const correct = ansMatch(input.value, card.word);
         input.disabled = true;
         submit.disabled = true;
         input.classList.add(correct ? 'correct' : 'wrong');
@@ -2418,7 +2421,7 @@ function famWireBackup() {
       input.focus();
       function doSubmit() {
         if (input.disabled) return;
-        const correct = answerVariants(card.word).some(v => normAnswer(input.value) === normAnswer(v));
+        const correct = ansMatch(input.value, card.word);
         input.disabled = true;
         submit.disabled = true;
         input.classList.add(correct ? 'correct' : 'wrong');
@@ -3124,8 +3127,9 @@ body.qz-open { overflow: hidden; }
   const sayBtn = t => `<button type="button" class="qz-say" data-say="${esc(t)}" aria-label="朗讀">🔊</button>`;
 
   /* ---------- grading ---------- */
-  const norm = s => String(s || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/[.!?。]+$/, '').replace(/\s+/g, ' ').trim();
-  const loose = s => norm(s).replace(/\b(sb|sth|someone|something|one's|oneself|somebody)\b/g, '').replace(/[()]/g, '').replace(/\s+/g, ' ').trim();
+  // 刪節號（take…for granted）當成空格；loose 再拿掉 sb／sth／one's 和所有格代名詞，所以 take sth for granted、keep my fingers crossed 都算對
+  const norm = s => String(s || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/…|\.\.\./g, ' ').replace(/[.!?。]+$/, '').replace(/\s+/g, ' ').trim();
+  const loose = s => norm(s).replace(/\b(sb|sth|someone|something|one's|oneself|somebody|my|your|his|her|its|our|their|myself|yourself|himself|herself|itself|ourselves|themselves)\b/g, '').replace(/[()]/g, '').replace(/\s+/g, ' ').trim();
   // 一個答案的各種可接受寫法：括號內可省略（provided (that)、toward(s)），斜線是替換最後一個字（storm out / into → storm into）
   function answerVariants(term) {
     const out = new Set();
@@ -3141,6 +3145,7 @@ body.qz-open { overflow: hidden; }
     });
     [...out].forEach(x => { if (/^be\s/i.test(x)) out.add(x.replace(/^be\s+/i, '')); });   // be + adj 的片語，省略 be 也算對
     out.add(String(term || '').replace(/\s+/g, ' ').trim());   // 照抄原本的寫法（含括號）也算對
+    if (/…|\.\.\./.test(term || '')) out.add(String(term).replace(/\s*(…|\.\.\.)\s*/g, ' it '));   // take…for granted → take it for granted
     out.delete('');
     return [...out];
   }
@@ -3398,6 +3403,7 @@ body.qz-open { overflow: hidden; }
       const k = norm(x.term); if (seen.has(k)) continue;
       // 不放意思重疊（例如兩個都是「追捕」）或長得像（pursue／pursuit）的選項，免得答對卻被判錯
       if (zs.some(z => zhOverlap(z, x.zh))) continue;
+      if (it.excl && x.excl === it.excl) continue;   // 同一組近義用法不互相當錯誤選項
       if ([it.term].concat(out).some(t => ft(t) === ft(x.term) || (ft(t).length >= 5 && ft(x.term).length >= 5 && ft(t).slice(0, 5) === ft(x.term).slice(0, 5)))) continue;
       seen.add(k); out.push(x.term); zs.push(x.zh); if (out.length === 3) break;
     }
@@ -3539,7 +3545,7 @@ body.qz-open { overflow: hidden; }
     b.onclick = open;
     anchor.insertAdjacentElement('afterend', b);
   }
-  window.QZ = { open, maskZh, items: A.items, dbg: () => ({ L, F, st, BY }) };   // dbg：自動測試用（唯讀）
+  window.QZ = { open, maskZh, items: A.items, dbg: () => ({ L, F, st, BY, isRight }) };   // dbg：自動測試用（唯讀）
 })();
 </script>
 

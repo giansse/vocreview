@@ -161,7 +161,8 @@ async function tEssay() {
       const want = i % 2 === 0;
       const before = await p.evaluate(() => __fl().length);
       if (mode === 'flashcard') {
-        await p.click('#fcCard'); await p.click(`.rate-btn[data-rate="${want ? 2 : 0}"]`);
+        // 點卡片左上角翻面（正中央可能剛好點到 🔊 朗讀鍵，那樣不會翻面）
+        await p.click('#fcCard', { position: { x: 12, y: 12 } }); await p.click(`.rate-btn[data-rate="${want ? 2 : 0}"]`);
       } else if (mode === 'mc') {
         const opts = await p.locator('.mc-option').evaluateAll(b => b.map(x => x.dataset.val));
         const c = opts.indexOf(card.word);
