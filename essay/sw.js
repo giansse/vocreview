@@ -1,12 +1,13 @@
-// 由 tools/build.py 產生 sw.js；vessay 與 20261104222107 會被替換
+// 由 tools/build.py 產生 sw.js；vessay 與 20261105073102 會被替換
 const ID = "vessay";
-const CACHE = ID + "-" + "20261104222107";
+const CACHE = ID + "-" + "20261105073102";
 const FONTS = ID + "-fonts";
 // 舊版快取名稱，清掉
 const LEGACY = { v4500: ["vocab4500-"], vessay: ["essay-"], vunits: ["units-"] }[ID] || [];
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache: "reload"：一定跟網站拿最新的，不用瀏覽器暫存的舊檔
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(u => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(
@@ -25,10 +26,11 @@ self.addEventListener("fetch", e => {
     return;
   }
   if (url.origin !== location.origin) return;
+  if (url.pathname.endsWith("/version.json")) { e.respondWith(fetch(e.request, { cache: "no-store" })); return; }   // 版本檢查：永遠問網站，不存
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const net = fetch(e.request, { cache: "no-cache" }).then(res => { if (res.ok) cache.put(e.request, res.clone()); return res; });
-    const timeout = new Promise(r => setTimeout(r, 3000, null));
+    const timeout = new Promise(r => setTimeout(r, e.request.mode === "navigate" ? 8000 : 3000, null));   // 4500 頁面超過 1 MB，給網路多一點時間
     try { const res = await Promise.race([net, timeout]); if (res) return res; } catch (_) {}
     const hit = await cache.match(e.request, { ignoreSearch: true }) ||
                 (e.request.mode === "navigate" ? await cache.match("./index.html") : null);
