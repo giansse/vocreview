@@ -134,6 +134,7 @@ body.qz-open { overflow: hidden; }
 .fc-pop .fc-ring svg { width: 42px; height: 42px; stroke: currentColor; stroke-width: 3.4; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 40; animation: fcDraw .32s .12s ease-out forwards; }
 .fc-pop .fc-txt { font-weight: 800; font-size: 1.05rem; color: var(--qz-good); background: var(--surface, #fff); border: 1px solid var(--qz-good); padding: 4px 14px; border-radius: 999px; box-shadow: 0 6px 18px -8px rgba(0,0,0,.3); white-space: nowrap; animation: fcUp .35s .08s ease-out both; }
 .fc-pop .fc-txt small { font-weight: 700; color: var(--qz-mid); margin-left: 6px; font-size: 0.85rem; }
+.fc-pop .fc-txt small.fc-best { display: block; margin: 1px 0 0; text-align: center; font-size: 0.72rem; font-weight: 600; color: var(--ink-faint, #888); }
 .fc-pop.out { animation: fcOut .3s ease-in forwards; }
 .fc-pop i { position: absolute; left: 50%; top: 38px; width: 8px; height: 8px; border-radius: 2px; animation: fcBurst .9s ease-out forwards; }
 .fc-hit { animation: fcPulse .55s ease-out; position: relative; z-index: 1; }
@@ -200,6 +201,9 @@ body.qz-open { overflow: hidden; }
   /* ---------- 答對回饋：打勾動畫＋提示音＋連對計數（三種測驗與 Quizlet 式共用） ---------- */
   if (!window.famCheer) window.famCheer = (function () {
     let streak = 0, pop = null, timer = 0, ac = null;
+    // 最高連對紀錄：存在這台裝置（qz.<app>.best，會跟著備份）；三種測驗和 Quizlet 式共用同一個連對數
+    const bestKey = () => 'qz.' + (typeof FAM_BK !== 'undefined' && FAM_BK.app ? FAM_BK.app : 'app') + '.best';
+    const getBest = () => { try { return Math.max(0, parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0); } catch (e) { return 0; } };
     const PRAISE = ['答對了！', '漂亮！', '正確！', 'Nice!', '好棒！', '沒錯！'];
     // 馬林巴木琴：用程式合成，走 Web Audio 當「網站音效」播放——不會中斷 Spotify 等正在播的音樂
     const SR = 44100;
@@ -246,6 +250,8 @@ body.qz-open { overflow: hidden; }
     ['touchend', 'pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, function once() { document.removeEventListener(ev, once, true); warm(); }, true));
     function hit(target) {
       streak++;
+      const best0 = getBest(), record = streak > best0;
+      if (record) { try { localStorage.setItem(bestKey(), String(streak)); } catch (e) {} }
       const milestone = streak >= 5 && streak % 5 === 0;
       tone(milestone);
       try { if (navigator.vibrate) navigator.vibrate(milestone ? [20, 40, 20] : 18); } catch (e) {}
@@ -267,13 +273,13 @@ body.qz-open { overflow: hidden; }
         const cols = ['var(--qz-good)', 'var(--qz-mid)', 'var(--accent, #3b6ea5)', 'var(--qz-bad)'];
         for (let i = 0; i < 22; i++) { const a = (i / 22) * Math.PI * 2, d = 70 + Math.random() * 60; burst += `<i style="background:${cols[i % 4]};--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--r:${Math.random() * 540 - 270}deg"></i>`; }
       }
-      pop.innerHTML = `${burst}<div class="fc-ring"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div class="fc-txt">${word}${streak >= 3 ? `<small>連對 ${streak} 題${streak >= 5 ? ' 🔥' : ''}</small>` : ''}</div>`;
+      pop.innerHTML = `${burst}<div class="fc-ring"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div class="fc-txt">${word}${streak >= 3 ? `<small>連對 ${streak} 題${streak >= 5 ? ' 🔥' : ''}</small><small class="fc-best">${record ? '🏆 新紀錄！' : `最高紀錄 ${best0} 題`}</small>` : ''}</div>`;
       document.body.appendChild(pop);
       const p = pop;
       timer = setTimeout(() => { p.classList.add('out'); setTimeout(() => p.remove(), 320); if (pop === p) pop = null; }, milestone ? 1300 : 850);
     }
     function miss() { streak = 0; }
-    return { hit, miss, get streak() { return streak; }, _pcm: PCM };
+    return { hit, miss, get streak() { return streak; }, get best() { return getBest(); }, _pcm: PCM };
   })();
   const A = (__ADAPTER__)();
   if (!A || !A.items || !A.items.length) return;

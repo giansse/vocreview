@@ -1732,9 +1732,10 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
   function famElapsed(t0) { return (!t0 || famAway) ? 0 : Date.now() - t0; }
   function slowFactor(ms, kind) {
     const r = FAM_CAL[kind] || TIME_RULE[kind] || TIME_RULE.quick;
-    if (!ms || ms <= r.fast || ms >= r.cap) return 0;
+    if (!ms || ms >= r.cap) return 0.5;                                           // 不知道花多久（中途切走、放著沒動）：當作中等，不再算成「秒答」
+    if (ms <= r.fast) return 0;
     if (ms <= r.slow) return Math.log(ms / r.fast) / Math.log(r.slow / r.fast);   // 越慢越不熟，但增幅遞減
-    return 1 - (ms - r.slow) / (r.cap - r.slow);                                  // 太久可能沒在作答：影響逐漸變小，到 cap 歸零
+    return 1;                                                                     // 比 slow 還久：就是答得慢（以前這段會越久分數越高，是 bug）
   }
   // 答對的「得分」：很快答對＝1，很慢才答對最低 0.7（時間只是小幅參考，答對與否才是主要依據）
   const creditFor = (ms, kind) => 1 - 0.3 * slowFactor(ms, kind);
@@ -2627,6 +2628,7 @@ function famWireBackup() {
           <div class="fa-tile"><b>${log.length}</b><span>總作答題數（近 7 天 ${week.length}）</span></div>
           <div class="fa-tile"><b>${pct(okCount, log.length)}</b><span>整體正確率</span></div>
           <div class="fa-tile"><b>${streak} 天</b><span>連續練習天數（共 ${days.size} 天有練）</span></div>
+        <div class="fa-tile"><b>${window.famCheer ? famCheer.best : 0} 題</b><span>最高連續答對（現在連對 ${window.famCheer ? famCheer.streak : 0} 題）</span></div>
           <div class="fa-tile"><b>${sec(median(quickMs))}</b><span>選擇題答對的中位時間</span></div>
           <div class="fa-tile"><b>${sec(median(typeMs))}</b><span>拼字／填空答對的中位時間</span></div>
         </div>
@@ -2931,6 +2933,7 @@ body.qz-open { overflow: hidden; }
 .fc-pop .fc-ring svg { width: 42px; height: 42px; stroke: currentColor; stroke-width: 3.4; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 40; animation: fcDraw .32s .12s ease-out forwards; }
 .fc-pop .fc-txt { font-weight: 800; font-size: 1.05rem; color: var(--qz-good); background: var(--surface, #fff); border: 1px solid var(--qz-good); padding: 4px 14px; border-radius: 999px; box-shadow: 0 6px 18px -8px rgba(0,0,0,.3); white-space: nowrap; animation: fcUp .35s .08s ease-out both; }
 .fc-pop .fc-txt small { font-weight: 700; color: var(--qz-mid); margin-left: 6px; font-size: 0.85rem; }
+.fc-pop .fc-txt small.fc-best { display: block; margin: 1px 0 0; text-align: center; font-size: 0.72rem; font-weight: 600; color: var(--ink-faint, #888); }
 .fc-pop.out { animation: fcOut .3s ease-in forwards; }
 .fc-pop i { position: absolute; left: 50%; top: 38px; width: 8px; height: 8px; border-radius: 2px; animation: fcBurst .9s ease-out forwards; }
 .fc-hit { animation: fcPulse .55s ease-out; position: relative; z-index: 1; }
@@ -2997,6 +3000,9 @@ body.qz-open { overflow: hidden; }
   /* ---------- 答對回饋：打勾動畫＋提示音＋連對計數（三種測驗與 Quizlet 式共用） ---------- */
   if (!window.famCheer) window.famCheer = (function () {
     let streak = 0, pop = null, timer = 0, ac = null;
+    // 最高連對紀錄：存在這台裝置（qz.<app>.best，會跟著備份）；三種測驗和 Quizlet 式共用同一個連對數
+    const bestKey = () => 'qz.' + (typeof FAM_BK !== 'undefined' && FAM_BK.app ? FAM_BK.app : 'app') + '.best';
+    const getBest = () => { try { return Math.max(0, parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0); } catch (e) { return 0; } };
     const PRAISE = ['答對了！', '漂亮！', '正確！', 'Nice!', '好棒！', '沒錯！'];
     // 馬林巴木琴：用程式合成，走 Web Audio 當「網站音效」播放——不會中斷 Spotify 等正在播的音樂
     const SR = 44100;
@@ -3043,6 +3049,8 @@ body.qz-open { overflow: hidden; }
     ['touchend', 'pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, function once() { document.removeEventListener(ev, once, true); warm(); }, true));
     function hit(target) {
       streak++;
+      const best0 = getBest(), record = streak > best0;
+      if (record) { try { localStorage.setItem(bestKey(), String(streak)); } catch (e) {} }
       const milestone = streak >= 5 && streak % 5 === 0;
       tone(milestone);
       try { if (navigator.vibrate) navigator.vibrate(milestone ? [20, 40, 20] : 18); } catch (e) {}
@@ -3064,13 +3072,13 @@ body.qz-open { overflow: hidden; }
         const cols = ['var(--qz-good)', 'var(--qz-mid)', 'var(--accent, #3b6ea5)', 'var(--qz-bad)'];
         for (let i = 0; i < 22; i++) { const a = (i / 22) * Math.PI * 2, d = 70 + Math.random() * 60; burst += `<i style="background:${cols[i % 4]};--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--r:${Math.random() * 540 - 270}deg"></i>`; }
       }
-      pop.innerHTML = `${burst}<div class="fc-ring"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div class="fc-txt">${word}${streak >= 3 ? `<small>連對 ${streak} 題${streak >= 5 ? ' 🔥' : ''}</small>` : ''}</div>`;
+      pop.innerHTML = `${burst}<div class="fc-ring"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div class="fc-txt">${word}${streak >= 3 ? `<small>連對 ${streak} 題${streak >= 5 ? ' 🔥' : ''}</small><small class="fc-best">${record ? '🏆 新紀錄！' : `最高紀錄 ${best0} 題`}</small>` : ''}</div>`;
       document.body.appendChild(pop);
       const p = pop;
       timer = setTimeout(() => { p.classList.add('out'); setTimeout(() => p.remove(), 320); if (pop === p) pop = null; }, milestone ? 1300 : 850);
     }
     function miss() { streak = 0; }
-    return { hit, miss, get streak() { return streak; }, _pcm: PCM };
+    return { hit, miss, get streak() { return streak; }, get best() { return getBest(); }, _pcm: PCM };
   })();
   const A = (function () {
   const el = document.getElementById('vocab-data'); if (!el) return null;
