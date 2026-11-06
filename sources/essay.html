@@ -1638,7 +1638,7 @@ function famScore(st) {
   if (!st || (!st.c && !st.w)) return null;               // 沒練過
   const acc = ((st.c || 0) + 1) / ((st.c || 0) + (st.w || 0) + 2);
   const streak = Math.max(0, st.s || 0);
-  let v = acc * (1 - Math.pow(0.55, streak + (st.w ? 0 : 1)));
+  let v = acc * (1 - Math.pow(0.55, streak + Math.max(0, 1 - (st.w || 0))));   // 從沒錯過有加成；學習模式／單字卡的「半次錯」只扣一半，不會一次歸零
   const halfLife = Math.min(21, Math.pow(2, streak));      // 天：連續答對越多，忘得越慢
   const days = st.t ? (Date.now() - st.t) / 864e5 : 0;
   v *= Math.pow(0.5, days / halfLife);
@@ -1678,7 +1678,7 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
     if (!evs || !evs.length) return st || learnPrior(lv, lt);
     const base = st ? st.t || 0 : 0;
     const r = st ? { c: st.c || 0, w: st.w || 0, s: st.s || 0, t: st.t || 0 } : { c: 0, w: 0, s: 0, t: 0, prior: 1 };
-    evs.forEach(([t, x]) => { if (t <= base) return; if (x > 0) { r.c += x; r.s += x; } else { r.w += 0.5; r.s *= 0.5; } r.t = Math.max(r.t, t); });
+    evs.forEach(([t, x]) => { if (t <= base) return; if (x > 0) { r.c += x; r.s += x; } else { r.w += 0.5 * Math.min(1, Math.abs(x) || 1); r.s *= 0.5; } r.t = Math.max(r.t, t); });
     return r;
   }
   // 學習模式的紀錄以「單字|中文」為鍵，這裡換成以單字查
@@ -1708,7 +1708,7 @@ const famLine = b => `熟練度：<span style="color:var(--qz-bad);font-weight:7
     if (!L) return f;
     const seen = p && p.seen, base = Math.max(seen ? p.lastSeen || 0 : 0, (p && p.lft) || 0);   // lft：學習紀錄已併到哪個時間
     if (!seen && !(p && p.lft) && (!L.ev || !L.ev.length)) { const pr = learnPrior(L.lv, L.t); if (pr) { f.lc += pr.c; f.ls += pr.s; } return f; }
-    (L.ev || []).forEach(([t, x]) => { if (t <= base) return; if (x > 0) { f.lc += x; f.ls += x; } else { f.lw += 0.5; f.ls *= 0.5; } });
+    (L.ev || []).forEach(([t, x]) => { if (t <= base) return; if (x > 0) { f.lc += x; f.ls += x; } else { f.lw += 0.5 * Math.min(1, Math.abs(x) || 1); f.ls *= 0.5; } });
     return f;
   }
   // 學習模式／單字卡每次作答，馬上併進進度（lc／lw／ls，lft＝併到哪個時間），不會因為學習紀錄只留最後 12 筆而停住
@@ -3306,7 +3306,7 @@ body.qz-open { overflow: hidden; }
     F.hist.push({ i: F.i, id, wasKnown: known.has(id) });
     if (ok) { known.add(id); F.know.push(id); } else { known.delete(id); F.still.push(id); }
     st.k = [...known]; save();
-    learnEvent(id, ok ? 0.4 : -1);   // 單字卡也算熟悉度：自己翻牌說「會了」沒有驗證，算 0.4（選擇題 0.5、拼字 0.8）；「還在學」算半次錯
+    learnEvent(id, ok ? 0.4 : -0.6);   // 單字卡也算熟悉度：自己翻牌說「會了」沒有驗證，算 0.4（選擇題 0.5、拼字 0.8）；「還在學」只是還沒記住，算 0.3 次錯（學習模式答錯是 0.5 次）
     F.i++; F.flipped = false; renderFlash(ok ? 'k' : 's');
   }
   function flashUndo() {

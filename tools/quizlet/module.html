@@ -468,7 +468,7 @@ body.qz-open { overflow: hidden; }
     F.hist.push({ i: F.i, id, wasKnown: known.has(id) });
     if (ok) { known.add(id); F.know.push(id); } else { known.delete(id); F.still.push(id); }
     st.k = [...known]; save();
-    learnEvent(id, ok ? 0.4 : -1);   // 單字卡也算熟悉度：自己翻牌說「會了」沒有驗證，算 0.4（選擇題 0.5、拼字 0.8）；「還在學」算半次錯
+    learnEvent(id, ok ? 0.4 : -0.6);   // 單字卡也算熟悉度：自己翻牌說「會了」沒有驗證，算 0.4（選擇題 0.5、拼字 0.8）；「還在學」只是還沒記住，算 0.3 次錯（學習模式答錯是 0.5 次）
     F.i++; F.flipped = false; renderFlash(ok ? 'k' : 's');
   }
   function flashUndo() {

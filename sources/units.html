@@ -312,7 +312,7 @@ function famScore(st) {
   if (!st || (!st.c && !st.w)) return null;               // 沒練過
   const acc = ((st.c || 0) + 1) / ((st.c || 0) + (st.w || 0) + 2);
   const streak = Math.max(0, st.s || 0);
-  let v = acc * (1 - Math.pow(0.55, streak + (st.w ? 0 : 1)));
+  let v = acc * (1 - Math.pow(0.55, streak + Math.max(0, 1 - (st.w || 0))));   // 從沒錯過有加成；學習模式／單字卡的「半次錯」只扣一半，不會一次歸零
   const halfLife = famH(st);                               // 記憶半衰期（天）：見下面 famUpdate
   const days = st.t ? (Date.now() - st.t) / 864e5 : 0;
   v *= Math.pow(0.5, days / halfLife);
@@ -328,8 +328,8 @@ function famUpdate(st, ok, cr, now, soft) {
     const sp = st.t ? Math.min(1, 0.25 + 0.75 * gap / Math.max(0.33, h * 0.5)) : 1;
     st.h = Math.min(FAM_HMAX, st.t ? h * (1 + 1.5 * cr * sp) : 2 * cr);
     st.c = (st.c || 0) + cr;
-    st.s = (st.s || 0) + cr * (st.t ? Math.min(1, 0.25 + 0.75 * gap / 0.33) : 1);   // 連對：隔 8 小時以上才算滿一次
-  } else if (soft) { st.h = Math.max(0.5, h * 0.7); st.w = (st.w || 0) + 0.5; st.s = (st.s || 0) * 0.5; }   // 學習模式答錯：比較輕
+    st.s = (st.s || 0) + cr * (st.t ? Math.min(1, 0.5 + 0.5 * gap / 0.33) : 1);   // 連對：隔太近只算一半，隔 8 小時以上才算滿一次
+  } else if (soft) { st.h = Math.max(0.5, h * 0.7); st.w = (st.w || 0) + 0.5 * Math.min(1, Math.abs(cr) || 1); st.s = (st.s || 0) * 0.5; }   // 學習模式答錯：比較輕
   else { st.h = Math.max(0.5, h * 0.5); st.w = (st.w || 0) + 1; st.s = 0; }
   st.t = Math.max(st.t || 0, now);
   return st;
@@ -530,7 +530,7 @@ function learnPrior(level, t) {
   if (level === 1) return { c: 0.6, w: 0, s: 0.6, t: t || 0, prior: 1 };
   return null;
 }
-// 學習模式（Quizlet 式）每次作答都算進熟悉度：選擇題答對 +0.5、拼字答對 +0.8；答錯算半次錯、連對打五折、半衰期 ×0.7
+// 學習模式（Quizlet 式）每次作答都算進熟悉度：選擇題答對 +0.5、拼字答對 +0.8、單字卡「會了」+0.4；答錯算半次錯、單字卡「還在學」算 0.3 次錯；連對打五折、半衰期 ×0.7
 // st：測驗模式的紀錄（可能沒有）；evs：學習模式作答 [[時間, 分數]]；只採計 st 最後一次作答之後的學習紀錄（之前的已併入）
 function learnMerge(st, evs, lv, lt) {
   if (!evs || !evs.length) return st || learnPrior(lv, lt);
@@ -1784,7 +1784,7 @@ body.qz-open { overflow: hidden; }
     F.hist.push({ i: F.i, id, wasKnown: known.has(id) });
     if (ok) { known.add(id); F.know.push(id); } else { known.delete(id); F.still.push(id); }
     st.k = [...known]; save();
-    learnEvent(id, ok ? 0.4 : -1);   // 單字卡也算熟悉度：自己翻牌說「會了」沒有驗證，算 0.4（選擇題 0.5、拼字 0.8）；「還在學」算半次錯
+    learnEvent(id, ok ? 0.4 : -0.6);   // 單字卡也算熟悉度：自己翻牌說「會了」沒有驗證，算 0.4（選擇題 0.5、拼字 0.8）；「還在學」只是還沒記住，算 0.3 次錯（學習模式答錯是 0.5 次）
     F.i++; F.flipped = false; renderFlash(ok ? 'k' : 's');
   }
   function flashUndo() {
