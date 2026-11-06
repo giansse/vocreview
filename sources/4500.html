@@ -1990,6 +1990,19 @@ function learnMerge(st, evs, lv, lt) {
 const statOf = e => { const k = wkey(e), q = learnStore(); return learnMerge(stats[k] || null, q.ev && q.ev[k], q.m && q.m[k], q.mt && q.mt[k]); };
 // 記錄測驗作答前，先把之前的學習模式紀錄併進來（之後就不會重複算）
 const learnFold = k => { const r = statOf({ w: k.split('|')[0], zh: k.slice(k.indexOf('|') + 1) }); return r ? { c: r.c || 0, w: r.w || 0, s: r.s || 0, t: r.t || 0, h: r.h } : { c: 0, w: 0, s: 0, t: 0 }; };
+
+// 學習模式／單字卡每次作答，馬上併進這裡的熟悉度紀錄（之後就以這裡為準，不會因為學習紀錄只留最後 12 筆而停住）
+const _lhPrev = new Map();
+window.famLearnHook = (id, x) => {
+  _lhPrev.set(id, stats[id] ? Object.assign({}, stats[id]) : null);
+  _lq = null; stats[id] = learnFold(id); saveStats();
+};
+window.famLearnUndo = id => {
+  if (!_lhPrev.has(id)) return;
+  const prev = _lhPrev.get(id); _lhPrev.delete(id);
+  if (prev) stats[id] = prev; else delete stats[id];
+  saveStats(); _lq = null;
+};
 /* ---------- 作答時間：答得慢的字算「比較不熟」 ---------- */
 // fast 以內不扣分；fast→slow 依對數變慢＝越不熟；slow→cap 影響逐漸減小；超過 cap 或中途切走頁面就當作沒在作答，不計時間
 const TIME_RULE = {
@@ -3166,12 +3179,14 @@ body.qz-open { overflow: hidden; }
     F.hist.push({ i: F.i, id, wasKnown: known.has(id) });
     if (ok) { known.add(id); F.know.push(id); } else { known.delete(id); F.still.push(id); }
     st.k = [...known]; save();
+    learnEvent(id, ok ? 0.4 : -1);   // 單字卡也算熟悉度：自己翻牌說「會了」沒有驗證，算 0.4（選擇題 0.5、拼字 0.8）；「還在學」算半次錯
     F.i++; F.flipped = false; renderFlash(ok ? 'k' : 's');
   }
   function flashUndo() {
     const h = F.hist.pop(); if (!h) return;
     if (h.wasKnown) known.add(h.id); else known.delete(h.id);
     st.k = [...known]; save();
+    learnUndo(h.id);
     F.still = F.still.filter(x => x !== h.id); F.know = F.know.filter(x => x !== h.id);
     F.i = h.i; F.flipped = false; renderFlash();
   }
@@ -3288,9 +3303,16 @@ body.qz-open { overflow: hidden; }
   }
   function setLvl(id, v) { st.m[id] = v; st.mt = st.mt || {}; st.mt[id] = Date.now(); save(); }
   // 每次學習模式的作答都記下來，讓原本測驗模式的熟悉度也跟著調整：選擇題答對 +0.5、拼字答對 +0.8、答錯記 -1（各字最多留 12 筆）
+  // 存完之後馬上交給 app 併進它自己的熟悉度紀錄（window.famLearnHook），之後就不靠這 12 筆：以前只看最後 12 筆，學超過幾輪熟悉度就不再增加
   function learnEvent(id, credit) {
     st.ev = st.ev || {}; const a = st.ev[id] = st.ev[id] || [];
     a.push([Date.now(), credit]); if (a.length > 12) a.splice(0, a.length - 12); save();
+    try { if (window.famLearnHook) window.famLearnHook(id, credit); } catch (e) {}
+  }
+  // 收回這個字最後一筆學習紀錄（「我答對了」改判、單字卡按「回到上一張」）
+  function learnUndo(id) {
+    const a = st.ev && st.ev[id]; if (a && a.length) { a.pop(); save(); }
+    try { if (window.famLearnUndo) window.famLearnUndo(id); } catch (e) {}
   }
   function overall() { return counts(poolItems()); }
   function renderLearn() {
@@ -3346,7 +3368,7 @@ body.qz-open { overflow: hidden; }
       const k = $('#qzIdk'); if (k) k.onclick = () => answerWrite('');
     }
     const n = $('#qzNext'); if (n) { n.onclick = () => nextQ(); if (!f || L.state !== 'retype') n.focus(); }
-    const o = $('#qzOverride'); if (o) o.onclick = () => { const e = st.ev && st.ev[L.cur]; if (e && e.length && e[e.length - 1][1] < 0) e.pop(); setLvl(L.cur, 2); learnEvent(L.cur, 0.8); nextQ(); };
+    const o = $('#qzOverride'); if (o) o.onclick = () => { const e = st.ev && st.ev[L.cur]; if (e && e.length && e[e.length - 1][1] < 0) learnUndo(L.cur); setLvl(L.cur, 2); learnEvent(L.cur, 0.8); nextQ(); };
   }
   function answerMC(k) {
     const it = BY.get(L.cur);
