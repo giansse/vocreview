@@ -530,7 +530,7 @@ function learnPrior(level, t) {
   if (level === 1) return { c: 0.6, w: 0, s: 0.6, t: t || 0, prior: 1 };
   return null;
 }
-// 學習模式（Quizlet 式）每次作答都算進熟悉度：選擇題答對 +0.5、拼字答對 +0.8、單字卡「會了」+0.4；答錯算半次錯、單字卡「還在學」算 0.3 次錯；連對打五折、半衰期 ×0.7
+// 學習模式（Quizlet 式）每次作答都算進熟悉度：選擇題答對 +0.5、拼字答對 +0.8、單字卡「會了」+0.4；答錯算 0.2 次錯、單字卡「還在學」算 0.3 次錯；連對打五折、半衰期 ×0.7
 // st：測驗模式的紀錄（可能沒有）；evs：學習模式作答 [[時間, 分數]]；只採計 st 最後一次作答之後的學習紀錄（之前的已併入）
 function learnMerge(st, evs, lv, lt) {
   if (!evs || !evs.length) return st || learnPrior(lv, lt);
@@ -1867,9 +1867,11 @@ body.qz-open { overflow: hidden; }
     L = { items: pick, phase: 'mc', queue: [], qDone: 0, qTotal: 0, cur: null, state: 'ask', hint: 0 };
     startPhase('mc');
   }
+  let lastAsked = null;   // 上一題的字：換關卡（選擇題→拼字、這一回合→下一回合）時，盡量不要一開始就又考同一個字
   function startPhase(ph) {
     L.phase = ph;
     L.queue = shuffle(L.items.filter(id => ph === 'mc' ? lvl(id) === 0 : lvl(id) === 1));
+    if (L.queue.length > 1 && L.queue[0] === lastAsked) { const j = 1 + Math.floor(Math.random() * (L.queue.length - 1)); [L.queue[0], L.queue[j]] = [L.queue[j], L.queue[0]]; }
     L.qDone = 0; L.qTotal = L.queue.length;
     if (!L.queue.length) { if (ph === 'mc') return startPhase('write'); return renderRoundEnd(); }
     nextQ(true);
@@ -1877,7 +1879,7 @@ body.qz-open { overflow: hidden; }
   function nextQ(first) {
     if (!first) L.qDone++;
     if (!L.queue.length) { if (L.phase === 'mc') return startPhase('write'); return renderRoundEnd(); }
-    L.cur = L.queue.shift(); L.state = 'ask'; L.hint = 0; L.choice = null; L.peek = null; L.typed = ''; L.given = '';
+    L.cur = lastAsked = L.queue.shift(); L.state = 'ask'; L.hint = 0; L.choice = null; L.peek = null; L.typed = ''; L.given = '';
     const it = BY.get(L.cur);
     rollEx(it);
     L.kind = L.phase === 'mc' ? 'mc' : 'write';
@@ -1982,7 +1984,7 @@ body.qz-open { overflow: hidden; }
       L.state = 'ok'; setLvl(it.id, Math.max(lvl(it.id), 1)); learnEvent(it.id, 0.5);
       renderLearn(); famCheer.hit(root.querySelector('.qz-choice.ok')); setTimeout(() => say(it.term), 700);
     } else {
-      L.state = 'no'; learnEvent(it.id, -1); renderLearn(); famCheer.miss();
+      L.state = 'no'; learnEvent(it.id, -0.4); renderLearn(); famCheer.miss();   // 學習模式答錯算 0.2 次錯：錯一次再學會，跟一次就對的差距不會太大
     }
   }
   function answerWrite(v) {
@@ -1991,7 +1993,7 @@ body.qz-open { overflow: hidden; }
     if (L.typed && isRight(it, L.typed)) {
       L.state = 'ok'; setLvl(it.id, 2); learnEvent(it.id, 0.8); renderLearn(); famCheer.hit(root.querySelector('#qzIn')); setTimeout(() => say(it.term), 700);
     } else {
-      famCheer.miss(); learnEvent(it.id, -1); L.state = 'retype'; L.given = L.typed; L.typed = ''; renderLearn();
+      famCheer.miss(); learnEvent(it.id, -0.4); L.state = 'retype'; L.given = L.typed; L.typed = ''; renderLearn();
     }
   }
   function retype(v) {
